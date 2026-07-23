@@ -1,4 +1,5 @@
-"""FastAPI application composition (factory, lifespan, root router).
+"""FastAPI application composition (factory, lifespan, root router)."""
 
-Created empty in Bootstrap Pack 1; filled in Bootstrap Pack 2.
-"""
+from wealthos.app.application import create_application
+
+__all__ = ["create_application"]
