@@ -4,5 +4,6 @@ Register HTTP-exposed modules explicitly in MODULES, then call register_modules(
 """
 
 MODULES: list[str] = [
+    "identity",
     "organizations",
 ]

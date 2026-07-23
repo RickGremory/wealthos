@@ -7,7 +7,11 @@ from wealthos.core.database import Base
 from wealthos.core.settings import get_settings
 
 # Import module models so they register on Base.metadata for autogenerate.
-from wealthos.modules.organizations.infrastructure.models import OrganizationModel  # noqa: F401
+from wealthos.modules.identity.infrastructure.models import UserModel  # noqa: F401
+from wealthos.modules.organizations.infrastructure.models import (  # noqa: F401
+    OrganizationMembershipModel,
+    OrganizationModel,
+)
 
 config = context.config
 
