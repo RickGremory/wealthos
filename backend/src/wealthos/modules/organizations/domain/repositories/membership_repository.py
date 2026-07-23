@@ -25,6 +25,19 @@ class OrganizationMemberView:
     created_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class UserOrganizationView:
+    """Read projection for organizations accessible by a user."""
+
+    id: UUID
+    name: str
+    slug: str
+    currency: str
+    timezone: str
+    locale: str
+    role: str
+
+
 class MembershipRepository(Protocol):
     """Domain-facing membership repository."""
 
@@ -42,4 +55,8 @@ class MembershipRepository(Protocol):
 
     def list_by_organization(self, organization_id: UUID) -> list[OrganizationMemberView]:
         """List members with user projection fields."""
+        ...
+
+    def list_organizations_for_user(self, user_id: UUID) -> list[UserOrganizationView]:
+        """List active organizations for a user (memberships JOIN organizations)."""
         ...

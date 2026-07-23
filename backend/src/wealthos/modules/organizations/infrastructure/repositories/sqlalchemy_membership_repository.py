@@ -13,12 +13,16 @@ from wealthos.modules.organizations.domain.entities.organization_membership impo
 )
 from wealthos.modules.organizations.domain.repositories.membership_repository import (
     OrganizationMemberView,
+    UserOrganizationView,
 )
 from wealthos.modules.organizations.infrastructure.mappers.membership_mapper import (
     MembershipMapper,
 )
 from wealthos.modules.organizations.infrastructure.models.organization_membership_model import (
     OrganizationMembershipModel,
+)
+from wealthos.modules.organizations.infrastructure.models.organization_model import (
+    OrganizationModel,
 )
 from wealthos.shared.base import BaseRepository
 
@@ -80,6 +84,42 @@ class SqlAlchemyMembershipRepository(BaseRepository[OrganizationMembershipModel]
                 role=row.role,
                 status=row.status,
                 created_at=row.created_at,
+            )
+            for row in rows
+        ]
+
+    def list_organizations_for_user(self, user_id: UUID) -> list[UserOrganizationView]:
+        stmt = (
+            select(
+                OrganizationModel.id,
+                OrganizationModel.name,
+                OrganizationModel.slug,
+                OrganizationModel.currency,
+                OrganizationModel.timezone,
+                OrganizationModel.locale,
+                OrganizationMembershipModel.role,
+            )
+            .join(
+                OrganizationMembershipModel,
+                OrganizationMembershipModel.organization_id == OrganizationModel.id,
+            )
+            .where(
+                OrganizationMembershipModel.user_id == user_id,
+                OrganizationMembershipModel.status == "active",
+                OrganizationModel.deleted_at.is_(None),
+            )
+            .order_by(OrganizationMembershipModel.created_at.asc())
+        )
+        rows = self.session.execute(stmt).all()
+        return [
+            UserOrganizationView(
+                id=row.id,
+                name=row.name,
+                slug=row.slug,
+                currency=row.currency,
+                timezone=row.timezone,
+                locale=row.locale,
+                role=row.role,
             )
             for row in rows
         ]

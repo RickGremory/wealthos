@@ -1,6 +1,7 @@
 from wealthos.modules.organizations.domain.repositories.membership_repository import (
     MembershipRepository,
     OrganizationMemberView,
+    UserOrganizationView,
 )
 from wealthos.modules.organizations.domain.repositories.organization_repository import (
     OrganizationRepository,
@@ -10,4 +11,5 @@ __all__ = [
     "MembershipRepository",
     "OrganizationMemberView",
     "OrganizationRepository",
+    "UserOrganizationView",
 ]
