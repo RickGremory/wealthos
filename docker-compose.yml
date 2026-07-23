@@ -1,9 +1,75 @@
 services:
-  # Placeholder — add services as the stack is defined.
-  # Example:
-  # api:
-  #   build: ./backend
-  #   ports:
-  #     - "8000:8000"
-  #   env_file:
-  #     - .env
+  postgres:
+    image: postgres:17-alpine
+    container_name: wealthos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wealthos}
+      POSTGRES_USER: ${POSTGRES_USER:-wealthos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wealthos}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - wealthos
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wealthos} -d ${POSTGRES_DB:-wealthos}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:8-alpine
+    container_name: wealthos-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - wealthos
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: wealthos-mailpit
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    networks:
+      - wealthos
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: wealthos-pgadmin
+    restart: unless-stopped
+    profiles: ["tools"]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@wealthos.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wealthos
+
+networks:
+  wealthos:
+    name: wealthos-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: wealthos-postgres-data
+  redis_data:
+    name: wealthos-redis-data
