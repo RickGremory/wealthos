@@ -59,4 +59,4 @@ known-first-party = ["wealthos"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-testpaths = ["tests"]
+testpaths = ["tests", "src/wealthos/modules"]
