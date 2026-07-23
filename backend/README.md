@@ -1,21 +1,34 @@
 # WealthOS backend
 
-Financial Operating System for Independent Professionals — API (FastAPI).
-
-## Status
-
-Bootstrap in progress ([SPEC-001](../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md)).
+Personal Finance Operating System for Independent Professionals — API.
 
 ## Requirements
 
 - Python >= 3.13
 - [uv](https://docs.astral.sh/uv/)
 
-## Quick start (as we complete Milestone 1)
+## Setup
 
 ```bash
 cd backend
 uv sync
 ```
 
-More commands land as Docker, settings, and the health endpoint are added.
+## Verify
+
+```bash
+uv run python --version
+uv run python -c "import fastapi, sqlalchemy, pydantic; print('WealthOS Bootstrap Ready')"
+```
+
+## Layout
+
+```
+src/wealthos/
+  app/       # FastAPI composition (Pack 2)
+  core/      # settings, db, logging
+  shared/    # thin cross-cutting helpers
+  modules/   # domains — added when needed (YAGNI)
+```
+
+Bootstrap Pack 1 establishes tooling and folders only — no HTTP server yet.

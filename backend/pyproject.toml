@@ -1,41 +1,39 @@
 [project]
 name = "wealthos"
 version = "0.1.0"
-description = "WealthOS — Financial Operating System for Independent Professionals"
+description = "Personal Finance Operating System for Independent Professionals."
 readme = "README.md"
 requires-python = ">=3.13"
-license = { text = "MIT" }
 authors = [
     { name = "Ricardo Balam" },
 ]
-keywords = ["saas", "fastapi", "finance", "wealthos"]
+
 dependencies = [
-    "fastapi>=0.115.0",
-    "uvicorn[standard]>=0.32.0",
-    "sqlalchemy[asyncio]>=2.0.36",
-    "alembic>=1.14.0",
-    "pydantic>=2.10.0",
-    "pydantic-settings>=2.6.0",
-    "psycopg[binary,pool]>=3.2.0",
+    "fastapi>=0.116.0",
+    "uvicorn[standard]>=0.35.0",
+    "sqlalchemy>=2.0.41",
+    "alembic>=1.16.4",
+    "psycopg[binary]>=3.2.9",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "python-dotenv>=1.1.1",
+    "structlog>=25.4.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3.0",
-    "pytest-asyncio>=0.24.0",
-    "httpx>=0.28.0",
-    "ruff>=0.8.0",
-    "pre-commit>=4.0.0",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "ruff>=0.12.4",
+    "httpx>=0.28.1",
+    "pre-commit>=4.2.0",
 ]
-
-[project.urls]
-Repository = "https://github.com/RickGremory/wealthos"
-Documentation = "https://github.com/RickGremory/wealthos/tree/main/docs"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+# Required so hatchling installs the src/ layout package.
 [tool.hatch.build.targets.wheel]
 packages = ["src/wealthos"]
 
@@ -43,44 +41,22 @@ packages = ["src/wealthos"]
 default-groups = ["dev"]
 
 [tool.ruff]
+line-length = 100
 target-version = "py313"
-line-length = 88
 src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "UP",  # pyupgrade
-    "SIM", # flake8-simplify
-]
-ignore = [
-    "E501", # line length handled by formatter awareness; keep flexible for docs strings
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
 ]
 
 [tool.ruff.lint.isort]
 known-first-party = ["wealthos"]
 
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "lf"
-
 [tool.pytest.ini_options]
-minversion = "8.0"
-testpaths = ["tests"]
 pythonpath = ["src"]
-asyncio_mode = "auto"
-addopts = [
-    "-ra",
-    "--strict-markers",
-    "--strict-config",
-]
-
-[tool.coverage.run]
-source = ["wealthos"]
-branch = true
+testpaths = ["tests"]
