@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft (ready for review) |
+| **Status** | Accepted (in progress) |
 | **Author** | Ricardo Balam |
 | **Created** | 2026-07-23 |
 | **Parent Epic** | [EPIC-001](../../docs/epics/EPIC-001-backend-bootstrap.md) |
