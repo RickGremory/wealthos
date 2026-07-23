@@ -23,6 +23,16 @@ class Settings(BaseSettings):
 
     redis_url: str = "redis://localhost:6379/0"
 
+    # Auth / JWT
+    auth_jwt_secret: str = Field(
+        default="dev-only-change-me-to-a-long-random-secret",
+        description="HMAC secret for access tokens.",
+    )
+    auth_jwt_algorithm: str = "HS256"
+    auth_access_token_expire_minutes: int = 15
+    auth_jwt_issuer: str = "wealthos-api"
+    auth_jwt_audience: str = "wealthos-web"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
