@@ -32,7 +32,7 @@ class SqlAlchemyOrganizationRepository(BaseRepository[OrganizationModel]):
     def add(self, organization: Organization) -> Organization:
         model = self._mapper.to_model(organization)
         super().add(model)
-        self.commit()
+        self.flush()
         self.refresh(model)
         return self._mapper.to_entity(model)
 

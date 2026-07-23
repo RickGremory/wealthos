@@ -24,7 +24,11 @@ class BaseRepository[ModelT]:
     def delete(self, model: ModelT) -> None:
         self._session.delete(model)
 
+    def flush(self) -> None:
+        self._session.flush()
+
     def commit(self) -> None:
+        """Prefer UnitOfWork.commit() at the application boundary."""
         self._session.commit()
 
     def refresh(self, model: ModelT) -> ModelT:
