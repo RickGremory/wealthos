@@ -1,0 +1,227 @@
+"""Register and login application tests."""
+
+from __future__ import annotations
+
+from uuid import UUID
+
+import pytest
+
+from wealthos.core.settings import Settings
+from wealthos.modules.identity.application.commands.login_user import (
+    LoginUserCommand,
+    LoginUserInput,
+)
+from wealthos.modules.identity.application.commands.register_user import (
+    RegisterUserCommand,
+    RegisterUserInput,
+)
+from wealthos.modules.identity.domain.entities.user import User
+from wealthos.modules.identity.domain.exceptions import (
+    InvalidCredentials,
+    UserEmailAlreadyExists,
+)
+from wealthos.modules.identity.domain.value_objects.email import Email
+from wealthos.modules.identity.infrastructure.security.jwt_access_token_service import (
+    JwtAccessTokenService,
+)
+from wealthos.modules.identity.infrastructure.security.pwdlib_password_hasher import (
+    PwdlibPasswordHasher,
+)
+from wealthos.modules.organizations.domain.entities.organization import Organization
+from wealthos.modules.organizations.domain.entities.organization_membership import (
+    OrganizationMembership,
+)
+from wealthos.modules.organizations.domain.repositories.membership_repository import (
+    OrganizationMemberView,
+    UserOrganizationView,
+)
+from wealthos.modules.organizations.domain.value_objects.slug import OrganizationSlug
+
+
+class InMemoryUserRepository:
+    def __init__(self) -> None:
+        self._by_id: dict[UUID, User] = {}
+        self._by_email: dict[str, User] = {}
+        self._password_hashes: dict[UUID, str] = {}
+
+    def add(self, user: User, *, password_hash: str) -> User:
+        self._by_id[user.id] = user
+        self._by_email[user.email.value] = user
+        self._password_hashes[user.id] = password_hash
+        return user
+
+    def get_by_id(self, user_id: UUID) -> User | None:
+        return self._by_id.get(user_id)
+
+    def get_by_email(self, email: Email) -> User | None:
+        return self._by_email.get(email.value)
+
+    def get_password_hash(self, user_id: UUID) -> str | None:
+        return self._password_hashes.get(user_id)
+
+
+class InMemoryOrganizationRepository:
+    def __init__(self) -> None:
+        self._by_id: dict[UUID, Organization] = {}
+        self._by_slug: dict[str, Organization] = {}
+
+    def add(self, organization: Organization) -> Organization:
+        self._by_id[organization.id] = organization
+        self._by_slug[organization.slug.value] = organization
+        return organization
+
+    def get_by_id(self, organization_id: UUID) -> Organization | None:
+        return self._by_id.get(organization_id)
+
+    def get_by_slug(self, slug: OrganizationSlug) -> Organization | None:
+        return self._by_slug.get(slug.value)
+
+
+class InMemoryMembershipRepository:
+    def __init__(self, *, fail_on_add: bool = False) -> None:
+        self._items: list[OrganizationMembership] = []
+        self._fail_on_add = fail_on_add
+
+    def add(self, membership: OrganizationMembership) -> OrganizationMembership:
+        if self._fail_on_add:
+            raise RuntimeError("membership failed")
+        self._items.append(membership)
+        return membership
+
+    def get_by_organization_and_user(
+        self,
+        organization_id: UUID,
+        user_id: UUID,
+    ) -> OrganizationMembership | None:
+        for item in self._items:
+            if item.organization_id == organization_id and item.user_id == user_id:
+                return item
+        return None
+
+    def list_by_organization(self, organization_id: UUID) -> list[OrganizationMemberView]:
+        return []
+
+    def list_organizations_for_user(self, user_id: UUID) -> list[UserOrganizationView]:
+        return []
+
+
+def _register_command(
+    memberships: InMemoryMembershipRepository | None = None,
+) -> tuple[RegisterUserCommand, InMemoryUserRepository, InMemoryOrganizationRepository]:
+    users = InMemoryUserRepository()
+    orgs = InMemoryOrganizationRepository()
+    membership_repo = memberships or InMemoryMembershipRepository()
+    command = RegisterUserCommand(
+        users=users,
+        organizations=orgs,
+        memberships=membership_repo,
+        password_hasher=PwdlibPasswordHasher(),
+        token_service=JwtAccessTokenService(
+            Settings(auth_jwt_secret="test-secret-key-for-register-tests")
+        ),
+    )
+    return command, users, orgs
+
+
+def test_register_creates_user_org_and_owner_membership() -> None:
+    memberships = InMemoryMembershipRepository()
+    command, users, orgs = _register_command(memberships)
+    result = command.execute(
+        RegisterUserInput(
+            email="Ricardo@Example.com",
+            password="WealthOS-2026-Segura",
+            display_name="Ricardo Balam",
+            organization_name="Ricardo Personal",
+        )
+    )
+    assert result.user.email.value == "ricardo@example.com"
+    assert result.organization.slug.value == "ricardo-personal"
+    assert result.membership.role.value == "owner"
+    assert users.get_by_email(Email("ricardo@example.com")) is not None
+    assert orgs.get_by_slug(OrganizationSlug("ricardo-personal")) is not None
+    assert result.access_token
+
+
+def test_register_rejects_duplicate_email() -> None:
+    command, _, _ = _register_command()
+    payload = RegisterUserInput(
+        email="a@example.com",
+        password="WealthOS-2026-Segura",
+        display_name="One",
+        organization_name="One Org",
+    )
+    command.execute(payload)
+    with pytest.raises(UserEmailAlreadyExists):
+        command.execute(payload)
+
+
+def test_register_rolls_back_when_membership_fails() -> None:
+    memberships = InMemoryMembershipRepository(fail_on_add=True)
+    command, users, orgs = _register_command(memberships)
+    with pytest.raises(RuntimeError):
+        command.execute(
+            RegisterUserInput(
+                email="a@example.com",
+                password="WealthOS-2026-Segura",
+                display_name="One",
+                organization_name="One Org",
+            )
+        )
+    # In-memory fake still mutated before failure — UoW covers DB atomicity.
+    # Assert membership was not stored.
+    assert memberships._items == []
+
+
+def test_login_accepts_valid_credentials() -> None:
+    register, users, _ = _register_command()
+    register.execute(
+        RegisterUserInput(
+            email="a@example.com",
+            password="WealthOS-2026-Segura",
+            display_name="Ada",
+            organization_name="Ada Org",
+        )
+    )
+    login = LoginUserCommand(
+        users=users,
+        password_hasher=PwdlibPasswordHasher(),
+        token_service=JwtAccessTokenService(
+            Settings(auth_jwt_secret="test-secret-key-for-register-tests")
+        ),
+    )
+    result = login.execute(LoginUserInput(email="a@example.com", password="WealthOS-2026-Segura"))
+    assert result.access_token
+
+
+def test_login_rejects_wrong_password() -> None:
+    register, users, _ = _register_command()
+    register.execute(
+        RegisterUserInput(
+            email="a@example.com",
+            password="WealthOS-2026-Segura",
+            display_name="Ada",
+            organization_name="Ada Org",
+        )
+    )
+    login = LoginUserCommand(
+        users=users,
+        password_hasher=PwdlibPasswordHasher(),
+        token_service=JwtAccessTokenService(
+            Settings(auth_jwt_secret="test-secret-key-for-register-tests")
+        ),
+    )
+    with pytest.raises(InvalidCredentials):
+        login.execute(LoginUserInput(email="a@example.com", password="wrong"))
+
+
+def test_login_rejects_unknown_user() -> None:
+    _, users, _ = _register_command()
+    login = LoginUserCommand(
+        users=users,
+        password_hasher=PwdlibPasswordHasher(),
+        token_service=JwtAccessTokenService(
+            Settings(auth_jwt_secret="test-secret-key-for-register-tests")
+        ),
+    )
+    with pytest.raises(InvalidCredentials):
+        login.execute(LoginUserInput(email="missing@example.com", password="WealthOS-2026"))

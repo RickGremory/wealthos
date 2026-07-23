@@ -1,4 +1,4 @@
-"""CreateUser application tests with in-memory repository."""
+"""CreateUser application tests with an in-memory repository."""
 
 from __future__ import annotations
 
@@ -13,16 +13,21 @@ from wealthos.modules.identity.application.commands.create_user import (
 from wealthos.modules.identity.domain.entities.user import User
 from wealthos.modules.identity.domain.exceptions import UserEmailAlreadyExists
 from wealthos.modules.identity.domain.value_objects.email import Email
+from wealthos.modules.identity.infrastructure.security.pwdlib_password_hasher import (
+    PwdlibPasswordHasher,
+)
 
 
 class InMemoryUserRepository:
     def __init__(self) -> None:
         self._by_id: dict[UUID, User] = {}
         self._by_email: dict[str, User] = {}
+        self._password_hashes: dict[UUID, str] = {}
 
-    def add(self, user: User) -> User:
+    def add(self, user: User, *, password_hash: str) -> User:
         self._by_id[user.id] = user
         self._by_email[user.email.value] = user
+        self._password_hashes[user.id] = password_hash
         return user
 
     def get_by_id(self, user_id: UUID) -> User | None:
@@ -31,17 +36,32 @@ class InMemoryUserRepository:
     def get_by_email(self, email: Email) -> User | None:
         return self._by_email.get(email.value)
 
+    def get_password_hash(self, user_id: UUID) -> str | None:
+        return self._password_hashes.get(user_id)
+
 
 def test_create_user() -> None:
-    command = CreateUserCommand(InMemoryUserRepository())
+    command = CreateUserCommand(InMemoryUserRepository(), PwdlibPasswordHasher())
     user = command.execute(
-        CreateUserInput(email="ricardo@example.com", display_name="Ricardo Balam")
+        CreateUserInput(
+            email="ricardo@example.com",
+            display_name="Ricardo Balam",
+            password="WealthOS-2026",
+        )
     )
     assert user.email.value == "ricardo@example.com"
 
 
 def test_create_user_rejects_duplicate_email() -> None:
-    command = CreateUserCommand(InMemoryUserRepository())
-    command.execute(CreateUserInput(email="a@example.com", display_name="One"))
+    command = CreateUserCommand(InMemoryUserRepository(), PwdlibPasswordHasher())
+    command.execute(
+        CreateUserInput(email="a@example.com", display_name="One", password="WealthOS-2026")
+    )
     with pytest.raises(UserEmailAlreadyExists):
-        command.execute(CreateUserInput(email="A@example.com", display_name="Two"))
+        command.execute(
+            CreateUserInput(
+                email="A@example.com",
+                display_name="Two",
+                password="WealthOS-2026",
+            )
+        )

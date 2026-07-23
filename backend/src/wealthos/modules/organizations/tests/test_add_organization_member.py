@@ -48,9 +48,11 @@ class InMemoryOrganizationRepository:
 class InMemoryUserRepository:
     def __init__(self) -> None:
         self._by_id: dict[UUID, User] = {}
+        self._password_hashes: dict[UUID, str] = {}
 
-    def add(self, user: User) -> User:
+    def add(self, user: User, *, password_hash: str = "x") -> User:
         self._by_id[user.id] = user
+        self._password_hashes[user.id] = password_hash
         return user
 
     def get_by_id(self, user_id: UUID) -> User | None:
@@ -61,6 +63,9 @@ class InMemoryUserRepository:
             if user.email == email:
                 return user
         return None
+
+    def get_password_hash(self, user_id: UUID) -> str | None:
+        return self._password_hashes.get(user_id)
 
 
 class InMemoryMembershipRepository:
@@ -82,6 +87,9 @@ class InMemoryMembershipRepository:
         return None
 
     def list_by_organization(self, organization_id: UUID) -> list[OrganizationMemberView]:
+        return []
+
+    def list_organizations_for_user(self, user_id: UUID) -> list:
         return []
 
 

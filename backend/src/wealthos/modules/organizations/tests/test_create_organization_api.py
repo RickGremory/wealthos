@@ -1,4 +1,4 @@
-"""API integration tests for organizations + memberships against PostgreSQL."""
+"""API integration tests for auth + organizations against PostgreSQL."""
 
 from __future__ import annotations
 
@@ -12,8 +12,9 @@ from sqlalchemy import text
 from wealthos.core.database import SessionLocal, engine
 from wealthos.main import app
 
+AUTH = "/api/v1/auth"
+ME = "/api/v1/me"
 ORG_PATH = "/api/v1/organizations"
-USERS_PATH = "/api/v1/identity/users"
 
 
 @pytest.fixture()
@@ -32,121 +33,110 @@ def _cleanup_tables() -> Generator[None]:
         session.commit()
 
 
-def _create_org(client: TestClient, slug: str | None = None) -> dict:
+def _register(
+    client: TestClient,
+    *,
+    email: str | None = None,
+    organization_name: str = "Ricardo Personal",
+) -> dict:
     response = client.post(
-        ORG_PATH,
-        json={
-            "name": "Ricardo Personal",
-            "slug": slug or f"org-{uuid4().hex[:8]}",
-            "currency": "MXN",
-            "timezone": "America/Cancun",
-            "locale": "es-MX",
-        },
-    )
-    assert response.status_code == 201
-    return response.json()
-
-
-def _create_user(client: TestClient, email: str | None = None) -> dict:
-    response = client.post(
-        USERS_PATH,
+        f"{AUTH}/register",
         json={
             "email": email or f"user-{uuid4().hex[:8]}@example.com",
+            "password": "WealthOS-2026-Segura",
             "display_name": "Ricardo Balam",
+            "organization_name": organization_name,
+            "currency": "MXN",
+            "timezone": "America/Cancun",
+            "locale": "es-MX",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == 201, response.text
     return response.json()
 
 
-def test_post_organizations_returns_201_and_body(client: TestClient) -> None:
-    slug = f"ricardo-personal-{uuid4().hex[:8]}"
-    body = _create_org(client, slug=slug)
-    assert body["slug"] == slug
-
-    with SessionLocal() as session:
-        row = session.execute(
-            text("SELECT name, slug FROM organizations WHERE slug = :slug"),
-            {"slug": slug},
-        ).one()
-    assert row.slug == slug
+def _auth_header(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
 
 
-def test_post_organizations_rejects_duplicate_slug(client: TestClient) -> None:
-    slug = f"shared-{uuid4().hex[:8]}"
-    assert _create_org(client, slug=slug)
+def test_register_returns_201_and_token(client: TestClient) -> None:
+    body = _register(client)
+    assert body["token_type"] == "bearer"
+    assert body["access_token"]
+    assert body["expires_in"] == 900
+
+
+def test_login_returns_token(client: TestClient) -> None:
+    email = f"login-{uuid4().hex[:8]}@example.com"
+    _register(client, email=email)
     response = client.post(
-        ORG_PATH,
-        json={
-            "name": "Two",
-            "slug": slug,
-            "currency": "MXN",
-            "timezone": "America/Cancun",
-            "locale": "es-MX",
-        },
+        f"{AUTH}/login",
+        data={"username": email, "password": "WealthOS-2026-Segura"},
     )
-    assert response.status_code == 409
+    assert response.status_code == 200
+    assert response.json()["access_token"]
 
 
-def test_post_organizations_rejects_invalid_slug_shape(client: TestClient) -> None:
-    response = client.post(
-        ORG_PATH,
-        json={
-            "name": "Bad",
-            "slug": "Not Valid",
-            "currency": "MXN",
-            "timezone": "America/Cancun",
-            "locale": "es-MX",
-        },
-    )
-    assert response.status_code == 422
+def test_me_requires_token(client: TestClient) -> None:
+    assert client.get(f"{AUTH}/me").status_code == 401
 
 
-def test_membership_lifecycle_via_api(client: TestClient) -> None:
-    org = _create_org(client)
-    user = _create_user(client)
-
-    add = client.post(
-        f"{ORG_PATH}/{org['id']}/members",
-        json={"user_id": user["id"], "role": "owner"},
-    )
-    assert add.status_code == 201
-    membership = add.json()
-    assert membership["role"] == "owner"
-    assert membership["status"] == "active"
-    assert membership["user_id"] == user["id"]
-
-    listed = client.get(f"{ORG_PATH}/{org['id']}/members")
-    assert listed.status_code == 200
-    payload = listed.json()
-    assert payload["total"] == 1
-    assert payload["items"][0]["email"] == user["email"]
-    assert payload["items"][0]["display_name"] == "Ricardo Balam"
-    assert payload["items"][0]["role"] == "owner"
-
-    duplicate = client.post(
-        f"{ORG_PATH}/{org['id']}/members",
-        json={"user_id": user["id"], "role": "member"},
-    )
-    assert duplicate.status_code == 409
+def test_me_with_token_returns_user(client: TestClient) -> None:
+    email = f"me-{uuid4().hex[:8]}@example.com"
+    token = _register(client, email=email)["access_token"]
+    response = client.get(f"{AUTH}/me", headers=_auth_header(token))
+    assert response.status_code == 200
+    assert response.json()["email"] == email
 
 
-def test_add_member_missing_user_returns_404(client: TestClient) -> None:
-    org = _create_org(client)
-    response = client.post(
-        f"{ORG_PATH}/{org['id']}/members",
-        json={"user_id": str(uuid4()), "role": "member"},
+def test_me_rejects_invalid_token(client: TestClient) -> None:
+    response = client.get(f"{AUTH}/me", headers=_auth_header("not-a-token"))
+    assert response.status_code == 401
+
+
+def test_me_organizations_only_returns_own(client: TestClient) -> None:
+    token_a = _register(client, email=f"a-{uuid4().hex[:8]}@example.com")["access_token"]
+    token_b = _register(
+        client,
+        email=f"b-{uuid4().hex[:8]}@example.com",
+        organization_name="Other Org",
+    )["access_token"]
+
+    orgs_a = client.get(f"{ME}/organizations", headers=_auth_header(token_a)).json()
+    orgs_b = client.get(f"{ME}/organizations", headers=_auth_header(token_b)).json()
+
+    assert orgs_a["total"] == 1
+    assert orgs_b["total"] == 1
+    assert orgs_a["items"][0]["role"] == "owner"
+    assert orgs_a["items"][0]["id"] != orgs_b["items"][0]["id"]
+
+
+def test_member_endpoints_require_membership(client: TestClient) -> None:
+    token_a = _register(client, email=f"a-{uuid4().hex[:8]}@example.com")["access_token"]
+    token_b = _register(
+        client,
+        email=f"b-{uuid4().hex[:8]}@example.com",
+        organization_name="B Org",
+    )["access_token"]
+    org_b = client.get(f"{ME}/organizations", headers=_auth_header(token_b)).json()["items"][0]
+
+    response = client.get(
+        f"{ORG_PATH}/{org_b['id']}/members",
+        headers=_auth_header(token_a),
     )
     assert response.status_code == 404
 
 
-def test_add_member_missing_organization_returns_404(client: TestClient) -> None:
-    user = _create_user(client)
-    response = client.post(
-        f"{ORG_PATH}/{uuid4()}/members",
-        json={"user_id": user["id"], "role": "member"},
+def test_owner_can_list_members(client: TestClient) -> None:
+    token = _register(client)["access_token"]
+    org = client.get(f"{ME}/organizations", headers=_auth_header(token)).json()["items"][0]
+    response = client.get(
+        f"{ORG_PATH}/{org['id']}/members",
+        headers=_auth_header(token),
     )
-    assert response.status_code == 404
+    assert response.status_code == 200
+    assert response.json()["total"] == 1
+    assert response.json()["items"][0]["role"] == "owner"
 
 
 def test_postgres_engine_is_reachable() -> None:
