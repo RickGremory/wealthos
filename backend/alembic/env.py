@@ -6,6 +6,9 @@ from sqlalchemy import engine_from_config, pool
 from wealthos.core.database import Base
 from wealthos.core.settings import get_settings
 
+# Import module models so they register on Base.metadata for autogenerate.
+from wealthos.modules.organizations.infrastructure.models import OrganizationModel  # noqa: F401
+
 config = context.config
 
 if config.config_file_name is not None:
