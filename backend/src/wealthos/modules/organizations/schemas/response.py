@@ -7,12 +7,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from wealthos.modules.organizations.domain.repositories.organization_repository import (
-    OrganizationSnapshot,
-)
+from wealthos.modules.organizations.domain.entities.organization import Organization
 
 
-class OrganizationRead(BaseModel):
+class OrganizationResponse(BaseModel):
     """Public organization representation for OpenAPI responses."""
 
     model_config = ConfigDict(from_attributes=True)
@@ -27,14 +25,14 @@ class OrganizationRead(BaseModel):
     updated_at: datetime
 
     @classmethod
-    def from_snapshot(cls, snapshot: OrganizationSnapshot) -> OrganizationRead:
+    def from_entity(cls, organization: Organization) -> OrganizationResponse:
         return cls(
-            id=snapshot.id,
-            name=snapshot.name,
-            slug=snapshot.slug,
-            currency=snapshot.currency,
-            timezone=snapshot.timezone,
-            locale=snapshot.locale,
-            created_at=snapshot.created_at,
-            updated_at=snapshot.updated_at,
+            id=organization.id,
+            name=organization.name.value,
+            slug=organization.slug.value,
+            currency=organization.currency.value,
+            timezone=organization.timezone.value,
+            locale=organization.locale.value,
+            created_at=organization.created_at,
+            updated_at=organization.updated_at,
         )

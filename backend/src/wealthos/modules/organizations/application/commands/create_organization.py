@@ -8,9 +8,8 @@ from wealthos.modules.organizations.domain.entities.organization import Organiza
 from wealthos.modules.organizations.domain.exceptions import OrganizationSlugAlreadyExists
 from wealthos.modules.organizations.domain.repositories.organization_repository import (
     OrganizationRepository,
-    OrganizationSnapshot,
 )
-from wealthos.modules.organizations.domain.value_objects.slug import Slug
+from wealthos.modules.organizations.domain.value_objects.slug import OrganizationSlug
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,8 +19,8 @@ class CreateOrganizationInput:
     name: str
     slug: str
     currency: str = "MXN"
-    timezone: str = "America/Mexico_City"
-    locale: str = "es_MX"
+    timezone: str = "America/Cancun"
+    locale: str = "es-MX"
 
 
 class CreateOrganizationCommand:
@@ -30,7 +29,7 @@ class CreateOrganizationCommand:
     def __init__(self, repository: OrganizationRepository) -> None:
         self._repository = repository
 
-    def execute(self, data: CreateOrganizationInput) -> OrganizationSnapshot:
+    def execute(self, data: CreateOrganizationInput) -> Organization:
         organization = Organization.create(
             name=data.name,
             slug=data.slug,
@@ -39,7 +38,7 @@ class CreateOrganizationCommand:
             locale=data.locale,
         )
 
-        if self._repository.get_by_slug(Slug(data.slug)) is not None:
+        if self._repository.get_by_slug(OrganizationSlug(data.slug)) is not None:
             raise OrganizationSlugAlreadyExists(
                 f"Organization slug '{data.slug}' is already taken."
             )
