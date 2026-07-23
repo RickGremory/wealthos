@@ -21,8 +21,8 @@ class SqlAlchemyUserRepository(BaseRepository[UserModel]):
         super().__init__(session, UserModel)
         self._mapper = mapper or UserMapper()
 
-    def add(self, user: User) -> User:
-        model = self._mapper.to_model(user)
+    def add(self, user: User, *, password_hash: str) -> User:
+        model = self._mapper.build_model(user, password_hash=password_hash)
         super().add(model)
         self.flush()
         self.refresh(model)
@@ -40,3 +40,9 @@ class SqlAlchemyUserRepository(BaseRepository[UserModel]):
         if model is None:
             return None
         return self._mapper.to_entity(model)
+
+    def get_password_hash(self, user_id: UUID) -> str | None:
+        model = super().get_by_id(user_id)
+        if model is None:
+            return None
+        return model.password_hash

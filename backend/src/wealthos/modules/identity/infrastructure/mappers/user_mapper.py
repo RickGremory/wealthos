@@ -1,4 +1,4 @@
-"""Map User ↔ UserModel."""
+"""Map User ↔ UserModel (password hash stays in persistence)."""
 
 from __future__ import annotations
 
@@ -23,10 +23,14 @@ class UserMapper(BaseMapper[UserModel, User]):
         )
 
     def to_model(self, entity: User) -> UserModel:
+        raise RuntimeError("Use build_model(entity, password_hash=...) for persistence.")
+
+    def build_model(self, entity: User, *, password_hash: str) -> UserModel:
         return UserModel(
             id=entity.id,
             email=entity.email.value,
             display_name=entity.display_name.value,
+            password_hash=password_hash,
             is_active=entity.is_active,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
