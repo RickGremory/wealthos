@@ -1,7 +1,33 @@
 # Specs
 
-Product and implementation specifications.
+Execution plans for WealthOS. A SPEC is the **sprint contract** — open while coding, frozen when Completed.
 
-**Implementation SPECs (canonical):** see [`docs/specs/`](../docs/specs/README.md).
+See [Delivery Workflow](../docs/engineering/11-delivery-workflow.md).
 
-This root folder may hold future product-facing or cross-cutting specs. Prefer `docs/specs/` for backend/frontend build contracts linked to Epics and RFCs.
+## Rules
+
+- Versioned: `SPEC-001`, `SPEC-002`, …
+- Always use the **12-section** template
+- **Never rewrite** a Completed SPEC — open a new one
+- One Commit Plan per SPEC
+
+## Layout
+
+```
+specs/
+├── backend/
+│   ├── bootstrap/
+│   ├── identity/
+│   ├── organizations/
+│   ├── accounts/
+│   ├── transactions/
+│   └── ...
+├── frontend/
+└── infrastructure/
+```
+
+## Index
+
+| SPEC | Title | Area | Status |
+|------|-------|------|--------|
+| [SPEC-001](./backend/bootstrap/SPEC-001-backend-bootstrap.md) | Backend Bootstrap | backend | Draft |

@@ -82,6 +82,8 @@ build(backend): install project dependencies
 
 Usar **módulos de negocio** independientes (ver [ADR-007](../adr/ADR-007-domain-driven-modules.md) y el árbol canónico en [backend-structure.md](../architecture/backend-structure.md)).
 
+**Execution contract:** [SPEC-001](../../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md) (fuente de verdad del sprint; este roadmap es histórico/overview).
+
 **Target (resumen)**
 
 ```

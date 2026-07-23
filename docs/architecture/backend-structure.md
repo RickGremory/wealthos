@@ -2,7 +2,7 @@
 
 Canonical layout for the WealthOS FastAPI modular monolith.
 
-**Related:** [ADR-004](../adr/ADR-004-modular-monolith.md), [ADR-007](../adr/ADR-007-domain-driven-modules.md), [Sprint 1](../roadmap/sprint-1-backend-foundation.md), [SPEC-001](../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md).
+**Related:** [ADR-004](../adr/ADR-004-modular-monolith.md), [ADR-007](../adr/ADR-007-domain-driven-modules.md), [Sprint 1](../roadmap/sprint-1-backend-foundation.md), [SPEC-001](../../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md).
 
 ---
 

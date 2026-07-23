@@ -35,31 +35,12 @@ Become the operating system for personal finance.
 ```
 WealthOS/
 ├── .github/
-│   ├── ISSUE_TEMPLATE/
-│   ├── workflows/
-│   ├── CODEOWNERS
-│   ├── CONTRIBUTING.md
-│   ├── SECURITY.md
-│   └── PULL_REQUEST_TEMPLATE.md
 ├── .ai/
-│   ├── project.md
-│   ├── architecture.md
-│   ├── backend.md
-│   ├── frontend.md
-│   ├── coding-style.md
-│   └── prompts/
-├── docs/
-│   ├── adr/
-│   ├── architecture/
-│   ├── product/
-│   ├── engineering/
-│   ├── roadmap/
-│   ├── api/
-│   ├── database/
-│   └── decisions/
+├── docs/          # strategy: product, adr, rfc, epics, decisions, …
+├── specs/         # execution SPECs (open while coding)
+├── planning/      # backlog, roadmap, milestones, releases
 ├── journal/
 ├── prompts/
-├── specs/
 ├── backend/
 ├── frontend/
 ├── infrastructure/
@@ -72,6 +53,8 @@ WealthOS/
 └── README.md
 ```
 
-See also `docs/architecture/06-project-structure.md`.
+See `docs/architecture/06-project-structure.md` and `docs/engineering/11-delivery-workflow.md`.
 
-**Status:** scaffold only — no application code yet.
+**Next:** accept and execute [SPEC-001](./specs/backend/bootstrap/SPEC-001-backend-bootstrap.md).
+
+**Status:** scaffold + docs — application code starts with SPEC-001.

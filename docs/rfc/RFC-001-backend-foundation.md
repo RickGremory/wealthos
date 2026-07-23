@@ -10,7 +10,7 @@
 
 > **Frozen.** This RFC is the technical contract for Backend Foundation.  
 > Do not expand it with implementation checklists.  
-> Execution continues via [EPIC-001](../epics/EPIC-001-backend-bootstrap.md) and [SPEC-001](../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md).  
+> Execution continues via [EPIC-001](../epics/EPIC-001-backend-bootstrap.md) and [SPEC-001](../../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md).  
 > See [Delivery Workflow](../engineering/11-delivery-workflow.md).
 
 ---

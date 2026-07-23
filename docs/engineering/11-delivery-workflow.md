@@ -2,127 +2,158 @@
 
 How WealthOS turns vision into merged code.
 
-Inspired by **Shape Up** (appetite / betting) and **Scrum** (sprints / review), simplified for a small team — and designed so a future hire can onboard by reading documents, not archaeology.
+We keep strategy documents (Vision → Principles → ADR → RFC), but **day-to-day work is driven by SPECs**.
+
+A SPEC is not “more documentation”. It is the **execution plan** open while we develop — the contract between Architecture and Development.
 
 ---
 
-## Hierarchy
+## Two layers
+
+### Strategy (write rarely, freeze when accepted)
 
 ```
-Vision          → why we exist (docs/product/)
-    ↓
-ADR             → irreversible technical decisions (docs/adr/)
-    ↓
-RFC             → large initiative / technical contract (docs/rfc/)
-    ↓
-Epic            → weeks of related work (docs/epics/)
-    ↓
-SPEC            → exact implementation plan (docs/specs/)
-    ↓
-Sprint / Tasks  → days of execution (checklists inside SPECs)
-    ↓
-Commits → PR → Merge
+Vision → Principles → ADR → RFC → Epic
 ```
 
-| Artifact | Answers | Lifetime | Change policy |
-|----------|---------|----------|---------------|
-| Vision / Principles | Why / what kind of product | Years | Rare, deliberate |
-| ADR | What we decided and why | Permanent (may supersede) | New ADR if reversed |
-| RFC | What we want to build (initiative) | Months | **Freeze when Accepted** |
-| Epic | Chunk of the RFC by outcome | Weeks | Update status / links |
-| SPEC | Exactly how we build a slice | Days–weeks | Checklist ticks; amend only if blocked |
-| Sprint | What we execute now | Days | Operational |
+### Execution (write before coding, tick while coding)
+
+```
+SPEC → Commits → Tests → PR → Merge → Close SPEC
+```
+
+| Artifact | Answers | Mutable after close? |
+|----------|---------|----------------------|
+| Vision / Principles | Why / product shape | Rarely |
+| ADR | Hard technical decisions | Only via superseding ADR |
+| RFC | Large initiative contract | **No** once Accepted |
+| Epic | Weeks of related outcome | Status only |
+| **SPEC** | Exactly what we build this sprint | **No** once Completed — open a new SPEC |
+| Product `decisions/` | Small strategic “why” notes | Append-only dated files |
+| `planning/` | Backlog, roadmap, releases | Living |
 
 ---
 
-## Roles of each document
+## What a SPEC must answer
 
-### RFC — technical contract
+1. What are we building?
+2. Which files will we create?
+3. Which technologies are involved?
+4. Which dependencies exist?
+5. What are the acceptance criteria?
+6. Which commits do we expect?
+7. What is out of this sprint?
 
-An RFC is **not a task**. Once **Accepted**, it is the contract for the initiative.
+### Required 12 sections
 
-- Does not get rewritten as implementation details grow
-- Decomposes into Epics
-- Points to ADRs it depends on
-
-Example: [RFC-001 Backend Foundation](../rfc/RFC-001-backend-foundation.md) — Accepted. Do not expand it with bootstrap checklists; that belongs in SPECs.
-
-### Epic — functional grouping
-
-An Epic groups related work that delivers a coherent outcome (bootstrap, identity, transactions, dashboard).
-
-- Links parent RFC
-- Lists child SPECs
-- Tracks high-level status
-
-### SPEC — implementation contract
-
-A SPEC answers **how exactly** we will build a slice:
-
-- Folder trees to create
-- Dependencies and config
-- Acceptance criteria
-- Suggested commits
-- Checkbox tasks (`[ ]` → `[x]`)
-
-When a SPEC is approved, coding starts. Mark tasks as you go so progress is always visible.
-
-### Sprint
-
-A sprint executes one or more SPECs (or a subset of a SPEC). Sprint plans may live in `docs/roadmap/` for scheduling; the source of truth for *what* to build remains the SPEC.
+1. Objective  
+2. Scope  
+3. Out of Scope  
+4. Architecture Overview  
+5. Deliverables  
+6. Directory Structure  
+7. Technologies  
+8. Implementation Plan  
+9. Acceptance Criteria  
+10. Commit Plan  
+11. Risks  
+12. Definition of Done  
 
 ---
 
-## Working loop (from today)
+## SPEC immutability
 
-1. **Approve RFC** (or confirm it is already Accepted)
-2. **Open Epic(s)** under `docs/epics/`
-3. **Write SPEC** under `docs/specs/...` (3–5 pages, actionable)
-4. **Approve SPEC**
-5. **Implement** with small commits matching the SPEC
-6. **PR** using the checklist (tests, docs, ADR if needed)
-7. **Merge** and tick SPEC items to `[x]`
+- SPECs are versioned: `SPEC-001`, `SPEC-002`, …
+- While **Draft** / **Accepted** (in progress): checkboxes may flip `[ ]` → `[x]`
+- When **Completed**: freeze the document
+- If requirements change later: **create a new SPEC** — never rewrite history
 
-Do **not** invent `pyproject.toml` before the relevant SPEC is approved.
+Why: in two years we can read exactly how we thought in Sprint 1.
+
+---
+
+## Commit methodology
+
+Each SPEC owns its commits. Prefer the SPEC’s Commit Plan over ad-hoc messages.
+
+Example (SPEC-001):
+
+1. `build: initialize backend project`  
+2. `build: configure uv`  
+3. …  
+8. `docs: update bootstrap documentation`  
+
+When the plan is done: **SPEC-001 Completed**.
 
 ---
 
 ## Folder map
 
 ```
+specs/                         # Execution plans (canonical)
+├── backend/
+│   ├── bootstrap/
+│   │   └── SPEC-001-backend-bootstrap.md
+│   ├── identity/
+│   ├── organizations/
+│   ├── accounts/
+│   ├── transactions/
+│   └── ...
+├── frontend/
+└── infrastructure/
+
 docs/
-├── adr/              # Decisions
-├── rfc/              # Initiatives / contracts
-├── epics/            # Multi-week outcomes
-├── specs/            # Implementation plans
-│   └── backend/
-│       └── bootstrap/
-├── architecture/     # Canonical structures & principles
-├── product/          # Vision & product principles
-├── engineering/      # Engineering standards & this workflow
-└── roadmap/          # Phases, sprints, module order
+├── adr/                       # Architecture decisions
+├── rfc/                       # Initiative contracts
+├── epics/                     # Multi-week groupings
+├── decisions/                 # Small product/strategy decisions (dated)
+├── architecture/
+├── product/
+├── engineering/
+└── roadmap/
+
+planning/                      # Startup backlog view
+├── BACKLOG.md
+├── ROADMAP.md
+├── RELEASES.md
+└── MILESTONES.md
 ```
 
-Root `specs/` (if present) is reserved for future product-facing specs or should point here — **implementation SPECs live under `docs/specs/`**.
+---
+
+## Working loop (from now on)
+
+1. Design a SPEC (12 sections)  
+2. Review / Accept  
+3. Implement together (SPEC open)  
+4. Test  
+5. Update docs if needed  
+6. Close the Sprint / mark SPEC **Completed**  
+
+Do not invent code before the SPEC is Accepted.
+
+---
+
+## How we communicate while building
+
+Two response modes during implementation:
+
+| Mode | Purpose |
+|------|---------|
+| **Architect Notes** | Why we chose this; future impact |
+| **Implementation** | Concrete steps and code |
+
+Both matter: WealthOS should ship a SaaS **and** teach the decisions behind it.
+
+See also `.ai/working-agreement.md`.
 
 ---
 
 ## Naming
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| RFC | `RFC-NNN-short-title.md` | `RFC-001-backend-foundation.md` |
-| Epic | `EPIC-NNN-short-title.md` | `EPIC-001-backend-bootstrap.md` |
-| SPEC | `SPEC-NNN-short-title.md` | `SPEC-001-backend-bootstrap.md` |
-
----
-
-## Why this scales
-
-If another developer joins in a year:
-
-> Read the RFC, the Epic, and the SPEC.
-
-They get strategy, scope, and exact build steps — without reconstructing chat history.
-
-That is the documentation WealthOS deserves as a professional SaaS learning project.
+| Type | Pattern |
+|------|---------|
+| SPEC | `SPEC-NNN-short-title.md` under `specs/<area>/...` |
+| Epic | `EPIC-NNN-short-title.md` |
+| RFC | `RFC-NNN-short-title.md` |
+| Decision | `YYYY-MM-DD-short-slug.md` in `docs/decisions/` |

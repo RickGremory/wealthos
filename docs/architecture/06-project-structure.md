@@ -10,19 +10,22 @@ WealthOS/
 ├── .ai/               # AI agent context, conventions, prompts
 ├── docs/
 │   ├── adr/           # Architecture Decision Records
-│   ├── rfc/           # Design proposals (RFCs)
+│   ├── rfc/           # Initiative contracts (frozen when Accepted)
 │   ├── epics/         # Multi-week outcomes
-│   ├── specs/         # Implementation SPECs
 │   ├── architecture/  # System structure & principles
 │   ├── product/       # Manifesto, vision, product principles
-│   ├── engineering/   # Engineering standards & workflow
-│   ├── roadmap/       # Delivery phases
+│   ├── engineering/   # Standards & delivery workflow
+│   ├── roadmap/       # Phases / sprint notes
 │   ├── api/           # API / OpenAPI notes
 │   ├── database/      # Schema & migration notes
-│   └── decisions/     # Chronological decision log
+│   └── decisions/     # Small product/strategy decisions (dated)
+├── specs/             # Execution SPECs (sprint contracts) ★
+│   ├── backend/
+│   ├── frontend/
+│   └── infrastructure/
+├── planning/          # Backlog, roadmap, milestones, releases
 ├── journal/           # Working notes
 ├── prompts/           # Shared reusable prompts
-├── specs/             # Product / technical specs
 ├── backend/           # FastAPI modular monolith
 ├── frontend/          # Nuxt web application
 ├── infrastructure/    # IaC, environments, deploy
@@ -35,6 +38,8 @@ WealthOS/
 └── README.md
 ```
 
+★ A SPEC is the document open while coding. Completed SPECs are immutable.
+
 ## Documentation map (`docs/`)
 
 | Path | Purpose |
@@ -44,22 +49,24 @@ WealthOS/
 | `product/02-product-principles.md` | What we choose to build |
 | `engineering/03-engineering-principles.md` | How we build |
 | `architecture/04-architecture-principles.md` | System constraints |
-| `decisions/05-decision-log.md` | Chronological decision index |
+| `decisions/` | Product decisions + index log |
 | `architecture/06-project-structure.md` | This file |
 | `architecture/backend-structure.md` | Canonical backend tree + module template |
-| `roadmap/07-development-roadmap.md` | Phased delivery plan |
-| `roadmap/sprint-1-backend-foundation.md` | Sprint 1 executable plan (backend) |
-| `roadmap/module-roadmap.md` | Domain module delivery order |
-| `engineering/08-coding-standards.md` | Language and style rules |
-| `engineering/09-git-workflow.md` | Branches, commits, PRs |
-| `engineering/10-testing-strategy.md` | What and how we test |
+| `roadmap/` | Phases, sprint notes, module order |
 | `engineering/11-delivery-workflow.md` | Vision → RFC → Epic → SPEC → PR |
 | `epics/` | Multi-week work under RFCs |
-| `specs/` | Implementation SPECs (e.g. SPEC-001) |
-| `adr/` | Hard architecture decisions (ADRs) |
+| `adr/` | Hard architecture decisions |
 | `rfc/` | Design proposals (RFCs) |
-| `api/` | API contract notes |
-| `database/` | Schema / migration notes |
+
+## Execution & planning (repo root)
+
+| Path | Purpose |
+|------|---------|
+| `specs/` | SPEC-NNN execution contracts by area |
+| `planning/BACKLOG.md` | What might come next |
+| `planning/ROADMAP.md` | Product sequence |
+| `planning/MILESTONES.md` | Named outcomes |
+| `planning/RELEASES.md` | What shipped |
 
 ## Backend (`backend/`)
 
@@ -71,6 +78,8 @@ Modular monolith (see [ADR-004](../adr/ADR-004-modular-monolith.md), [ADR-007](.
 - Python deps via uv ([ADR-006](../adr/ADR-006-uv-package-manager.md))
 
 **Canonical tree and per-module layout:** [backend-structure.md](./backend-structure.md)
+
+**Current execution plan:** [SPEC-001](../../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md)
 
 Expected package shape (summary):
 
@@ -108,4 +117,4 @@ From `.ai/project.md`:
 
 ## Status
 
-Scaffold only. Folder conventions above are the target as code lands.
+Scaffold + documentation. Application code starts after SPEC-001 is Accepted.

@@ -4,7 +4,7 @@
 
 **Status:** Planned  
 **Parent:** [RFC-001 Backend Foundation](../rfc/RFC-001-backend-foundation.md) (Accepted)  
-**Primary SPEC:** [SPEC-001 Backend Bootstrap](../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md)  
+**Primary SPEC:** [SPEC-001 Backend Bootstrap](../../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md)
 **Related:** [Sprint 1 plan](../roadmap/sprint-1-backend-foundation.md)
 
 ---

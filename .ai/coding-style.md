@@ -10,4 +10,4 @@ Language-specific rules will be added when stacks are chosen.
 - Small, reviewable diffs
 - No secrets in commits
 - Match existing patterns before inventing new ones
-- Update docs/specs when behavior changes intentionally
+- Update docs/SPECs under `specs/` when behavior changes intentionally (or open a new SPEC if the prior one is Completed)
