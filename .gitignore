@@ -1,0 +1,39 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Build / dist
+dist/
+build/
+*.egg-info/
+.next/
+out/
+coverage/
+.turbo/
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs / runtime
+*.log
+logs/
+tmp/
+temp/
+
+# Secrets / local
+*.pem
+*.key
+.secrets/
