@@ -7,10 +7,10 @@ from wealthos.modules.organizations.domain.exceptions import (
     OrganizationNameTooLong,
 )
 
-MAX_NAME_LENGTH = 100
+MAX_NAME_LENGTH = 120
 
 
-class Name:
+class OrganizationName:
     """Human-readable organization name."""
 
     __slots__ = ("_value",)
@@ -33,10 +33,10 @@ class Name:
         return self._value
 
     def __repr__(self) -> str:
-        return f"Name({self._value!r})"
+        return f"OrganizationName({self._value!r})"
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Name):
+        if not isinstance(other, OrganizationName):
             return NotImplemented
         return self._value == other._value
 

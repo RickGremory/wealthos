@@ -1,4 +1,4 @@
-"""Locale value object (language_REGION)."""
+"""Locale value object (language-REGION)."""
 
 from __future__ import annotations
 
@@ -6,18 +6,18 @@ import re
 
 from wealthos.modules.organizations.domain.exceptions import InvalidLocale
 
-_LOCALE_PATTERN = re.compile(r"^[a-z]{2}_[A-Z]{2}$")
+_LOCALE_PATTERN = re.compile(r"^[a-z]{2}-[A-Z]{2}$")
 
 
 class Locale:
-    """Simple locale tag such as es_MX or en_US."""
+    """BCP 47-style locale tag such as es-MX or en-US."""
 
     __slots__ = ("_value",)
 
     def __init__(self, value: str) -> None:
         cleaned = value.strip()
         if not _LOCALE_PATTERN.fullmatch(cleaned):
-            raise InvalidLocale("Locale must match language_REGION (e.g. es_MX, en_US).")
+            raise InvalidLocale("Locale must match language-REGION (e.g. es-MX, en-US).")
         self._value = cleaned
 
     @property

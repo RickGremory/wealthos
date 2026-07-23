@@ -7,9 +7,10 @@ import re
 from wealthos.modules.organizations.domain.exceptions import OrganizationSlugInvalid
 
 _SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+MAX_SLUG_LENGTH = 80
 
 
-class Slug:
+class OrganizationSlug:
     """Kebab-case identifier used in URLs and lookups."""
 
     __slots__ = ("_value",)
@@ -20,6 +21,8 @@ class Slug:
             raise OrganizationSlugInvalid(
                 "Slug must be lowercase kebab-case (e.g. ricardo-personal)."
             )
+        if len(cleaned) > MAX_SLUG_LENGTH:
+            raise OrganizationSlugInvalid(f"Slug cannot exceed {MAX_SLUG_LENGTH} characters.")
         self._value = cleaned
 
     @property
@@ -30,10 +33,10 @@ class Slug:
         return self._value
 
     def __repr__(self) -> str:
-        return f"Slug({self._value!r})"
+        return f"OrganizationSlug({self._value!r})"
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Slug):
+        if not isinstance(other, OrganizationSlug):
             return NotImplemented
         return self._value == other._value
 
