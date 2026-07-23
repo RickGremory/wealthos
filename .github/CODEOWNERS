@@ -1,0 +1,11 @@
+# Code owners
+
+Default owners for WealthOS. Adjust as the team grows.
+
+*       @RickGremory
+
+/.github/       @RickGremory
+/docs/          @RickGremory
+/backend/       @RickGremory
+/frontend/      @RickGremory
+/infrastructure/ @RickGremory

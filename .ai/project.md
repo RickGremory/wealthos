@@ -2,18 +2,43 @@
 
 High-level product context for AI agents and contributors.
 
-## Purpose
-WealthOS is an operating system for personal and family wealth management.
+## Project Name
 
-## Scope
-- Track assets, liabilities, cashflow, and goals
-- Support decision-making with clear records and auditability
-- Separate product specs, implementation, and operational notes
+WealthOS
+
+## Mission
+
+Help independent professionals convert income into wealth.
+
+## Architecture
+
+Modular Monolith
+
+## Backend
+
+FastAPI
+
+## Frontend
+
+Nuxt
+
+## Database
+
+PostgreSQL
+
+## Principles
+
+- Transactions are the source of truth.
+- Goals never own money.
+- Everything belongs to an Organization.
+- Always use UUID.
+- Always use UTC timestamps.
 
 ## Repo layout (brief)
-- `backend/` — API and server services
-- `frontend/` — client applications
+
+- `backend/` — FastAPI modular monolith
+- `frontend/` — Nuxt web application
 - `infrastructure/` — deployment and environments
-- `docs/`, `specs/`, `book/` — documentation and product knowledge
-- `prompts/`, `.ai/` — AI guidance and reusable prompts
-- `journal/` — working notes and decision log
+- `docs/` — product, engineering, architecture, roadmap, api, database, decisions, adr
+- `prompts/`, `.ai/` (incl. `.ai/prompts/`) — AI guidance and reusable prompts
+- `specs/`, `journal/` — specs and working notes
