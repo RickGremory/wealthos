@@ -1,30 +1,62 @@
-# ADR-001: FastAPI for the backend
+# ADR-001
 
-- **Status:** accepted
-- **Date:** 2026-07-23
-- **Deciders:** WealthOS core
+# Choose FastAPI as Backend Framework
+
+**Status:** Accepted
+
+**Date:** 2026-07-23
+
+---
 
 ## Context
 
-WealthOS needs a backend API for domain logic, auth, and integrations. The stack should favor clear contracts, fast iteration, and strong typing without heavy ceremony.
+WealthOS requires a backend capable of supporting a modern SaaS architecture while remaining easy to maintain and ready for future AI integrations.
+
+Although the founder has significant experience with Laravel and Odoo, the project is intended to be both a production application and a learning opportunity.
+
+---
 
 ## Decision
 
-Use **FastAPI** (Python) as the primary backend framework for HTTP APIs.
+Use FastAPI as the backend framework.
+
+---
+
+## Alternatives Considered
+
+- Laravel
+- Django
+- Flask
+- NestJS
+
+---
+
+## Why FastAPI
+
+- Excellent typing support
+- Modern Python ecosystem
+- Native OpenAPI generation
+- High performance
+- Great developer experience
+- Excellent compatibility with AI tooling
+
+---
 
 ## Consequences
 
 ### Positive
-- Native OpenAPI / typed request-response models
-- Async-friendly for I/O-bound workloads
-- Large ecosystem for data, auth, and tooling
 
-### Negative / trade-offs
-- Python ops and packaging discipline required
-- CPU-heavy workloads may need separate workers later
-- Team must keep domain logic out of route handlers
+- Better long-term alignment with AI features.
+- Strong typing.
+- Automatic API documentation.
 
-## Alternatives considered
-- NestJS / Node — strong for TS monorepos; rejected for now to keep backend domain in Python
-- Django — richer batteries; heavier for a focused API-first open-core product
-- Go (stdlib / Fiber) — excellent performance; slower product iteration for this stage
+### Negative
+
+- Learning curve.
+- Smaller ecosystem than Laravel.
+
+---
+
+## Review
+
+This decision should be revisited only if FastAPI no longer satisfies product requirements.
