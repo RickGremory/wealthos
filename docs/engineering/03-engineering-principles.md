@@ -1,27 +1,59 @@
 # Engineering Principles
 
-How we build and change the system.
+## Clean Architecture
 
-## 1. Small, reviewable changes
-Prefer diffs a human can reason about in one sitting.
+Business rules must remain independent from frameworks.
 
-## 2. Specs before sprawl
-Material behavior belongs in `specs/` (or an ADR) before it becomes tribal knowledge.
+---
 
-## 3. Explicit contracts
-Frontend and backend communicate through clear APIs / DTOs — not implied shape.
+## Domain Driven Design
 
-## 4. No secrets in the repo
-Config via `.env` (from `.env.example`). Never commit credentials, keys, or dumps.
+Business domains define the project structure.
 
-## 5. Test the money path
-Anything that calculates, stores, or moves financial truth needs coverage and regression safety.
+Not technical layers.
 
-## 6. Operability counts
-Logs, migrations, and failure modes are part of the feature — not leftovers.
+---
 
-## 7. Match the house style
-Follow `.ai/coding-style.md` and existing patterns before inventing new ones.
+## Simplicity First
 
-## Status
-Draft. Stack is FastAPI + Nuxt + PostgreSQL; language-specific tooling pins land with Phase 1 skeleton.
+Choose the simplest solution that can scale.
+
+Avoid unnecessary abstractions.
+
+---
+
+## Testability
+
+Every service should be testable in isolation.
+
+---
+
+## Explicit over Implicit
+
+Hidden behavior is discouraged.
+
+Code should be easy to read.
+
+---
+
+## Documentation First
+
+Major architectural decisions require documentation.
+
+---
+
+## Small Commits
+
+Every commit should represent a meaningful change.
+
+---
+
+## Code Reviews
+
+Every feature should be reviewable independently.
+
+---
+
+## Consistency
+
+A consistent codebase is better than a clever codebase.

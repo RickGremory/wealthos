@@ -1,24 +1,63 @@
 # Product Principles
 
-How we decide what to build.
+These principles guide every product decision.
 
-## 1. Truth over theater
-Prefer accurate, boring data over impressive but fragile visualizations.
+---
 
-## 2. Explainability by default
-Every meaningful number should be traceable to sources, assumptions, and dates.
+## Principle 1
 
-## 3. Decisions leave a trail
-Capturing *why* matters as much as capturing *what*. Use `journal/` and `docs/decisions/05-decision-log.md` for durable rationale.
+Clarity over complexity.
 
-## 4. Progressive disclosure
-Start simple. Reveal depth when the user asks for it — never force complexity up front.
+If users cannot understand their finances in less than five minutes, the product has failed.
 
-## 5. Family-aware, privacy-first
-Support shared contexts without treating personal finance as public by default.
+---
 
-## 6. Ship slices, not piles
-Each release should complete a usable loop, not half of ten features.
+## Principle 2
 
-## Status
-Draft principles. Refine as real users and specs appear.
+Goals before reports.
+
+Users care about buying a home, retiring or growing wealth.
+
+Reports exist only to support those goals.
+
+---
+
+## Principle 3
+
+Transactions are the source of truth.
+
+Every calculation originates from financial transactions.
+
+---
+
+## Principle 4
+
+One financial reality.
+
+There should never be conflicting balances.
+
+Every dashboard number must be explainable.
+
+---
+
+## Principle 5
+
+Automation whenever possible.
+
+Users should spend less time entering data and more time making decisions.
+
+---
+
+## Principle 6
+
+Education through the product.
+
+The application should teach users healthy financial habits.
+
+---
+
+## Principle 7
+
+Progress over perfection.
+
+Users should be rewarded for improving, not punished for making mistakes.

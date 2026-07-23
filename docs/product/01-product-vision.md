@@ -1,24 +1,90 @@
 # Product Vision
 
-Where WealthOS is going.
+## Elevator Pitch
 
-## Vision
-Become the operating system for personal and family wealth: a durable home for assets, liabilities, cashflow, goals, and the decisions that shape them.
+WealthOS helps independent professionals organize their finances, understand their financial reality and build wealth with confidence.
 
-## Who it is for
-- Individuals building long-term financial clarity
-- Families coordinating shared wealth and responsibilities
-- Operators who need trustworthy records, not dashboards for their own sake
+---
 
-## Outcomes
-- A single coherent picture of net worth and cashflow
-- Goals tied to real accounts, obligations, and timelines
-- A decision history that explains *why* money moved or stayed put
+## Target Audience
 
-## Horizon (draft)
-1. **Foundation** — structure, principles, and core domain model
-2. **Core loop** — capture → understand → decide → review
-3. **Scale** — multi-entity / family contexts, integrations, automation with guardrails
+Primary users:
 
-## Status
-Vision draft. Product scope and roadmap live in `specs/` as they firm up.
+- Software developers
+- Freelancers
+- Consultants
+- Lawyers
+- Architects
+- Designers
+- Medical professionals
+- Agency owners
+- Small business owners
+
+Anyone with variable income who needs better financial visibility.
+
+---
+
+## Problem Statement
+
+Traditional budgeting apps focus on spending.
+
+Accounting software focuses on taxes.
+
+Investment apps focus on investing.
+
+No platform combines all of them into a single financial operating system.
+
+---
+
+## Vision Statement
+
+WealthOS becomes the central place where users understand their financial life.
+
+It connects:
+
+Income
+
+↓
+
+Expenses
+
+↓
+
+Debt
+
+↓
+
+Taxes
+
+↓
+
+Assets
+
+↓
+
+Goals
+
+↓
+
+Financial Decisions
+
+---
+
+## Success Criteria
+
+A successful WealthOS user should immediately know:
+
+- Current net worth
+- Monthly cash flow
+- Outstanding debt
+- Goal progress
+- Tax reserve
+- Financial health
+
+Without opening multiple applications.
+
+---
+
+## Long-Term Vision
+
+WealthOS evolves into an AI-powered financial advisor that understands the user's financial behavior and proactively helps them make better decisions.

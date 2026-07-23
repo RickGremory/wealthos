@@ -1,27 +1,69 @@
 # Architecture Principles
 
-Constraints that keep the system coherent as it grows.
+## Modular Monolith
 
-## 1. Bounded contexts over a blob
-Separate domains (accounts, transactions, goals, identity, etc.) with clear ownership.
+WealthOS starts as a modular monolith.
 
-## 2. Domain in the backend
-Business rules live server-side. UI reflects state; it does not invent financial truth.
+Modules communicate through well-defined interfaces.
 
-## 3. Durable records
-Prefer append-friendly history for money events and decisions over silent overwrite.
+---
 
-## 4. Environment isolation
-Dev / staging / prod stay distinct. Infrastructure as code lives in `infrastructure/`.
+## API First
 
-## 5. Dependency direction
-Inner domain does not depend on outer delivery details (HTTP frameworks, UI kits, vendors).
+Frontend communicates only through the public API.
 
-## 6. Fail safe with money
-When unsure, refuse or quarantine rather than guess a balance or transfer.
+---
 
-## 7. Document the hard calls
-Architecture decisions go in `docs/decisions/05-decision-log.md` (and deeper ADRs in `docs/adr/`).
+## Multi-Tenant by Design
 
-## Status
-Draft. See also `.ai/architecture.md` for agent-oriented notes.
+Every business entity belongs to an Organization.
+
+Tenant isolation is mandatory.
+
+---
+
+## UUID Everywhere
+
+Public entities use UUID as primary keys.
+
+---
+
+## UTC Everywhere
+
+All timestamps are stored in UTC.
+
+---
+
+## Source of Truth
+
+Transactions represent the financial truth.
+
+Reports are projections derived from transactions.
+
+---
+
+## Stateless Backend
+
+The backend remains stateless.
+
+Authentication is handled using JWT.
+
+---
+
+## Event Ready
+
+Modules may publish domain events even if no event bus exists initially.
+
+This allows future evolution without major refactoring.
+
+---
+
+## AI Ready
+
+Architecture must allow AI services to consume financial context without tight coupling.
+
+---
+
+## Future Friendly
+
+The modular monolith should evolve into independent services only when justified by business growth.
