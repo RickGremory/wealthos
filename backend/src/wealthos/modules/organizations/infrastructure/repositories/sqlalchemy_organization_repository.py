@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from wealthos.modules.organizations.domain.entities.organization import Organization
-from wealthos.modules.organizations.domain.repositories.organization_repository import (
-    OrganizationSnapshot,
-)
-from wealthos.modules.organizations.domain.value_objects.slug import Slug
+from wealthos.modules.organizations.domain.value_objects.slug import OrganizationSlug
 from wealthos.modules.organizations.infrastructure.mappers.organization_mapper import (
     OrganizationMapper,
 )
@@ -30,21 +29,29 @@ class SqlAlchemyOrganizationRepository(BaseRepository[OrganizationModel]):
         super().__init__(session, OrganizationModel)
         self._mapper = mapper or OrganizationMapper()
 
-    def add(self, organization: Organization) -> OrganizationSnapshot:
+    def add(self, organization: Organization) -> Organization:
         model = self._mapper.to_model(organization)
         super().add(model)
         self.commit()
         self.refresh(model)
-        return self._mapper.to_snapshot(model)
+        return self._mapper.to_entity(model)
 
-    def get_by_slug(self, slug: Slug) -> Organization | None:
-        stmt = select(OrganizationModel).where(OrganizationModel.slug == slug.value)
+    def get_by_id(self, organization_id: UUID) -> Organization | None:
+        stmt = select(OrganizationModel).where(
+            OrganizationModel.id == organization_id,
+            OrganizationModel.deleted_at.is_(None),
+        )
         model = self.session.scalars(stmt).first()
         if model is None:
             return None
         return self._mapper.to_entity(model)
 
-    def list(self) -> list[Organization]:
-        stmt = select(OrganizationModel).order_by(OrganizationModel.created_at.asc())
-        models = self.session.scalars(stmt).all()
-        return [self._mapper.to_entity(model) for model in models]
+    def get_by_slug(self, slug: OrganizationSlug) -> Organization | None:
+        stmt = select(OrganizationModel).where(
+            OrganizationModel.slug == slug.value,
+            OrganizationModel.deleted_at.is_(None),
+        )
+        model = self.session.scalars(stmt).first()
+        if model is None:
+            return None
+        return self._mapper.to_entity(model)
