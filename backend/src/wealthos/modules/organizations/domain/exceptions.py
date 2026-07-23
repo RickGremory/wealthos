@@ -31,3 +31,7 @@ class InvalidLocale(OrganizationError):
 
 class OrganizationNotFoundError(OrganizationError):
     """Raised when the organization cannot be found."""
+
+
+class OrganizationSlugAlreadyExists(OrganizationError):
+    """Raised when an organization slug is already taken."""
