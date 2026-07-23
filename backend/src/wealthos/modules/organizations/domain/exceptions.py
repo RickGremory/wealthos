@@ -35,3 +35,15 @@ class OrganizationNotFoundError(OrganizationError):
 
 class OrganizationSlugAlreadyExists(OrganizationError):
     """Raised when an organization slug is already taken."""
+
+
+class OrganizationMemberAlreadyExists(OrganizationError):
+    """Raised when the user is already a member of the organization."""
+
+
+class InvalidOrganizationRole(OrganizationError):
+    """Raised when a membership role is not supported."""
+
+
+class InvalidMembershipStatus(OrganizationError):
+    """Raised when a membership status is not supported."""
