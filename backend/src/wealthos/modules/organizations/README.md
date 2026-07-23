@@ -37,8 +37,13 @@ POST /api/v1/organizations
 |--------|------|--------|
 | `GET` | `/api/v1/organizations/health` | scaffold probe |
 | `POST` | `/api/v1/organizations` | create workspace (`201`) |
+| `POST` | `/api/v1/organizations/{id}/members` | add member (`201`) |
+| `GET` | `/api/v1/organizations/{id}/members` | list members |
 
 Defaults: `currency=MXN`, `timezone=America/Cancun`, `locale=es-MX`.
+
+Memberships link users (identity module) to organizations. Owner auto-assignment
+on create waits for authentication.
 
 ## How to extend
 

@@ -14,3 +14,9 @@ def test_organizations_module_is_registered(client: TestClient) -> None:
     response = client.get("/api/v1/organizations/health")
     assert response.status_code == 200
     assert response.json() == {"module": "organizations", "status": "ready"}
+
+
+def test_identity_module_is_registered(client: TestClient) -> None:
+    response = client.get("/api/v1/identity/health")
+    assert response.status_code == 200
+    assert response.json() == {"module": "identity", "status": "ready"}
