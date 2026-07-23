@@ -7,11 +7,14 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from wealthos.core.security.current_user import CurrentUser
+from wealthos.core.security.organization_access import OrganizationMember
 from wealthos.modules.identity.domain.exceptions import UserNotFoundError
 from wealthos.modules.organizations.api.dependencies import (
     get_add_organization_member_command,
     get_create_organization_command,
     get_list_organization_members_query,
+    get_membership_repository,
     get_unit_of_work,
 )
 from wealthos.modules.organizations.application.commands.add_organization_member import (
@@ -25,6 +28,9 @@ from wealthos.modules.organizations.application.commands.create_organization imp
 from wealthos.modules.organizations.application.queries.list_organization_members import (
     ListOrganizationMembersQuery,
 )
+from wealthos.modules.organizations.domain.entities.organization_membership import (
+    OrganizationMembership,
+)
 from wealthos.modules.organizations.domain.exceptions import (
     InvalidCurrency,
     InvalidLocale,
@@ -37,6 +43,9 @@ from wealthos.modules.organizations.domain.exceptions import (
     OrganizationNotFoundError,
     OrganizationSlugAlreadyExists,
     OrganizationSlugInvalid,
+)
+from wealthos.modules.organizations.domain.repositories.membership_repository import (
+    MembershipRepository,
 )
 from wealthos.modules.organizations.schemas.create import OrganizationCreate
 from wealthos.modules.organizations.schemas.membership import (
@@ -65,10 +74,12 @@ async def organizations_module_health() -> dict[str, str]:
 )
 def create_organization(
     payload: OrganizationCreate,
+    current_user: CurrentUser,
     command: Annotated[CreateOrganizationCommand, Depends(get_create_organization_command)],
+    memberships: Annotated[MembershipRepository, Depends(get_membership_repository)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> OrganizationResponse:
-    """Create a financial workspace (Organization)."""
+    """Create a financial workspace owned by the current user."""
     try:
         with uow:
             organization = command.execute(
@@ -78,6 +89,13 @@ def create_organization(
                     currency=payload.currency,
                     timezone=payload.timezone,
                     locale=payload.locale,
+                )
+            )
+            memberships.add(
+                OrganizationMembership.create(
+                    organization_id=organization.id,
+                    user_id=current_user.id,
+                    role="owner",
                 )
             )
             uow.commit()
@@ -110,6 +128,7 @@ def create_organization(
 def add_organization_member(
     organization_id: UUID,
     payload: AddOrganizationMemberRequest,
+    _membership: OrganizationMember,
     command: Annotated[
         AddOrganizationMemberCommand,
         Depends(get_add_organization_member_command),
@@ -150,15 +169,12 @@ def add_organization_member(
 )
 def list_organization_members(
     organization_id: UUID,
+    _membership: OrganizationMember,
     query: Annotated[
         ListOrganizationMembersQuery,
         Depends(get_list_organization_members_query),
     ],
 ) -> OrganizationMemberListResponse:
-    try:
-        views = query.execute(organization_id)
-    except OrganizationNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
-
+    views = query.execute(organization_id)
     items = [OrganizationMemberItem.from_view(view) for view in views]
     return OrganizationMemberListResponse(items=items, total=len(items))
