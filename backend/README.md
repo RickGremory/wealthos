@@ -52,8 +52,14 @@ docker/                # postgres init, redis placeholders
 scripts/               # thin shell wrappers
 ```
 
-## Foundation Kit notes
+## Modules
 
-Infrastructure Pack elevates the downloaded starter stubs into a reusable SaaS base:
-healthchecked Compose services, pooled SQLAlchemy sessions, Alembic + Settings, Makefile DX.
-Async SQLAlchemy can land later without changing the module layout.
+Generate a new domain module:
+
+```bash
+uv run python scripts/create_module.py accounts
+```
+
+Then add `"accounts"` to `MODULES` in `src/wealthos/modules/__init__.py`.
+
+Standards: `docs/engineering/CODING_STANDARDS.md`.

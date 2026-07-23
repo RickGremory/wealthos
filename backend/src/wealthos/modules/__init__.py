@@ -1,4 +1,8 @@
-"""Business capability modules (identity, finance, goals, …).
+"""Business capability modules.
 
-YAGNI: domain packages are added when we implement that capability, not before.
+Register HTTP-exposed modules explicitly in MODULES, then call register_modules(app).
 """
+
+MODULES: list[str] = [
+    "organizations",
+]

@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from wealthos.app.lifespan import lifespan
 from wealthos.app.router import router
 from wealthos.core.config import settings
+from wealthos.modules.router_registry import register_modules
 
 
 def create_application() -> FastAPI:
@@ -12,4 +13,5 @@ def create_application() -> FastAPI:
         lifespan=lifespan,
     )
     app.include_router(router)
+    register_modules(app)
     return app
