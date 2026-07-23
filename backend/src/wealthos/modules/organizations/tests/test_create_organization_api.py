@@ -1,81 +1,106 @@
-"""API integration tests for POST /organizations (SQLite session override)."""
+"""API integration tests for POST /api/v1/organizations against PostgreSQL."""
 
 from __future__ import annotations
 
 from collections.abc import Generator
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import text
 
-from wealthos.core.database import Base, get_db
+from wealthos.core.database import SessionLocal, engine
 from wealthos.main import app
 
-# Register models on Base.metadata before create_all.
-from wealthos.modules.organizations.infrastructure.models import OrganizationModel  # noqa: F401
+API_PATH = "/api/v1/organizations"
 
 
 @pytest.fixture()
 def client() -> Generator[TestClient]:
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
-
-    def override_get_db() -> Generator[Session]:
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-
-    app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
-    app.dependency_overrides.clear()
-    Base.metadata.drop_all(bind=engine)
 
 
-def test_post_organizations_creates_workspace(client: TestClient) -> None:
+@pytest.fixture(autouse=True)
+def _cleanup_organizations() -> Generator[None]:
+    """Keep the shared Postgres clean between API tests."""
+    yield
+    with SessionLocal() as session:
+        session.execute(text("DELETE FROM organizations"))
+        session.commit()
+
+
+def test_post_organizations_returns_201_and_body(client: TestClient) -> None:
+    slug = f"ricardo-personal-{uuid4().hex[:8]}"
     response = client.post(
-        "/organizations",
+        API_PATH,
         json={
             "name": "Ricardo Personal",
-            "slug": "ricardo-personal",
+            "slug": slug,
+            "currency": "MXN",
+            "timezone": "America/Cancun",
+            "locale": "es-MX",
         },
     )
 
     assert response.status_code == 201
     body = response.json()
     assert body["name"] == "Ricardo Personal"
-    assert body["slug"] == "ricardo-personal"
+    assert body["slug"] == slug
     assert body["currency"] == "MXN"
-    assert body["timezone"] == "America/Mexico_City"
-    assert body["locale"] == "es_MX"
+    assert body["timezone"] == "America/Cancun"
+    assert body["locale"] == "es-MX"
     assert body["id"]
     assert body["created_at"]
     assert body["updated_at"]
 
+    with SessionLocal() as session:
+        row = session.execute(
+            text("SELECT name, slug FROM organizations WHERE slug = :slug"),
+            {"slug": slug},
+        ).one()
+    assert row.name == "Ricardo Personal"
+    assert row.slug == slug
+
 
 def test_post_organizations_rejects_duplicate_slug(client: TestClient) -> None:
-    payload = {"name": "One", "slug": "shared-space"}
-    assert client.post("/organizations", json=payload).status_code == 201
+    slug = f"shared-space-{uuid4().hex[:8]}"
+    payload = {
+        "name": "One",
+        "slug": slug,
+        "currency": "MXN",
+        "timezone": "America/Cancun",
+        "locale": "es-MX",
+    }
+    assert client.post(API_PATH, json=payload).status_code == 201
 
     response = client.post(
-        "/organizations",
-        json={"name": "Two", "slug": "shared-space"},
+        API_PATH,
+        json={
+            "name": "Two",
+            "slug": slug,
+            "currency": "MXN",
+            "timezone": "America/Cancun",
+            "locale": "es-MX",
+        },
     )
     assert response.status_code == 409
 
 
 def test_post_organizations_rejects_invalid_slug_shape(client: TestClient) -> None:
     response = client.post(
-        "/organizations",
-        json={"name": "Bad", "slug": "Not Valid"},
+        API_PATH,
+        json={
+            "name": "Bad",
+            "slug": "Not Valid",
+            "currency": "MXN",
+            "timezone": "America/Cancun",
+            "locale": "es-MX",
+        },
     )
     assert response.status_code == 422
+
+
+def test_postgres_engine_is_reachable() -> None:
+    with engine.connect() as connection:
+        assert connection.execute(text("SELECT 1")).scalar_one() == 1

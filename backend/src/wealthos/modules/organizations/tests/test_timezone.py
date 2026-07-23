@@ -5,7 +5,7 @@ from wealthos.modules.organizations.domain.value_objects.timezone import Timezon
 
 
 def test_timezone_accepts_iana() -> None:
-    assert Timezone("America/Mexico_City").value == "America/Mexico_City"
+    assert Timezone("America/Cancun").value == "America/Cancun"
 
 
 def test_timezone_rejects_invalid() -> None:

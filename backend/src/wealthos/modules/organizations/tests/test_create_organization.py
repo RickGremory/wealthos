@@ -1,9 +1,8 @@
-"""In-memory repository and create-command unit tests."""
+"""Create-command unit tests with an in-memory repository."""
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from uuid import uuid4
+from uuid import UUID
 
 import pytest
 
@@ -16,54 +15,42 @@ from wealthos.modules.organizations.domain.exceptions import (
     InvalidCurrency,
     OrganizationSlugAlreadyExists,
 )
-from wealthos.modules.organizations.domain.repositories.organization_repository import (
-    OrganizationSnapshot,
-)
-from wealthos.modules.organizations.domain.value_objects.slug import Slug
+from wealthos.modules.organizations.domain.value_objects.slug import OrganizationSlug
 
 
 class InMemoryOrganizationRepository:
     """Fake repository for application-layer tests."""
 
     def __init__(self) -> None:
+        self._by_id: dict[UUID, Organization] = {}
         self._by_slug: dict[str, Organization] = {}
-        self._snapshots: dict[str, OrganizationSnapshot] = {}
 
-    def add(self, organization: Organization) -> OrganizationSnapshot:
-        now = datetime.now(UTC)
-        snapshot = OrganizationSnapshot(
-            id=uuid4(),
-            name=organization.name.value,
-            slug=organization.slug.value,
-            currency=organization.currency.value,
-            timezone=organization.timezone.value,
-            locale=organization.locale.value,
-            created_at=now,
-            updated_at=now,
-        )
+    def add(self, organization: Organization) -> Organization:
+        self._by_id[organization.id] = organization
         self._by_slug[organization.slug.value] = organization
-        self._snapshots[organization.slug.value] = snapshot
-        return snapshot
+        return organization
 
-    def get_by_slug(self, slug: Slug) -> Organization | None:
+    def get_by_id(self, organization_id: UUID) -> Organization | None:
+        return self._by_id.get(organization_id)
+
+    def get_by_slug(self, slug: OrganizationSlug) -> Organization | None:
         return self._by_slug.get(slug.value)
 
-    def list(self) -> list[Organization]:
-        return list(self._by_slug.values())
 
-
-def test_create_organization_persists_snapshot() -> None:
+def test_create_organization_persists_entity() -> None:
     repo = InMemoryOrganizationRepository()
     command = CreateOrganizationCommand(repo)
 
-    snapshot = command.execute(
+    organization = command.execute(
         CreateOrganizationInput(name="Ricardo Personal", slug="ricardo-personal")
     )
 
-    assert snapshot.name == "Ricardo Personal"
-    assert snapshot.slug == "ricardo-personal"
-    assert snapshot.currency == "MXN"
-    assert snapshot.id is not None
+    assert organization.name.value == "Ricardo Personal"
+    assert organization.slug.value == "ricardo-personal"
+    assert organization.currency.value == "MXN"
+    assert organization.timezone.value == "America/Cancun"
+    assert organization.locale.value == "es-MX"
+    assert repo.get_by_id(organization.id) is organization
 
 
 def test_create_organization_rejects_duplicate_slug() -> None:
