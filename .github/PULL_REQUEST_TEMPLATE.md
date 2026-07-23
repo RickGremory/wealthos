@@ -1,13 +1,25 @@
 ## Summary
-<!-- What does this PR change and why? -->
 
-## Type of change
-- [ ] Feature
-- [ ] Bug fix
-- [ ] Refactor
-- [ ] Docs
-- [ ] Infrastructure / CI
-- [ ] Other
+Describe your changes.
 
-## Test plan
-- [ ] 
+---
+
+## Checklist
+
+- [ ] Tests added
+
+- [ ] Documentation updated
+
+- [ ] ADR updated (if needed)
+
+- [ ] Breaking changes documented
+
+---
+
+## Screenshots
+
+(Optional)
+
+---
+
+## Related Issues

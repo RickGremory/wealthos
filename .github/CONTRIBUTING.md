@@ -1,36 +1,51 @@
-# Contributing to WealthOS
+# Contributing
 
-Thanks for helping build the financial operating system for independent professionals.
+## Workflow
 
-## Before you start
+1. Create feature branch
 
-1. Read the [README](../README.md)
-2. Skim `.ai/project.md` (mission, stack, domain invariants)
-3. Review relevant docs under `docs/` and ADRs under `docs/adr/`
+2. Implement
 
-## Development setup
+3. Test
 
-Setup commands will land with the Phase 1 skeleton (`backend/` + `frontend/`). Until then:
+4. Open Pull Request
 
-- Copy `.env.example` → `.env` when services exist
-- Prefer `docker compose` for local dependencies
+---
 
-## How to contribute
+## Commit Convention
 
-1. Open an issue (or use an existing one) for non-trivial work
-2. Branch from `main` using the naming in `docs/engineering/09-git-workflow.md`
-3. Keep PRs small and reviewable
-4. Fill out `.github/PULL_REQUEST_TEMPLATE.md`
-5. Ensure Organization scoping, UUID, and UTC rules are respected for money-related changes
+feat:
 
-## Coding standards
+fix:
 
-See `docs/engineering/08-coding-standards.md` and `.ai/coding-style.md`.
+docs:
 
-## Security
+refactor:
 
-Do not report vulnerabilities in public issues. See [SECURITY.md](./SECURITY.md).
+test:
 
-## License
+ci:
 
-Contributions are under the repository [LICENSE](../LICENSE), within the open-core model described in [ADR-003](../docs/adr/ADR-003-open-core.md).
+chore:
+
+---
+
+## Branch Names
+
+feature/
+
+fix/
+
+hotfix/
+
+release/
+
+---
+
+## Pull Requests
+
+Every PR must:
+
+- Compile
+- Pass tests
+- Include documentation

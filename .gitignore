@@ -1,39 +1,31 @@
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Dependencies
-node_modules/
-vendor/
-.venv/
-venv/
-__pycache__/
-*.py[cod]
-
-# Build / dist
-dist/
-build/
-*.egg-info/
-.next/
-out/
-coverage/
-.turbo/
-
-# IDE / OS
+# macOS
 .DS_Store
-.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+
+# uv
+.uv/
+
+# Node
+node_modules/
+.nuxt/
+.output/
+
+# IDE
 .vscode/
-*.swp
-*.swo
+.idea/
 
-# Logs / runtime
+# Env
+.env
+
+# Coverage
+coverage.xml
+htmlcov/
+
+# Logs
 *.log
-logs/
-tmp/
-temp/
-
-# Secrets / local
-*.pem
-*.key
-.secrets/
