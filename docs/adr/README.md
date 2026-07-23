@@ -41,3 +41,5 @@ Every ADR contains:
 | [ADR-008](./ADR-008-dashboard-as-product-center.md) | Dashboard as Product Center | Accepted |
 | [ADR-009](./ADR-009-documentation-first.md) | Documentation First | Accepted |
 | [ADR-010](./ADR-010-ai-ready-architecture.md) | AI-Ready Architecture | Accepted |
+| [ADR-011](./ADR-011-everything-belongs-to-an-organization.md) | Everything Belongs to an Organization | Accepted |
+| [ADR-012](./ADR-012-organization-is-the-tenant-boundary.md) | Organization is the Tenant Boundary | Accepted |

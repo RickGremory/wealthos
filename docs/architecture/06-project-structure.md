@@ -10,6 +10,9 @@ WealthOS/
 ├── .ai/               # AI agent context, conventions, prompts
 ├── docs/
 │   ├── adr/           # Architecture Decision Records
+│   ├── rfc/           # Design proposals (RFCs)
+│   ├── epics/         # Multi-week outcomes
+│   ├── specs/         # Implementation SPECs
 │   ├── architecture/  # System structure & principles
 │   ├── product/       # Manifesto, vision, product principles
 │   ├── engineering/   # Engineering standards & workflow
@@ -43,11 +46,18 @@ WealthOS/
 | `architecture/04-architecture-principles.md` | System constraints |
 | `decisions/05-decision-log.md` | Chronological decision index |
 | `architecture/06-project-structure.md` | This file |
+| `architecture/backend-structure.md` | Canonical backend tree + module template |
 | `roadmap/07-development-roadmap.md` | Phased delivery plan |
+| `roadmap/sprint-1-backend-foundation.md` | Sprint 1 executable plan (backend) |
+| `roadmap/module-roadmap.md` | Domain module delivery order |
 | `engineering/08-coding-standards.md` | Language and style rules |
 | `engineering/09-git-workflow.md` | Branches, commits, PRs |
 | `engineering/10-testing-strategy.md` | What and how we test |
+| `engineering/11-delivery-workflow.md` | Vision → RFC → Epic → SPEC → PR |
+| `epics/` | Multi-week work under RFCs |
+| `specs/` | Implementation SPECs (e.g. SPEC-001) |
 | `adr/` | Hard architecture decisions (ADRs) |
+| `rfc/` | Design proposals (RFCs) |
 | `api/` | API contract notes |
 | `database/` | Schema / migration notes |
 
@@ -60,17 +70,21 @@ Modular monolith (see [ADR-004](../adr/ADR-004-modular-monolith.md), [ADR-007](.
 - PostgreSQL as system of record ([ADR-005](../adr/ADR-005-postgresql.md))
 - Python deps via uv ([ADR-006](../adr/ADR-006-uv-package-manager.md))
 
-Expected module shape (target, not yet scaffolded):
+**Canonical tree and per-module layout:** [backend-structure.md](./backend-structure.md)
+
+Expected package shape (summary):
 
 ```
 backend/
-├── app/
-│   ├── main.py
-│   ├── core/           # config, security, shared primitives
-│   ├── modules/        # bounded contexts
-│   └── shared/         # cross-cutting helpers
+├── src/wealthos/
+│   ├── app/            # FastAPI factory, lifespan, root router
+│   ├── core/           # settings, security, database, logging
+│   ├── shared/         # cross-cutting helpers (not domain rules)
+│   ├── modules/        # identity, finance, goals, debts, taxes, dashboard, ai
+│   └── main.py
 ├── tests/
-├── alembic/            # or equivalent migrations
+├── alembic/
+├── scripts/
 └── pyproject.toml
 ```
 

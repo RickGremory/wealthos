@@ -6,6 +6,12 @@ Phased plan to go from scaffold to a usable WealthOS core.
 
 Help independent professionals convert income into wealth — with clarity on cashflow, taxes, debt, goals, and net worth.
 
+## Module delivery order
+
+See [Module Roadmap](./module-roadmap.md):
+
+`Identity → Organizations → Accounts → Transactions → Categories → Dashboard → Goals → Debts → Taxes → AI`
+
 ## Phase 0 — Foundations (current)
 
 - Repo layout, docs spine, ADRs
@@ -15,6 +21,8 @@ Help independent professionals convert income into wealth — with clarity on ca
 **Exit criteria:** contributors can clone, read docs, and know the stack.
 
 ## Phase 1 — Platform skeleton
+
+Detalle ejecutable: [Sprint 1 — Backend Foundation](./sprint-1-backend-foundation.md) (1.1 → 1.10).
 
 - FastAPI app boot + health endpoints
 - PostgreSQL + migrations

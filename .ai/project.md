@@ -39,6 +39,6 @@ PostgreSQL
 - `backend/` — FastAPI modular monolith
 - `frontend/` — Nuxt web application
 - `infrastructure/` — deployment and environments
-- `docs/` — product, engineering, architecture, roadmap, api, database, decisions, adr
+- `docs/` — product, engineering, architecture, roadmap, rfc, epics, specs, api, database, decisions, adr
 - `prompts/`, `.ai/` (incl. `.ai/prompts/`) — AI guidance and reusable prompts
 - `specs/`, `journal/` — specs and working notes

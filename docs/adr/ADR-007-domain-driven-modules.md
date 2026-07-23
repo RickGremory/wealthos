@@ -8,16 +8,23 @@
 
 ## Decision
 
-Organize modules around business capabilities.
+Organize modules around business capabilities under `src/wealthos/modules/`.
 
-Example
+Example modules:
 
 ```
+identity/
 finance/
 goals/
 debts/
-identity/
+taxes/
+dashboard/
+ai/
 ```
+
+Each module uses the same internal layout (`api/`, `domain/`, `application/`, `infrastructure/`, …).
+
+Full tree: [docs/architecture/backend-structure.md](../architecture/backend-structure.md).
 
 ---
 
@@ -29,10 +36,12 @@ services/
 models/
 ```
 
-at the repository root.
+at the repository root (or as the global organizing principle).
 
 ---
 
 ## Motivation
 
 Business domains change less frequently than technical implementations.
+
+Identical module shapes make extraction to services possible later without a rewrite.
