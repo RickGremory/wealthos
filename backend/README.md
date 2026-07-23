@@ -35,7 +35,9 @@ make migrate    # after Postgres is healthy
 
 - Swagger: http://127.0.0.1:8000/docs
 - Health: http://127.0.0.1:8000/health
+- Organizations API: http://127.0.0.1:8000/api/v1/organizations
 - Mailpit UI: http://127.0.0.1:8025
+- Postgres (host): `localhost:5433` (user/pass/db: `wealthos`)
 - pgAdmin (optional): `docker compose --profile tools up -d pgadmin` → http://127.0.0.1:5050
 
 ## Layout

@@ -11,6 +11,6 @@ def test_health_returns_ok(client: TestClient) -> None:
 
 
 def test_organizations_module_is_registered(client: TestClient) -> None:
-    response = client.get("/organizations/health")
+    response = client.get("/api/v1/organizations/health")
     assert response.status_code == 200
     assert response.json() == {"module": "organizations", "status": "ready"}

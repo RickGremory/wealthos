@@ -14,31 +14,31 @@ belongs to an Organization.
 
 ## Domain model
 
-- Rich entity: `Organization` (no technical `id` in the domain)
-- Value objects: `Name`, `Slug`, `Currency`, `Timezone`, `Locale`
-- Port: `OrganizationRepository` → returns `OrganizationSnapshot` after write
-- Persistence identity (UUID + timestamps) lives in infrastructure
+- Rich entity: `Organization` with domain `UUID` identity
+- Value objects: `OrganizationName`, `OrganizationSlug`, `Currency`, `Timezone`, `Locale`
+- Port: `OrganizationRepository` (`add`, `get_by_id`, `get_by_slug`)
 
 ## Create flow (reference path)
 
 ```
-POST /organizations
-  → OrganizationCreate (schema)
+POST /api/v1/organizations
+  → OrganizationCreate
   → CreateOrganizationCommand
   → Organization.create(...)
   → OrganizationRepository.add
-  → OrganizationMapper / OrganizationModel
-  → Database
-  → OrganizationSnapshot
-  → OrganizationRead
+  → Mapper / Model / PostgreSQL
+  → Organization
+  → OrganizationResponse
 ```
 
 ## Public API
 
 | Method | Path | Status |
 |--------|------|--------|
-| `GET` | `/organizations/health` | scaffold probe |
-| `POST` | `/organizations` | create workspace |
+| `GET` | `/api/v1/organizations/health` | scaffold probe |
+| `POST` | `/api/v1/organizations` | create workspace (`201`) |
+
+Defaults: `currency=MXN`, `timezone=America/Cancun`, `locale=es-MX`.
 
 ## How to extend
 

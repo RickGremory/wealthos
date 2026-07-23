@@ -22,7 +22,7 @@ from wealthos.modules.organizations.domain.exceptions import (
     OrganizationSlugInvalid,
 )
 from wealthos.modules.organizations.schemas.create import OrganizationCreate
-from wealthos.modules.organizations.schemas.response import OrganizationRead
+from wealthos.modules.organizations.schemas.response import OrganizationResponse
 
 router = APIRouter()
 
@@ -35,7 +35,7 @@ async def organizations_module_health() -> dict[str, str]:
 
 @router.post(
     "",
-    response_model=OrganizationRead,
+    response_model=OrganizationResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create organization",
 )
@@ -45,10 +45,10 @@ def create_organization(
         CreateOrganizationCommand,
         Depends(get_create_organization_command),
     ],
-) -> OrganizationRead:
+) -> OrganizationResponse:
     """Create a financial workspace (Organization)."""
     try:
-        snapshot = command.execute(
+        organization = command.execute(
             CreateOrganizationInput(
                 name=payload.name,
                 slug=payload.slug,
@@ -74,4 +74,4 @@ def create_organization(
     except OrganizationError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    return OrganizationRead.from_snapshot(snapshot)
+    return OrganizationResponse.from_entity(organization)
