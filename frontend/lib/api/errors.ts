@@ -55,6 +55,12 @@ const USER_MESSAGES: Record<string, string> = {
   CATEGORY_ALREADY_ARCHIVED: 'Esta categoría ya está archivada.',
   CATEGORY_DEPTH_EXCEEDED: 'Solo se permiten dos niveles de categorías.',
 
+  // Legal
+  LEGAL_DOCUMENT_VERSION_OUTDATED:
+    'Los documentos legales se actualizaron. Recarga la página e inténtalo de nuevo.',
+  LEGAL_ACCEPTANCE_REQUIRED:
+    'Debes aceptar los términos y el aviso de privacidad para crear tu cuenta.',
+
   // Transactions
   TRANSACTION_NOT_FOUND: 'No se encontró la transacción.',
   TRANSACTION_ALREADY_VOIDED: 'Esta transacción ya está anulada.',
@@ -140,6 +146,12 @@ function pickCode(status: number, body: Record<string, unknown> | null): string 
       return detail
     }
   }
+  if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+    const nestedCode = (detail as { code?: unknown }).code
+    if (typeof nestedCode === 'string' && nestedCode.length > 0 && !nestedCode.includes(' ')) {
+      return nestedCode
+    }
+  }
 
   const raw = body?.code ?? body?.error_code
   if (typeof raw === 'string' && raw.length > 0 && !raw.includes(' ')) {
@@ -158,6 +170,11 @@ function pickMessage(status: number, body: Record<string, unknown> | null, code:
   if (body) {
     const detail = body.detail ?? body.message ?? body.error
     if (typeof detail === 'string' && detail.trim()) return detail
+    if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+      const nested = detail as { message?: unknown, msg?: unknown }
+      if (typeof nested.message === 'string' && nested.message.trim()) return nested.message
+      if (typeof nested.msg === 'string' && nested.msg.trim()) return nested.msg
+    }
     if (Array.isArray(detail) && detail.length > 0) {
       const first = detail[0] as { msg?: string }
       if (first?.msg) return first.msg

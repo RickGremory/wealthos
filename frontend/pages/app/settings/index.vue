@@ -36,6 +36,17 @@ const organization = useOrganizationStore()
           <NuxtLink to="/select-organization">Cambiar organización</NuxtLink>
         </template>
       </UiCard>
+
+      <UiCard title="Privacidad y legal">
+        <p class="text-muted">
+          Documentos aceptados, consentimiento de marketing y derechos ARCO.
+        </p>
+        <template #footer>
+          <NuxtLink to="/app/settings/privacy">Abrir privacidad</NuxtLink>
+          <span aria-hidden="true"> · </span>
+          <NuxtLink to="/legal/cookies">Cookies</NuxtLink>
+        </template>
+      </UiCard>
     </div>
   </div>
 </template>

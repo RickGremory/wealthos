@@ -1,5 +1,6 @@
 import { resolveSessionEntry } from '~/services/session-entry-resolver'
 import { createOnboardingRepository } from '~/repositories/onboarding.repository'
+import { createLegalRepository } from '~/repositories/legal.repository'
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore()
@@ -10,6 +11,19 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   if (!auth.isAuthenticated) {
     return navigateTo('/login')
+  }
+
+  if (!to.path.startsWith('/legal')) {
+    try {
+      const { $api } = useNuxtApp()
+      const legalRepo = createLegalRepository($api)
+      const status = await legalRepo.getStatus()
+      if (!status.isCompliant) {
+        return navigateTo('/legal/review')
+      }
+    } catch {
+      // Fail open on transient API errors.
+    }
   }
 
   const organization = useOrganizationStore()
@@ -54,6 +68,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const destination = resolveSessionEntry({
     isAuthenticated: true,
+    legalCompliant: true,
     memberships: organization.memberships.map(m => ({ id: m.id })),
     currentOrganizationId: orgId,
     onboarding: {

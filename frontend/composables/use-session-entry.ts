@@ -1,6 +1,7 @@
 import { resolveSessionEntry } from '~/services/session-entry-resolver'
 import type { EntryDestination } from '~/services/session-entry-resolver'
 import { createOnboardingRepository } from '~/repositories/onboarding.repository'
+import { createLegalRepository } from '~/repositories/legal.repository'
 
 /**
  * Boots auth + org memberships + onboarding progress for the current org,
@@ -64,8 +65,23 @@ export function useSessionEntry() {
     }
   }
 
+  async function fetchLegalCompliant(): Promise<boolean | null> {
+    if (!auth.isAuthenticated) return null
+    try {
+      const { $api } = useNuxtApp()
+      const repo = createLegalRepository($api)
+      const status = await repo.getStatus()
+      return status.isCompliant
+    } catch {
+      // Fail open for transient errors so users are not locked out of the app.
+      return null
+    }
+  }
+
   async function resolveDestination(): Promise<EntryDestination> {
     await initialize()
+
+    const legalCompliant = await fetchLegalCompliant()
 
     const orgId =
       organization.currentOrganizationId
@@ -85,6 +101,7 @@ export function useSessionEntry() {
 
     return resolveSessionEntry({
       isAuthenticated: auth.isAuthenticated,
+      legalCompliant,
       memberships: organization.memberships.map(m => ({ id: m.id })),
       currentOrganizationId: organization.currentOrganizationId,
       onboarding: snapshot,
@@ -94,5 +111,6 @@ export function useSessionEntry() {
   return {
     initialize,
     resolveDestination,
+    fetchLegalCompliant,
   }
 }

@@ -16,6 +16,7 @@ describe('resolveSessionEntry', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: false,
+        legalCompliant: null,
         memberships: [],
         currentOrganizationId: null,
         onboarding: null,
@@ -23,10 +24,50 @@ describe('resolveSessionEntry', () => {
     ).toBe('/login')
   })
 
+  it('sends non-compliant authenticated users to legal review before onboarding', () => {
+    expect(
+      resolveSessionEntry({
+        isAuthenticated: true,
+        legalCompliant: false,
+        memberships: [],
+        currentOrganizationId: null,
+        onboarding: null,
+      }),
+    ).toBe('/legal/review')
+
+    expect(
+      resolveSessionEntry({
+        isAuthenticated: true,
+        legalCompliant: false,
+        memberships: [orgA],
+        currentOrganizationId: orgA.id,
+        onboarding: {
+          hasPreferences: true,
+          hasAccount: true,
+          skippedAccount: false,
+          markedComplete: true,
+        },
+      }),
+    ).toBe('/legal/review')
+  })
+
+  it('skips legal gate when compliance is unknown (null)', () => {
+    expect(
+      resolveSessionEntry({
+        isAuthenticated: true,
+        legalCompliant: null,
+        memberships: [],
+        currentOrganizationId: null,
+        onboarding: null,
+      }),
+    ).toBe('/onboarding/organization')
+  })
+
   it('sends authenticated users with zero memberships to organization onboarding', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: true,
+        legalCompliant: true,
         memberships: [],
         currentOrganizationId: null,
         onboarding: null,
@@ -38,6 +79,7 @@ describe('resolveSessionEntry', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: true,
+        legalCompliant: true,
         memberships: [orgA, orgB],
         currentOrganizationId: null,
         onboarding: incomplete,
@@ -49,6 +91,7 @@ describe('resolveSessionEntry', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: true,
+        legalCompliant: true,
         memberships: [orgA],
         currentOrganizationId: null,
         onboarding: incomplete,
@@ -60,6 +103,7 @@ describe('resolveSessionEntry', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: true,
+        legalCompliant: true,
         memberships: [orgA],
         currentOrganizationId: orgA.id,
         onboarding: incomplete,
@@ -71,6 +115,7 @@ describe('resolveSessionEntry', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: true,
+        legalCompliant: true,
         memberships: [orgA],
         currentOrganizationId: orgA.id,
         onboarding: {
@@ -87,6 +132,7 @@ describe('resolveSessionEntry', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: true,
+        legalCompliant: true,
         memberships: [orgA],
         currentOrganizationId: orgA.id,
         onboarding: {
@@ -101,6 +147,7 @@ describe('resolveSessionEntry', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: true,
+        legalCompliant: true,
         memberships: [orgA],
         currentOrganizationId: orgA.id,
         onboarding: {
@@ -117,6 +164,7 @@ describe('resolveSessionEntry', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: true,
+        legalCompliant: true,
         memberships: [orgA],
         currentOrganizationId: orgA.id,
         onboarding: {
@@ -133,6 +181,7 @@ describe('resolveSessionEntry', () => {
     expect(
       resolveSessionEntry({
         isAuthenticated: true,
+        legalCompliant: true,
         memberships: [orgA],
         currentOrganizationId: orgA.id,
         onboarding: null,

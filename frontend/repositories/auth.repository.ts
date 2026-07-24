@@ -1,6 +1,13 @@
 import type { ApiClient } from '~/lib/api/types'
 import type { TokenPayload, UserSummary } from '~/types/domain'
 
+export interface LegalAcceptancePayload {
+  documentType: string
+  version: string
+  accepted?: boolean
+  acknowledged?: boolean
+}
+
 export interface RegisterInput {
   email: string
   password: string
@@ -9,6 +16,8 @@ export interface RegisterInput {
   currency?: string
   timezone?: string
   locale?: string
+  legalAcceptances: LegalAcceptancePayload[]
+  marketingConsent?: boolean
 }
 
 export interface LoginInput {
@@ -59,6 +68,13 @@ export function createAuthRepository(api: ApiClient) {
           currency: input.currency ?? 'MXN',
           timezone: input.timezone ?? 'America/Cancun',
           locale: input.locale ?? 'es-MX',
+          legal_acceptances: input.legalAcceptances.map(item => ({
+            document_type: item.documentType,
+            version: item.version,
+            accepted: item.accepted,
+            acknowledged: item.acknowledged,
+          })),
+          marketing_consent: input.marketingConsent ?? false,
         },
         { skipAuth: true },
       )

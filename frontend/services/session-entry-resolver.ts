@@ -1,5 +1,6 @@
 export type EntryDestination =
   | '/login'
+  | '/legal/review'
   | '/onboarding/organization'
   | '/select-organization'
   | '/onboarding/preferences'
@@ -9,6 +10,8 @@ export type EntryDestination =
 
 export function resolveSessionEntry(input: {
   isAuthenticated: boolean
+  /** null = unknown/skip (e.g. guests or when status not fetched) */
+  legalCompliant: boolean | null
   memberships: Array<{ id: string }>
   currentOrganizationId: string | null
   onboarding: {
@@ -20,6 +23,10 @@ export function resolveSessionEntry(input: {
 }): EntryDestination {
   if (!input.isAuthenticated) {
     return '/login'
+  }
+
+  if (input.legalCompliant === false) {
+    return '/legal/review'
   }
 
   const { memberships, currentOrganizationId, onboarding } = input
