@@ -28,6 +28,9 @@ def client() -> Generator[TestClient]:
 def _cleanup() -> Generator[None]:
     yield
     with SessionLocal() as session:
+        session.execute(text("DELETE FROM goal_manual_progress"))
+        session.execute(text("DELETE FROM goal_accounts"))
+        session.execute(text("DELETE FROM goals"))
         session.execute(text("DELETE FROM transaction_entries"))
         session.execute(text("DELETE FROM transactions"))
         session.execute(text("DELETE FROM categories"))
@@ -196,6 +199,7 @@ def test_dashboard_acceptance_flow(client: TestClient) -> None:
     assert Decimal(str(mxn_flow["income"])) == Decimal("10000.00")
     assert Decimal(str(mxn_flow["expenses"])) == Decimal("4000.00")
     assert Decimal(str(mxn_flow["net_cash_flow"])) == Decimal("6000.00")
+    assert body["goals"] == {"active": 0, "completed": 0}
 
     spending = client.get(
         f"{ORG}/{org_id}/dashboard/spending-by-category",
