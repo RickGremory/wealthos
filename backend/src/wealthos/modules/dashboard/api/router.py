@@ -14,6 +14,7 @@ from wealthos.core.security.organization_context import OrganizationAccess
 from wealthos.modules.dashboard.api.dependencies import (
     get_account_summary_query,
     get_cash_flow_query,
+    get_goals_dashboard_query,
     get_recent_transactions_query,
     get_spending_query,
     get_summary_query,
@@ -45,6 +46,10 @@ from wealthos.modules.dashboard.schemas.recent_transactions import (
     RecentTransactionsResponse,
 )
 from wealthos.modules.dashboard.schemas.summary import DashboardSummaryResponse
+from wealthos.modules.goals.application.queries.get_goals_dashboard_summary import (
+    GetGoalsDashboardSummaryQuery,
+)
+from wealthos.modules.goals.schemas.response import GoalsDashboardResponse
 
 router = APIRouter()
 
@@ -80,6 +85,9 @@ def get_summary(
     organization_id: UUID,
     access: OrganizationAccess,
     query: Annotated[GetDashboardSummaryQuery, Depends(get_summary_query)],
+    goals_query: Annotated[
+        GetGoalsDashboardSummaryQuery, Depends(get_goals_dashboard_query)
+    ],
     params: Annotated[DashboardPeriodParams, Depends(parse_period_params)],
 ) -> DashboardSummaryResponse:
     summary, date_range = query.execute(
@@ -88,7 +96,16 @@ def get_summary(
         primary_currency=access.currency,
         filters=_period_filters(params),
     )
-    return DashboardSummaryResponse.from_view(summary, date_range)
+    goals = goals_query.execute(
+        organization_id,
+        currency=access.currency,
+    )
+    return DashboardSummaryResponse.from_view(
+        summary,
+        date_range,
+        goals_active=goals.active_goals,
+        goals_completed=goals.completed_goals,
+    )
 
 
 @router.get(
@@ -172,3 +189,17 @@ def get_recent_transactions(
 ) -> RecentTransactionsResponse:
     items = query.execute(organization_id, limit=limit)
     return RecentTransactionsResponse.from_views(items)
+
+
+@router.get(
+    "/{organization_id}/dashboard/goals",
+    response_model=GoalsDashboardResponse,
+    summary="Dashboard goals overview",
+)
+def get_dashboard_goals(
+    organization_id: UUID,
+    access: OrganizationAccess,
+    query: Annotated[GetGoalsDashboardSummaryQuery, Depends(get_goals_dashboard_query)],
+) -> GoalsDashboardResponse:
+    summary = query.execute(organization_id, currency=access.currency)
+    return GoalsDashboardResponse.from_summary(summary)

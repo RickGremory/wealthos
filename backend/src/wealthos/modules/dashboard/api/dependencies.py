@@ -30,6 +30,14 @@ from wealthos.modules.dashboard.domain.repositories.dashboard_read_repository im
 from wealthos.modules.dashboard.infrastructure.repositories import (
     SqlAlchemyDashboardReadRepository,
 )
+from wealthos.modules.goals.application.queries.get_goals_dashboard_summary import (
+    GetGoalsDashboardSummaryQuery,
+)
+from wealthos.modules.goals.application.services.goal_progress_service import (
+    GoalProgressService,
+)
+from wealthos.modules.goals.domain.repositories.goal_repository import GoalRepository
+from wealthos.modules.goals.infrastructure.repositories import SqlAlchemyGoalRepository
 
 
 def get_dashboard_repository(
@@ -73,3 +81,15 @@ def get_recent_transactions_query(
     repository: Annotated[DashboardReadRepository, Depends(get_dashboard_repository)],
 ) -> GetRecentTransactionsQuery:
     return GetRecentTransactionsQuery(repository)
+
+
+def get_goal_repository(
+    session: Annotated[Session, Depends(get_db)],
+) -> GoalRepository:
+    return SqlAlchemyGoalRepository(session)
+
+
+def get_goals_dashboard_query(
+    goals: Annotated[GoalRepository, Depends(get_goal_repository)],
+) -> GetGoalsDashboardSummaryQuery:
+    return GetGoalsDashboardSummaryQuery(goals, GoalProgressService(goals))

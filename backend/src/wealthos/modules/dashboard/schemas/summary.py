@@ -36,6 +36,11 @@ class AccountCountResponse(BaseModel):
     archived: int
 
 
+class GoalsCountResponse(BaseModel):
+    active: int
+    completed: int
+
+
 class DashboardSummaryResponse(BaseModel):
     """Current balances + period cash flow.
 
@@ -52,13 +57,20 @@ class DashboardSummaryResponse(BaseModel):
     transaction_count: int = Field(
         description="Transactions with occurred_at in the selected period (any status).",
     )
+    goals: GoalsCountResponse | None = None
 
     @classmethod
     def from_view(
         cls,
         view: DashboardSummaryView,
         date_range: DateRange,
+        *,
+        goals_active: int | None = None,
+        goals_completed: int | None = None,
     ) -> DashboardSummaryResponse:
+        goals = None
+        if goals_active is not None and goals_completed is not None:
+            goals = GoalsCountResponse(active=goals_active, completed=goals_completed)
         return cls(
             period=PeriodInfo(
                 date_from=date_range.display_from,
@@ -88,4 +100,5 @@ class DashboardSummaryResponse(BaseModel):
                 archived=view.archived_account_count,
             ),
             transaction_count=view.transaction_count,
+            goals=goals,
         )
