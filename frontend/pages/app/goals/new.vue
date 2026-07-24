@@ -50,6 +50,8 @@ function onSelectTemplate(id: string) {
     <AppPageHeader
       title="Nueva meta"
       description="Define un objetivo claro y elige cómo medirás el avance."
+      back-to="/app/goals"
+      back-label="← Todas las metas"
     />
 
     <UiCard>

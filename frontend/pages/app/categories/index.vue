@@ -234,5 +234,21 @@ async function confirmArchive() {
 <style scoped>
 .categories-body {
   margin-top: var(--space-5);
+  min-width: 0;
+}
+
+.categories-body :deep(.ui-card) {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.categories-body :deep(.ui-card__body) {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .categories-body :deep(.ui-card--padded) {
+    padding: var(--space-3);
+  }
 }
 </style>

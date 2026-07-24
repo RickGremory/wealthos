@@ -80,31 +80,42 @@ export function filterCategoryTreeByTab(
     return filterArchivedOnly(nodes)
   }
 
-  const filterActive = (list: CategoryTreeNodeView[]): CategoryTreeNodeView[] =>
+  if (tab === 'system') {
+    // Only system categories (seeded). Custom children belong in Gasto/Ingreso.
+    const filterSystem = (list: CategoryTreeNodeView[]): CategoryTreeNodeView[] =>
+      list
+        .filter(node => !node.isArchived && node.isSystem)
+        .map(node => ({
+          ...node,
+          children: filterSystem(node.children ?? []),
+        }))
+    return filterSystem(nodes)
+  }
+
+  // Gasto / Ingreso: user categories, including those nested under a system parent.
+  // Keep system ancestors only as structural shells when they wrap custom descendants.
+  const wantedType = tab
+
+  const hasVisibleCustom = (node: CategoryTreeNodeView): boolean => {
+    if (node.isArchived || node.type !== wantedType) return false
+    if (!node.isSystem) return true
+    return (node.children ?? []).some(hasVisibleCustom)
+  }
+
+  const filterTyped = (list: CategoryTreeNodeView[]): CategoryTreeNodeView[] =>
     list
       .filter((node) => {
-        if (node.isArchived) return false
-        if (tab === 'system') return node.isSystem
-        if (tab === 'expense') return node.type === 'expense' && !node.isSystem
-        if (tab === 'income') return node.type === 'income' && !node.isSystem
-        return true
+        if (node.isArchived || node.type !== wantedType) return false
+        if (!node.isSystem) return true
+        return hasVisibleCustom(node)
       })
       .map(node => ({
         ...node,
-        children: filterActive(node.children ?? []),
+        children: filterTyped(node.children ?? []),
       }))
+      .filter(node => !node.isSystem || (node.children?.length ?? 0) > 0)
 
-  if (tab === 'system') {
-    // System tab: show system categories (often tax tree); keep children.
-    return nodes
-      .filter(node => !node.isArchived && node.isSystem)
-      .map(node => ({
-        ...node,
-        children: (node.children ?? []).filter(c => !c.isArchived),
-      }))
-  }
-
-  return filterActive(nodes)
+  return filterTyped(nodes)
 }
 
 function filterArchivedOnly(nodes: CategoryTreeNodeView[]): CategoryTreeNodeView[] {

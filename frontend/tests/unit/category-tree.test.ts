@@ -82,13 +82,46 @@ describe('category-tree', () => {
     const system = filterCategoryTreeByTab(tree, 'system')
     expect(system.every(n => n.isSystem)).toBe(true)
     expect(system.some(n => n.id === 'tax')).toBe(true)
+    expect(flattenCategoryTree(system).every(n => n.isSystem)).toBe(true)
 
     const expense = filterCategoryTreeByTab(tree, 'expense')
     expect(expense.some(n => n.id === 'food')).toBe(true)
-    expect(expense.some(n => n.isSystem)).toBe(false)
+    expect(expense.some(n => n.id === 'tax')).toBe(false)
 
     const income = filterCategoryTreeByTab(tree, 'income')
     expect(income.map(n => n.id)).toEqual(['salary'])
+  })
+
+  it('shows custom children nested under system parents in expense tab', () => {
+    const nested: CategoryTreeNodeView[] = [
+      node({
+        id: 'food-sys',
+        name: 'Alimentación',
+        isSystem: true,
+        children: [
+          node({
+            id: 'custom-resto',
+            name: 'Restaurantes premium',
+            parentId: 'food-sys',
+            isSystem: false,
+          }),
+          node({
+            id: 'sys-child',
+            name: 'IVA comida',
+            parentId: 'food-sys',
+            isSystem: true,
+          }),
+        ],
+      }),
+    ]
+
+    const expense = filterCategoryTreeByTab(nested, 'expense')
+    expect(expense.map(n => n.id)).toEqual(['food-sys'])
+    expect(expense[0]!.children.map(n => n.id)).toEqual(['custom-resto'])
+
+    const system = filterCategoryTreeByTab(nested, 'system')
+    expect(system.map(n => n.id)).toEqual(['food-sys'])
+    expect(system[0]!.children.map(n => n.id)).toEqual(['sys-child'])
   })
 
   it('builds parent options excluding descendants', () => {

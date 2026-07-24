@@ -19,25 +19,30 @@ const expanded = ref(true)
 <template>
   <li class="tree-item" :style="{ '--depth': depth ?? 0 }">
     <div class="tree-item__row">
-      <button
-        v-if="node.children?.length"
-        type="button"
-        class="tree-item__toggle"
-        :aria-expanded="expanded"
-        @click="expanded = !expanded"
+      <div class="tree-item__main">
+        <button
+          v-if="node.children?.length"
+          type="button"
+          class="tree-item__toggle"
+          :aria-expanded="expanded"
+          @click="expanded = !expanded"
+        >
+          {{ expanded ? '▾' : '▸' }}
+        </button>
+        <span v-else class="tree-item__spacer" />
+        <CategoryBadge
+          :name="node.name"
+          :color="node.color"
+          :icon="node.icon"
+          :is-system="node.isSystem"
+        />
+      </div>
+      <div
+        v-if="(canEdit || canArchive) && !node.isSystem && !node.isArchived"
+        class="tree-item__actions"
       >
-        {{ expanded ? '▾' : '▸' }}
-      </button>
-      <span v-else class="tree-item__spacer" />
-      <CategoryBadge
-        :name="node.name"
-        :color="node.color"
-        :icon="node.icon"
-        :is-system="node.isSystem"
-      />
-      <div class="tree-item__actions">
         <UiButton
-          v-if="canEdit && !node.isSystem && !node.isArchived"
+          v-if="canEdit"
           type="button"
           variant="ghost"
           size="sm"
@@ -46,7 +51,7 @@ const expanded = ref(true)
           Editar
         </UiButton>
         <UiButton
-          v-if="canArchive && !node.isSystem && !node.isArchived"
+          v-if="canArchive"
           type="button"
           variant="ghost"
           size="sm"
@@ -74,12 +79,14 @@ const expanded = ref(true)
 <style scoped>
 .tree-item {
   list-style: none;
+  min-width: 0;
 }
 
 .tree-item__row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
   padding: 0.55rem 0.35rem;
   padding-left: calc(var(--depth) * 1.1rem + 0.35rem);
   border-radius: var(--radius-md);
@@ -87,6 +94,14 @@ const expanded = ref(true)
 
 .tree-item__row:hover {
   background: var(--color-surface-muted);
+}
+
+.tree-item__main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .tree-item__toggle,
@@ -102,11 +117,32 @@ const expanded = ref(true)
 .tree-item__children {
   margin: 0;
   padding: 0;
+  min-width: 0;
 }
 
 .tree-item__actions {
   margin-left: auto;
   display: flex;
+  flex-shrink: 0;
   gap: var(--space-1);
+}
+
+@media (max-width: 640px) {
+  .tree-item__row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding-left: calc(var(--depth) * 0.75rem + 0.25rem);
+  }
+
+  .tree-item__main {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  .tree-item__actions {
+    margin-left: calc(1.25rem + var(--space-2));
+    width: calc(100% - 1.25rem - var(--space-2));
+    justify-content: flex-start;
+  }
 }
 </style>
