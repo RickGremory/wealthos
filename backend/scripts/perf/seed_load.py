@@ -264,9 +264,7 @@ def _bulk_transactions(
             amount = Decimal(str(round(rng.uniform(50, 5_000), 2)))
             signed = amount if is_income else -amount
             balances[account_id] += signed
-            occurred = start + timedelta(
-                seconds=rng.randint(0, max(days * 24 * 3600 - 1, 1))
-            )
+            occurred = start + timedelta(seconds=rng.randint(0, max(days * 24 * 3600 - 1, 1)))
             tx_rows.append(
                 {
                     "id": tx_id,
@@ -410,9 +408,7 @@ def _seed_goals(session, org_id: str, account_ids: list[UUID]) -> None:
         goals,
     )
     session.execute(
-        text(
-            "INSERT INTO goal_accounts (goal_id, account_id) VALUES (:goal_id, :account_id)"
-        ),
+        text("INSERT INTO goal_accounts (goal_id, account_id) VALUES (:goal_id, :account_id)"),
         {"goal_id": linked_id, "account_id": account_ids[0]},
     )
     session.execute(
@@ -446,16 +442,11 @@ def main() -> None:
 
     with SessionLocal() as session:
         existing = session.execute(
-            text(
-                "SELECT COUNT(*) FROM transactions WHERE organization_id = :org_id"
-            ),
+            text("SELECT COUNT(*) FROM transactions WHERE organization_id = :org_id"),
             {"org_id": user["org_id"]},
         ).scalar_one()
         if existing and not args.reset:
-            print(
-                f"Org already has {existing} transactions. "
-                "Re-run with --reset to rebuild."
-            )
+            print(f"Org already has {existing} transactions. Re-run with --reset to rebuild.")
             print(f"email={LOAD_EMAIL}")
             print(f"password={LOAD_PASSWORD}")
             print(f"organization_id={user['org_id']}")

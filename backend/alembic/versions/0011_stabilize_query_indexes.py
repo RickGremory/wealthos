@@ -23,9 +23,7 @@ def upgrade() -> None:
         "transactions",
         ["organization_id", "occurred_at"],
         unique=False,
-        postgresql_where=sa.text(
-            "status = 'posted' AND transaction_type IN ('income', 'expense')"
-        ),
+        postgresql_where=sa.text("status = 'posted' AND transaction_type IN ('income', 'expense')"),
     )
     # Avg daily savings / entry joins after filtering transactions.
     op.create_index(

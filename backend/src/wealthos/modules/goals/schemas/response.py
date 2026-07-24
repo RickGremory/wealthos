@@ -79,7 +79,5 @@ class GoalsDashboardResponse(BaseModel):
             total_target=summary.total_target,
             current_progress=summary.current_progress,
             completion=summary.completion,
-            top_goals=[
-                GoalResponse.from_goal_with_progress(item) for item in summary.top_goals
-            ],
+            top_goals=[GoalResponse.from_goal_with_progress(item) for item in summary.top_goals],
         )

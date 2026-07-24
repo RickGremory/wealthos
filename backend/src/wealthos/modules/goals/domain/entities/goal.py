@@ -53,9 +53,7 @@ class Goal:
         strategy_vo = GoalStrategy(strategy)
         accounts = tuple(dict.fromkeys(linked_account_ids))
         if strategy_vo.is_linked_accounts and not accounts:
-            raise LinkedAccountsRequired(
-                "linked_accounts strategy requires at least one account."
-            )
+            raise LinkedAccountsRequired("linked_accounts strategy requires at least one account.")
         if not strategy_vo.is_linked_accounts and accounts:
             raise LinkedAccountsNotAllowed(
                 "Only linked_accounts strategy may include linked accounts."
@@ -100,9 +98,7 @@ class Goal:
             )
         accounts = tuple(dict.fromkeys(account_ids))
         if not accounts:
-            raise LinkedAccountsRequired(
-                "linked_accounts strategy requires at least one account."
-            )
+            raise LinkedAccountsRequired("linked_accounts strategy requires at least one account.")
         self.linked_account_ids = accounts
         self.updated_at = datetime.now(UTC)
 

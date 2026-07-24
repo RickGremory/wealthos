@@ -74,9 +74,7 @@ class GoalProgressService:
         if goal.strategy.is_manual:
             if goal.id not in self._manual_cache:
                 stored = self._repository.get_manual_progress(goal.id)
-                self._manual_cache[goal.id] = Decimal(str(stored or 0)).quantize(
-                    Decimal("0.01")
-                )
+                self._manual_cache[goal.id] = Decimal(str(stored or 0)).quantize(Decimal("0.01"))
             return self._manual_cache[goal.id]
         if goal.strategy.is_linked_accounts:
             key = (
@@ -133,9 +131,7 @@ class GoalProgressService:
     ) -> Decimal:
         key = (organization_id, currency, account_ids, days)
         if key not in self._savings_cache:
-            raw_ids = (
-                tuple(sorted(account_ids)) if account_ids is not None else None
-            )
+            raw_ids = tuple(sorted(account_ids)) if account_ids is not None else None
             self._savings_cache[key] = self._repository.average_daily_savings(
                 organization_id,
                 currency=currency,

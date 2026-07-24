@@ -50,17 +50,13 @@ class CreateDebtCommand:
         if not account.is_active:
             raise DebtAccountInactive("Cannot link an archived account.")
         if not account.account_type.is_liability:
-            raise DebtAccountMustBeLiability(
-                "Debt must be linked to a liability account."
-            )
+            raise DebtAccountMustBeLiability("Debt must be linked to a liability account.")
         existing = self._debts.get_active_by_account(
             data.organization_id,
             data.account_id,
         )
         if existing is not None:
-            raise DebtAlreadyExistsForAccount(
-                "An active debt already exists for this account."
-            )
+            raise DebtAlreadyExistsForAccount("An active debt already exists for this account.")
 
         currency = account.currency.value
         original = None

@@ -50,13 +50,9 @@ class DebtPayment:
             )
         if principal_amount is not None and interest_amount is not None:
             if principal_amount.currency != amount.currency:
-                raise DebtPaymentBreakdownInvalid(
-                    "Principal currency must match payment currency."
-                )
+                raise DebtPaymentBreakdownInvalid("Principal currency must match payment currency.")
             if interest_amount.currency != amount.currency:
-                raise DebtPaymentBreakdownInvalid(
-                    "Interest currency must match payment currency."
-                )
+                raise DebtPaymentBreakdownInvalid("Interest currency must match payment currency.")
             if principal_amount.amount < 0 or interest_amount.amount < 0:
                 raise DebtPaymentBreakdownInvalid(
                     "Principal and interest amounts cannot be negative."

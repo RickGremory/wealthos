@@ -33,9 +33,7 @@ class DebtModel(Base):
             "uq_active_debt_account",
             "account_id",
             unique=True,
-            postgresql_where=text(
-                "status IN ('active', 'paid_off') AND archived_at IS NULL"
-            ),
+            postgresql_where=text("status IN ('active', 'paid_off') AND archived_at IS NULL"),
         ),
     )
 

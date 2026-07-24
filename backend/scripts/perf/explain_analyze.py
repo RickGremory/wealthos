@@ -161,9 +161,7 @@ def _resolve_org_id(session, explicit: str) -> str:
         {"slug": LOAD_SLUG},
     ).first()
     if row is None:
-        raise SystemExit(
-            "Load-test organization not found. Run scripts/perf/seed_load.py first."
-        )
+        raise SystemExit("Load-test organization not found. Run scripts/perf/seed_load.py first.")
     return str(row.id)
 
 

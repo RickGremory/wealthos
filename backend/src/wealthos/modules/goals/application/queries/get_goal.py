@@ -63,10 +63,7 @@ class ListGoalsQuery:
             include_archived=include_archived,
         ):
             progress = self._progress.calculate(goal)
-            if (
-                progress.completion_percentage >= Decimal("100")
-                and goal.status.is_active
-            ):
+            if progress.completion_percentage >= Decimal("100") and goal.status.is_active:
                 goal.complete()
                 goal = self._goals.save(goal)
                 progress = self._progress.calculate(goal)

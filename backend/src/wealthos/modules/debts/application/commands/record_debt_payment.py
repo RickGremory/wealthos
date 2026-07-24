@@ -68,9 +68,7 @@ class RecordDebtPaymentCommand:
         debt.ensure_accepts_payment()
 
         if data.source_account_id == debt.account_id:
-            raise DebtPaymentSourceInvalid(
-                "Source account cannot be the same as the debt account."
-            )
+            raise DebtPaymentSourceInvalid("Source account cannot be the same as the debt account.")
 
         # Deterministic row locks (same ASC order as transfer posting).
         locked = self._accounts.get_many_for_update(
@@ -89,20 +87,14 @@ class RecordDebtPaymentCommand:
         if not liability.is_active:
             raise DebtAccountInactive("Debt account is archived.")
         if source.currency != liability.currency:
-            raise DebtPaymentSourceInvalid(
-                "Source account currency must match the debt currency."
-            )
+            raise DebtPaymentSourceInvalid("Source account currency must match the debt currency.")
         if source.account_type.is_liability:
-            raise DebtPaymentSourceInvalid(
-                "Source account must be an asset account."
-            )
+            raise DebtPaymentSourceInvalid("Source account must be an asset account.")
 
         owed = abs(liability.current_balance.amount)
         amount = Money(data.amount, liability.currency)
         if amount.amount > owed:
-            raise DebtPaymentExceedsBalance(
-                "Payment cannot exceed the outstanding debt balance."
-            )
+            raise DebtPaymentExceedsBalance("Payment cannot exceed the outstanding debt balance.")
 
         principal = (
             Money(data.principal_amount, liability.currency)

@@ -49,9 +49,7 @@ class UpdateGoalCommand:
         if "name" in data.fields_set and data.name is not None:
             goal.rename(data.name)
         if "target_amount" in data.fields_set and data.target_amount is not None:
-            goal.change_target_amount(
-                Money(data.target_amount, goal.target_amount.currency)
-            )
+            goal.change_target_amount(Money(data.target_amount, goal.target_amount.currency))
         if "target_date" in data.fields_set:
             goal.change_target_date(data.target_date)
         if "linked_account_ids" in data.fields_set and data.linked_account_ids is not None:

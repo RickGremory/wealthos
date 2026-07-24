@@ -64,7 +64,5 @@ class GoalMapper(BaseMapper[GoalModel, Goal]):
         model.archived_at = entity.archived_at
         model.account_links.clear()
         for account_id in entity.linked_account_ids:
-            model.account_links.append(
-                GoalAccountModel(goal_id=entity.id, account_id=account_id)
-            )
+            model.account_links.append(GoalAccountModel(goal_id=entity.id, account_id=account_id))
         return model

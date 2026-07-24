@@ -133,9 +133,7 @@ def create_goal(
     except InvalidCurrency as exc:
         raise _http_map_goal_errors(exc) from exc
 
-    return GoalResponse.from_goal_with_progress(
-        GoalWithProgress(goal=goal, progress=progress)
-    )
+    return GoalResponse.from_goal_with_progress(GoalWithProgress(goal=goal, progress=progress))
 
 
 @router.get(
@@ -210,9 +208,7 @@ def update_goal(
     except GoalError as exc:
         raise _http_map_goal_errors(exc) from exc
 
-    return GoalResponse.from_goal_with_progress(
-        GoalWithProgress(goal=goal, progress=progress)
-    )
+    return GoalResponse.from_goal_with_progress(GoalWithProgress(goal=goal, progress=progress))
 
 
 @router.post(
@@ -238,9 +234,7 @@ def archive_goal(
     except GoalError as exc:
         raise _http_map_goal_errors(exc) from exc
 
-    return GoalResponse.from_goal_with_progress(
-        GoalWithProgress(goal=goal, progress=progress)
-    )
+    return GoalResponse.from_goal_with_progress(GoalWithProgress(goal=goal, progress=progress))
 
 
 @router.post(
@@ -253,9 +247,7 @@ def update_manual_progress(
     goal_id: UUID,
     payload: ManualProgressUpdate,
     _membership: RequireWriter,
-    command: Annotated[
-        UpdateManualProgressCommand, Depends(get_manual_progress_command)
-    ],
+    command: Annotated[UpdateManualProgressCommand, Depends(get_manual_progress_command)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> GoalResponse:
     try:

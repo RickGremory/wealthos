@@ -41,9 +41,7 @@ class UpdateDebtCommand:
         if "annual_interest_rate" in data.fields_set and data.annual_interest_rate is not None:
             debt.change_interest_rate(data.annual_interest_rate)
         if "minimum_payment" in data.fields_set and data.minimum_payment is not None:
-            debt.change_minimum_payment(
-                Money(data.minimum_payment, debt.minimum_payment.currency)
-            )
+            debt.change_minimum_payment(Money(data.minimum_payment, debt.minimum_payment.currency))
         if "maturity_date" in data.fields_set:
             debt.change_maturity_date(data.maturity_date)
         if "payment_day" in data.fields_set:

@@ -39,12 +39,8 @@ class DebtPaymentMapper(BaseMapper[DebtPaymentModel, DebtPayment]):
             transaction_id=entity.transaction_id,
             amount=entity.amount.amount,
             currency=currency,
-            principal_amount=(
-                entity.principal_amount.amount if entity.principal_amount else None
-            ),
-            interest_amount=(
-                entity.interest_amount.amount if entity.interest_amount else None
-            ),
+            principal_amount=(entity.principal_amount.amount if entity.principal_amount else None),
+            interest_amount=(entity.interest_amount.amount if entity.interest_amount else None),
             paid_at=entity.paid_at,
             created_by_user_id=entity.created_by_user_id,
             created_at=entity.created_at,

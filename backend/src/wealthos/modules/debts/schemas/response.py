@@ -104,9 +104,7 @@ class DebtPaymentResponse(BaseModel):
             principal_amount=(
                 payment.principal_amount.amount if payment.principal_amount else None
             ),
-            interest_amount=(
-                payment.interest_amount.amount if payment.interest_amount else None
-            ),
+            interest_amount=(payment.interest_amount.amount if payment.interest_amount else None),
             paid_at=payment.paid_at,
             created_by_user_id=payment.created_by_user_id,
             created_at=payment.created_at,
