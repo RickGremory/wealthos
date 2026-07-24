@@ -14,6 +14,8 @@ export default defineNuxtConfig({
     { path: '~/components/dashboard', pathPrefix: false },
     { path: '~/components/auth', pathPrefix: false },
     { path: '~/components/onboarding', pathPrefix: false },
+    { path: '~/components/accounts', pathPrefix: false },
+    { path: '~/components/categories', pathPrefix: false },
   ],
 
   css: [

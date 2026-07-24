@@ -44,4 +44,7 @@ export interface AccountSummary {
   institutionName: string | null
   lastFour: string | null
   isActive: boolean
+  createdAt?: string
+  updatedAt?: string
+  archivedAt?: string | null
 }

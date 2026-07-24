@@ -30,14 +30,82 @@ const USER_MESSAGES: Record<string, string> = {
   rate_limited: 'Demasiadas solicitudes. Intenta de nuevo en un momento.',
   network_error: 'No se pudo conectar con el servidor.',
   unknown_error: 'Ocurrió un error inesperado.',
+
+  // Accounts
+  ACCOUNT_NAME_ALREADY_EXISTS: 'Ya existe una cuenta con ese nombre.',
+  ACCOUNT_HAS_TRANSACTIONS: 'Esta cuenta tiene movimientos y no admite ese cambio.',
+  ACCOUNT_TYPE_CHANGE_NOT_ALLOWED: 'No se puede cambiar el tipo de esta cuenta.',
+  ACCOUNT_CURRENCY_CHANGE_NOT_ALLOWED: 'No se puede cambiar la moneda de esta cuenta.',
+  ACCOUNT_NOT_FOUND: 'No se encontró la cuenta.',
+  ACCOUNT_ARCHIVE_RESTRICTED: 'No se puede archivar esta cuenta en este momento.',
+  ACCOUNT_ALREADY_ARCHIVED: 'Esta cuenta ya está archivada.',
+  INVALID_OPENING_BALANCE: 'El saldo inicial no es válido.',
+  INVALID_ACCOUNT_TYPE: 'El tipo de cuenta no es válido.',
+  INVALID_LAST_FOUR: 'Los últimos cuatro dígitos deben ser exactamente 4 números.',
+
+  // Categories
+  CATEGORY_NAME_ALREADY_EXISTS: 'Ya existe una categoría con ese nombre en este nivel.',
+  CATEGORY_PARENT_NOT_FOUND: 'No se encontró la categoría padre.',
+  CATEGORY_TYPE_MISMATCH: 'El tipo de la subcategoría debe coincidir con el del padre.',
+  CATEGORY_CYCLE_DETECTED: 'No se puede crear una jerarquía circular.',
+  CATEGORY_HAS_ACTIVE_CHILDREN: 'Archiva primero las subcategorías activas.',
+  CATEGORY_TYPE_CHANGE_NOT_ALLOWED: 'No se puede cambiar el tipo de esta categoría.',
+  SYSTEM_CATEGORY_RESTRICTED: 'Las categorías del sistema no se pueden modificar ni archivar.',
+  CATEGORY_NOT_FOUND: 'No se encontró la categoría.',
+  CATEGORY_ALREADY_ARCHIVED: 'Esta categoría ya está archivada.',
+  CATEGORY_DEPTH_EXCEEDED: 'Solo se permiten dos niveles de categorías.',
+}
+
+/** Match backend English detail strings when no structured code is present. */
+const DETAIL_PATTERNS: Array<{ pattern: RegExp, code: string }> = [
+  { pattern: /account.*already exists|name already exists.*account/i, code: 'ACCOUNT_NAME_ALREADY_EXISTS' },
+  { pattern: /account is already archived/i, code: 'ACCOUNT_ALREADY_ARCHIVED' },
+  { pattern: /account not found/i, code: 'ACCOUNT_NOT_FOUND' },
+  { pattern: /category with this name already exists/i, code: 'CATEGORY_NAME_ALREADY_EXISTS' },
+  { pattern: /archive active child/i, code: 'CATEGORY_HAS_ACTIVE_CHILDREN' },
+  { pattern: /system categor(?:y|ies) cannot/i, code: 'SYSTEM_CATEGORY_RESTRICTED' },
+  { pattern: /parent category.*not found|parent.*does not exist/i, code: 'CATEGORY_PARENT_NOT_FOUND' },
+  { pattern: /type differs|type mismatch/i, code: 'CATEGORY_TYPE_MISMATCH' },
+  { pattern: /nest beyond|depth/i, code: 'CATEGORY_DEPTH_EXCEEDED' },
+  { pattern: /category not found/i, code: 'CATEGORY_NOT_FOUND' },
+  { pattern: /already archived/i, code: 'CATEGORY_ALREADY_ARCHIVED' },
+  { pattern: /last.?four|4-digit/i, code: 'INVALID_LAST_FOUR' },
+  { pattern: /invalid.*account type|account type.*not supported/i, code: 'INVALID_ACCOUNT_TYPE' },
+]
+
+function messageFromDetail(detail: string): string | null {
+  for (const { pattern, code } of DETAIL_PATTERNS) {
+    if (pattern.test(detail)) {
+      return USER_MESSAGES[code] ?? null
+    }
+  }
+  return null
 }
 
 export function toUserMessage(codeOrError: string | ApiError | unknown): string {
   if (codeOrError instanceof ApiError) {
-    return USER_MESSAGES[codeOrError.code] ?? codeOrError.message ?? USER_MESSAGES.unknown_error
+    const fromDetail = messageFromDetail(codeOrError.message)
+    const genericCodes = new Set([
+      'unknown_error',
+      'validation_error',
+      'conflict',
+      'not_found',
+      'forbidden',
+      'unauthorized',
+    ])
+    // Prefer structured codes when they are domain-specific.
+    if (USER_MESSAGES[codeOrError.code] && !genericCodes.has(codeOrError.code)) {
+      return USER_MESSAGES[codeOrError.code]
+    }
+    if (fromDetail) return fromDetail
+    if (USER_MESSAGES[codeOrError.code]) return USER_MESSAGES[codeOrError.code]
+    return codeOrError.message || USER_MESSAGES.unknown_error
   }
   if (typeof codeOrError === 'string') {
-    return USER_MESSAGES[codeOrError] ?? USER_MESSAGES.unknown_error
+    if (USER_MESSAGES[codeOrError]) return USER_MESSAGES[codeOrError]
+    const fromDetail = messageFromDetail(codeOrError)
+    if (fromDetail) return fromDetail
+    return USER_MESSAGES.unknown_error
   }
   return USER_MESSAGES.unknown_error
 }
