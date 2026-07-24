@@ -23,6 +23,17 @@ from wealthos.modules.organizations.infrastructure.models import (  # noqa: F401
     OrganizationMembershipModel,
     OrganizationModel,
 )
+from wealthos.modules.tax_mx.infrastructure.models import (  # noqa: F401
+    MexicoTaxCalculationSnapshotModel,
+    MexicoTaxCategoryMappingModel,
+    MexicoTaxConfigurationModel,
+    MexicoTaxTransactionOverrideModel,
+    MexicoTaxWithholdingModel,
+    MexicoTransactionTaxDetailsModel,
+    MxTaxCatalogEntryModel,
+    MxTaxPaymentDetailModel,
+    TaxEvidenceModel,
+)
 from wealthos.modules.taxes.infrastructure.models import (  # noqa: F401
     TaxCalculationLineModel,
     TaxCalculationModel,

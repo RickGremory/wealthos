@@ -12,6 +12,7 @@ from sqlalchemy import (
     Index,
     String,
     Uuid,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -40,6 +41,13 @@ class CategoryModel(Base):
             unique=True,
             postgresql_nulls_not_distinct=True,
         ),
+        Index(
+            "uq_categories_org_system_code",
+            "organization_id",
+            "system_code",
+            unique=True,
+            postgresql_where=text("system_code IS NOT NULL"),
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
@@ -59,6 +67,7 @@ class CategoryModel(Base):
     icon: Mapped[str | None] = mapped_column(String(50), nullable=True)
     color: Mapped[str | None] = mapped_column(String(20), nullable=True)
     is_system: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    system_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -25,9 +25,17 @@ DEFAULT_EXPENSE = (
     "Educación",
     "Entretenimiento",
     "Suscripciones",
-    "Impuestos",
     "Comisiones",
     "Otros gastos",
+)
+
+TAX_CATEGORY_TREE: tuple[tuple[str, str], ...] = (
+    ("taxes.root", "Impuestos"),
+    ("taxes.income_tax", "ISR"),
+    ("taxes.value_added_tax", "IVA"),
+    ("taxes.withholding", "Retenciones"),
+    ("taxes.social_security", "Seguridad social"),
+    ("taxes.other", "Otros impuestos"),
 )
 
 
@@ -56,4 +64,23 @@ class CategorySeedService:
             )
             for name in DEFAULT_EXPENSE
         )
+        tax_root = Category.create(
+            organization_id=organization_id,
+            name=TAX_CATEGORY_TREE[0][1],
+            category_type="expense",
+            is_system=True,
+            system_code=TAX_CATEGORY_TREE[0][0],
+        )
+        categories.append(tax_root)
+        for system_code, name in TAX_CATEGORY_TREE[1:]:
+            categories.append(
+                Category.create(
+                    organization_id=organization_id,
+                    name=name,
+                    category_type="expense",
+                    parent_id=tax_root.id,
+                    is_system=True,
+                    system_code=system_code,
+                )
+            )
         return self._repository.add_many(categories)

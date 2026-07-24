@@ -20,6 +20,7 @@ class CategoryMapper(BaseMapper[CategoryModel, Category]):
             icon=model.icon,
             color=model.color,
             is_system=model.is_system,
+            system_code=model.system_code,
             is_active=model.is_active,
             created_at=model.created_at,
             updated_at=model.updated_at,
@@ -37,6 +38,7 @@ class CategoryMapper(BaseMapper[CategoryModel, Category]):
             icon=entity.icon,
             color=entity.color,
             is_system=entity.is_system,
+            system_code=entity.system_code,
             is_active=entity.is_active,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
@@ -51,6 +53,7 @@ class CategoryMapper(BaseMapper[CategoryModel, Category]):
         model.icon = entity.icon
         model.color = entity.color
         model.is_system = entity.is_system
+        model.system_code = entity.system_code
         model.is_active = entity.is_active
         model.updated_at = entity.updated_at
         model.archived_at = entity.archived_at

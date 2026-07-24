@@ -26,6 +26,7 @@ class Category:
     icon: str | None
     color: str | None
     is_system: bool
+    system_code: str | None
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -42,6 +43,7 @@ class Category:
         icon: str | None = None,
         color: str | None = None,
         is_system: bool = False,
+        system_code: str | None = None,
         category_id: UUID | None = None,
     ) -> Category:
         now = datetime.now(UTC)
@@ -54,6 +56,7 @@ class Category:
             icon=_clean_optional(icon),
             color=_clean_optional(color),
             is_system=is_system,
+            system_code=_clean_optional(system_code),
             is_active=True,
             created_at=now,
             updated_at=now,
