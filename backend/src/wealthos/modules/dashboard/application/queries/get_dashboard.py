@@ -472,11 +472,23 @@ class GetDashboardQuery:
     def _safe_goals(self, organization_id: UUID, currency: str) -> dict | None:
         try:
             goals = self._goals_query.execute(organization_id, currency=currency)
+            primary = goals.top_goals[0] if goals.top_goals else None
+            primary_payload = None
+            if primary is not None:
+                primary_payload = {
+                    "id": primary.goal.id,
+                    "name": primary.goal.name.value,
+                    "current_amount": primary.progress.current_amount.amount,
+                    "target_amount": primary.goal.target_amount.amount,
+                    "completion_percentage": primary.progress.completion_percentage,
+                    "estimated_completion_date": primary.progress.estimated_completion_date,
+                }
             return {
                 "active": goals.active_goals,
                 "completed": goals.completed_goals,
                 "total_target": goals.total_target,
                 "current_progress": goals.current_progress,
+                "primary": primary_payload,
             }
         except Exception:
             logger.exception("dashboard.goals.failed")
@@ -610,6 +622,31 @@ class GetDashboardQuery:
                 action=WidgetAction(label="Ver metas", to="/app/goals"),
                 error_code="goals_failed",
             )
+        primary = goals.get("primary")
+        if primary is not None:
+            pct = format(primary["completion_percentage"], "f")
+            return ModuleWidget(
+                status="available",
+                data=ModuleWidgetData(
+                    title=primary["name"],
+                    lines=[
+                        ModuleLineData(
+                            label="Progreso",
+                            value=format(primary["current_amount"], "f"),
+                        ),
+                        ModuleLineData(
+                            label="Objetivo",
+                            value=format(primary["target_amount"], "f"),
+                        ),
+                        ModuleLineData(label="Avance", value=f"{pct}%"),
+                    ],
+                    hint=f"{pct}% completado · Meta prioritaria del panorama",
+                ),
+                action=WidgetAction(
+                    label="Ver detalle",
+                    to=f"/app/goals/{primary['id']}",
+                ),
+            )
         if goals["active"] > 0:
             return ModuleWidget(
                 status="available",
@@ -629,7 +666,7 @@ class GetDashboardQuery:
                 lines=[],
                 hint="Define una meta prioritaria para dar dirección a tu ahorro.",
             ),
-            action=WidgetAction(label="Crear meta", to="/app/goals"),
+            action=WidgetAction(label="Crear meta", to="/app/goals/new"),
         )
 
     @staticmethod

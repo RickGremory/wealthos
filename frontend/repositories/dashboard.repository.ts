@@ -293,7 +293,9 @@ export function mapDashboardAggregate(dto: DashboardAggregateDto): DashboardProj
     upcomingStatus: dto.widgets.upcoming.status,
     safeToSpend,
     budget: mapModuleWidget(dto.widgets.budget, widgetErrors, 'budget', 'Presupuesto'),
-    primaryGoal: mapModuleWidget(dto.widgets.goal, widgetErrors, 'goal', 'Metas'),
+    primaryGoal: enhanceGoalModuleSummary(
+      mapModuleWidget(dto.widgets.goal, widgetErrors, 'goal', 'Metas'),
+    ),
     debtSummary: mapModuleWidget(dto.widgets.debts, widgetErrors, 'debts', 'Deudas'),
     taxSummary: mapModuleWidget(dto.widgets.taxes, widgetErrors, 'taxes', 'Impuestos'),
     widgetErrors,
@@ -334,6 +336,27 @@ function mapModuleWidget(
     ctaTo: widget.action?.to,
     errorCode: widget.error_code ?? null,
   }
+}
+
+/** Prefer progress-amount lines when the aggregate goal widget is rich; otherwise keep counts. */
+export function enhanceGoalModuleSummary(
+  module: DashboardModuleSummary | null,
+): DashboardModuleSummary | null {
+  if (!module) return null
+  if (module.status !== 'available' && module.status !== 'ready') return module
+
+  const hasAmountLine = module.lines.some(
+    line => /^-?\d+(\.\d+)?$/.test(line.value) && /progreso|objetivo|avance/i.test(line.label),
+  )
+  if (hasAmountLine) {
+    return {
+      ...module,
+      hint: module.hint ?? 'Meta prioritaria del panorama',
+    }
+  }
+
+  // Count-only widget — keep as-is (no extra API enrichment).
+  return module
 }
 
 export function createDashboardRepository(api: ApiClient) {

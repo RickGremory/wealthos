@@ -1,4 +1,7 @@
-import { createDashboardRepository } from '~/repositories/dashboard.repository'
+import {
+  createDashboardRepository,
+  enhanceGoalModuleSummary,
+} from '~/repositories/dashboard.repository'
 import type {
   DashboardAttentionItem,
   DashboardMetric,
@@ -104,7 +107,7 @@ function toViewModel(
     recentTransactions: projection.recentTransactions,
     cashFlow: projection.cashFlow.status === 'ready' ? projection.cashFlow : projection.cashFlow,
     budget: moduleFromProjection(projection.budget),
-    primaryGoal: moduleFromProjection(projection.primaryGoal),
+    primaryGoal: enhanceGoalModuleSummary(moduleFromProjection(projection.primaryGoal)),
     debtSummary: moduleFromProjection(projection.debtSummary),
     taxSummary: moduleFromProjection(projection.taxSummary),
     upcoming: projection.upcoming,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
@@ -73,11 +74,20 @@ class GetGoalsDashboardSummaryQuery:
                     Decimal("100.00"),
                 )
             )
+            # Primary pick: nearest target_date, then highest progress.
+            ranked = sorted(
+                active,
+                key=lambda item: (
+                    item.goal.target_date is None,
+                    item.goal.target_date or date.max,
+                    -item.progress.completion_percentage,
+                ),
+            )
             return GoalsDashboardSummary(
                 active_goals=len(active),
                 completed_goals=len(completed),
                 total_target=total_target,
                 current_progress=current_progress,
                 completion=completion,
-                top_goals=tuple(active[:top_limit]),
+                top_goals=tuple(ranked[:top_limit]),
             )
