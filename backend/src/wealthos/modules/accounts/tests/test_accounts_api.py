@@ -28,6 +28,13 @@ def client() -> Generator[TestClient]:
 def _cleanup() -> Generator[None]:
     yield
     with SessionLocal() as session:
+        session.execute(text("DELETE FROM cash_plan_item_matches"))
+        session.execute(text("DELETE FROM cash_plan_items"))
+        session.execute(text("DELETE FROM cash_plan_accounts"))
+        session.execute(text("DELETE FROM cash_plans"))
+        session.execute(text("DELETE FROM budget_allocation_matches"))
+        session.execute(text("DELETE FROM budget_allocations"))
+        session.execute(text("DELETE FROM budgets"))
         session.execute(text("DELETE FROM goal_manual_progress"))
         session.execute(text("DELETE FROM goal_accounts"))
         session.execute(text("DELETE FROM goals"))
