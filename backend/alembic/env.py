@@ -7,6 +7,11 @@ from wealthos.core.database import Base
 from wealthos.core.settings import get_settings
 from wealthos.modules.accounts.infrastructure.models import AccountModel  # noqa: F401
 from wealthos.modules.categories.infrastructure.models import CategoryModel  # noqa: F401
+from wealthos.modules.goals.infrastructure.models import (  # noqa: F401
+    GoalAccountModel,
+    GoalManualProgressModel,
+    GoalModel,
+)
 
 # Import module models so they register on Base.metadata for autogenerate.
 from wealthos.modules.identity.infrastructure.models import UserModel  # noqa: F401
