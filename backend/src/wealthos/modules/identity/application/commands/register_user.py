@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from wealthos.modules.categories.application.services.category_seed_service import (
     CategorySeedService,
@@ -19,6 +19,11 @@ from wealthos.modules.identity.domain.entities.user import User
 from wealthos.modules.identity.domain.exceptions import UserEmailAlreadyExists
 from wealthos.modules.identity.domain.repositories.user_repository import UserRepository
 from wealthos.modules.identity.domain.value_objects.email import Email
+from wealthos.modules.legal.application.services.legal_consent_service import (
+    ConsentContext,
+    LegalAcceptanceItem,
+    LegalConsentService,
+)
 from wealthos.modules.organizations.domain.entities.organization import Organization
 from wealthos.modules.organizations.domain.entities.organization_membership import (
     OrganizationMembership,
@@ -40,6 +45,10 @@ class RegisterUserInput:
     currency: str = "MXN"
     timezone: str = "America/Cancun"
     locale: str = "es-MX"
+    legal_acceptances: list[LegalAcceptanceItem] = field(default_factory=list)
+    marketing_consent: bool = False
+    client_ip: str | None = None
+    user_agent: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,6 +72,7 @@ class RegisterUserCommand:
         category_seed: CategorySeedService,
         password_hasher: PasswordHasher,
         token_service: AccessTokenService,
+        legal: LegalConsentService,
     ) -> None:
         self._users = users
         self._organizations = organizations
@@ -70,10 +80,13 @@ class RegisterUserCommand:
         self._category_seed = category_seed
         self._password_hasher = password_hasher
         self._token_service = token_service
+        self._legal = legal
 
     def execute(self, data: RegisterUserInput) -> RegisterUserResult:
         email = Email(data.email)
         password = validate_password(data.password)
+
+        documents = self._legal.validate_registration_acceptances(data.legal_acceptances)
 
         if self._users.get_by_email(email) is not None:
             raise UserEmailAlreadyExists(f"Email '{email.value}' is already registered.")
@@ -100,6 +113,17 @@ class RegisterUserCommand:
         stored_membership = self._memberships.add(membership)
 
         self._category_seed.seed_defaults(stored_organization.id)
+
+        self._legal.record_registration_consents(
+            user_id=stored_user.id,
+            organization_id=stored_organization.id,
+            documents=documents,
+            marketing_consent=data.marketing_consent,
+            context=ConsentContext(
+                ip_address=data.client_ip,
+                user_agent=data.user_agent,
+            ),
+        )
 
         access_token = self._token_service.create(stored_user.id)
         return RegisterUserResult(

@@ -19,6 +19,10 @@ from wealthos.modules.goals.infrastructure.models import (  # noqa: F401
 
 # Import module models so they register on Base.metadata for autogenerate.
 from wealthos.modules.identity.infrastructure.models import UserModel  # noqa: F401
+from wealthos.modules.legal.infrastructure.models import (  # noqa: F401
+    LegalConsentModel,
+    LegalDocumentModel,
+)
 from wealthos.modules.organizations.infrastructure.models import (  # noqa: F401
     OrganizationMembershipModel,
     OrganizationModel,

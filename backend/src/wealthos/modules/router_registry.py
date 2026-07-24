@@ -14,6 +14,7 @@ from wealthos.modules.debts.api.router import router as debts_router
 from wealthos.modules.goals.api.router import router as goals_router
 from wealthos.modules.identity.api.auth_router import router as auth_router
 from wealthos.modules.identity.api.me_router import router as me_router
+from wealthos.modules.legal.api.router import router as legal_router
 from wealthos.modules.planning.api.router import router as planning_router
 from wealthos.modules.tax_mx.api.router import router as tax_mx_router
 from wealthos.modules.taxes.api.router import router as taxes_router
@@ -26,6 +27,7 @@ def register_modules(app: FastAPI) -> None:
     """Mount auth, me, nested org resources, and domain module routers under /api/v1."""
     app.include_router(auth_router, prefix=f"{API_V1_PREFIX}/auth", tags=["Auth"])
     app.include_router(me_router, prefix=f"{API_V1_PREFIX}/me", tags=["Me"])
+    app.include_router(legal_router, prefix=f"{API_V1_PREFIX}/legal", tags=["Legal"])
     app.include_router(
         accounts_router,
         prefix=f"{API_V1_PREFIX}/organizations",

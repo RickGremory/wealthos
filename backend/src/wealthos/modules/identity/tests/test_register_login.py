@@ -32,6 +32,14 @@ from wealthos.modules.identity.infrastructure.security.jwt_access_token_service 
 from wealthos.modules.identity.infrastructure.security.pwdlib_password_hasher import (
     PwdlibPasswordHasher,
 )
+from wealthos.modules.legal.application.services.legal_consent_service import (
+    LegalAcceptanceItem,
+)
+from wealthos.modules.legal.domain.exceptions import (
+    LegalAcceptanceRequired,
+    LegalDocumentVersionOutdated,
+)
+from wealthos.modules.legal.tests.fakes import InMemoryLegalConsentService
 from wealthos.modules.organizations.domain.entities.organization import Organization
 from wealthos.modules.organizations.domain.entities.organization_membership import (
     OrganizationMembership,
@@ -176,18 +184,36 @@ class InMemoryCategoryRepository:
         return category
 
 
+def _legal_acceptances() -> list[LegalAcceptanceItem]:
+    return [
+        LegalAcceptanceItem(
+            document_type="terms_of_service",
+            version="1.0",
+            accepted=True,
+        ),
+        LegalAcceptanceItem(
+            document_type="privacy_notice",
+            version="1.0",
+            acknowledged=True,
+        ),
+    ]
+
+
 def _register_command(
     memberships: InMemoryMembershipRepository | None = None,
+    legal: InMemoryLegalConsentService | None = None,
 ) -> tuple[
     RegisterUserCommand,
     InMemoryUserRepository,
     InMemoryOrganizationRepository,
     InMemoryCategoryRepository,
+    InMemoryLegalConsentService,
 ]:
     users = InMemoryUserRepository()
     orgs = InMemoryOrganizationRepository()
     membership_repo = memberships or InMemoryMembershipRepository()
     categories = InMemoryCategoryRepository()
+    legal_service = legal or InMemoryLegalConsentService()
     command = RegisterUserCommand(
         users=users,
         organizations=orgs,
@@ -197,19 +223,21 @@ def _register_command(
         token_service=JwtAccessTokenService(
             Settings(auth_jwt_secret="test-secret-key-for-register-tests")
         ),
+        legal=legal_service,
     )
-    return command, users, orgs, categories
+    return command, users, orgs, categories, legal_service
 
 
 def test_register_creates_user_org_and_owner_membership() -> None:
     memberships = InMemoryMembershipRepository()
-    command, users, orgs, categories = _register_command(memberships)
+    command, users, orgs, categories, legal = _register_command(memberships)
     result = command.execute(
         RegisterUserInput(
             email="Ricardo@Example.com",
             password="WealthOS-2026-Segura",
             display_name="Ricardo Balam",
             organization_name="Ricardo Personal",
+            legal_acceptances=_legal_acceptances(),
         )
     )
     assert result.user.email.value == "ricardo@example.com"
@@ -220,15 +248,17 @@ def test_register_creates_user_org_and_owner_membership() -> None:
     assert result.access_token
     assert len(categories.items) == 20
     assert all(c.is_system for c in categories.items)
+    assert len(legal.consents) == 2
 
 
 def test_register_rejects_duplicate_email() -> None:
-    command, _, _, _ = _register_command()
+    command, _, _, _, _ = _register_command()
     payload = RegisterUserInput(
         email="a@example.com",
         password="WealthOS-2026-Segura",
         display_name="One",
         organization_name="One Org",
+        legal_acceptances=_legal_acceptances(),
     )
     command.execute(payload)
     with pytest.raises(UserEmailAlreadyExists):
@@ -237,7 +267,7 @@ def test_register_rejects_duplicate_email() -> None:
 
 def test_register_rolls_back_when_membership_fails() -> None:
     memberships = InMemoryMembershipRepository(fail_on_add=True)
-    command, users, orgs, _ = _register_command(memberships)
+    command, users, orgs, _, legal = _register_command(memberships)
     with pytest.raises(RuntimeError):
         command.execute(
             RegisterUserInput(
@@ -245,21 +275,69 @@ def test_register_rolls_back_when_membership_fails() -> None:
                 password="WealthOS-2026-Segura",
                 display_name="One",
                 organization_name="One Org",
+                legal_acceptances=_legal_acceptances(),
             )
         )
     # In-memory fake still mutated before failure — UoW covers DB atomicity.
     # Assert membership was not stored.
     assert memberships._items == []
+    assert legal.consents == []
+
+
+def test_register_rejects_missing_terms() -> None:
+    command, _, _, _, _ = _register_command()
+    with pytest.raises(LegalAcceptanceRequired):
+        command.execute(
+            RegisterUserInput(
+                email="a@example.com",
+                password="WealthOS-2026-Segura",
+                display_name="One",
+                organization_name="One Org",
+                legal_acceptances=[
+                    LegalAcceptanceItem(
+                        document_type="privacy_notice",
+                        version="1.0",
+                        acknowledged=True,
+                    ),
+                ],
+            )
+        )
+
+
+def test_register_rejects_outdated_version() -> None:
+    command, _, _, _, _ = _register_command()
+    with pytest.raises(LegalDocumentVersionOutdated):
+        command.execute(
+            RegisterUserInput(
+                email="a@example.com",
+                password="WealthOS-2026-Segura",
+                display_name="One",
+                organization_name="One Org",
+                legal_acceptances=[
+                    LegalAcceptanceItem(
+                        document_type="terms_of_service",
+                        version="0.9",
+                        accepted=True,
+                    ),
+                    LegalAcceptanceItem(
+                        document_type="privacy_notice",
+                        version="1.0",
+                        acknowledged=True,
+                    ),
+                ],
+            )
+        )
 
 
 def test_login_accepts_valid_credentials() -> None:
-    register, users, _, _ = _register_command()
+    register, users, _, _, _ = _register_command()
     register.execute(
         RegisterUserInput(
             email="a@example.com",
             password="WealthOS-2026-Segura",
             display_name="Ada",
             organization_name="Ada Org",
+            legal_acceptances=_legal_acceptances(),
         )
     )
     login = LoginUserCommand(
@@ -274,13 +352,14 @@ def test_login_accepts_valid_credentials() -> None:
 
 
 def test_login_rejects_wrong_password() -> None:
-    register, users, _, _ = _register_command()
+    register, users, _, _, _ = _register_command()
     register.execute(
         RegisterUserInput(
             email="a@example.com",
             password="WealthOS-2026-Segura",
             display_name="Ada",
             organization_name="Ada Org",
+            legal_acceptances=_legal_acceptances(),
         )
     )
     login = LoginUserCommand(
@@ -295,7 +374,7 @@ def test_login_rejects_wrong_password() -> None:
 
 
 def test_login_rejects_unknown_user() -> None:
-    _, users, _, _ = _register_command()
+    _, users, _, _, _ = _register_command()
     login = LoginUserCommand(
         users=users,
         password_hasher=PwdlibPasswordHasher(),

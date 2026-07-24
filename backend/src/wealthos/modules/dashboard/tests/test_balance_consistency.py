@@ -49,6 +49,7 @@ def _cleanup() -> Generator[None]:
         session.execute(text("DELETE FROM debt_payments"))
         session.execute(text("DELETE FROM debts"))
         session.execute(text("DELETE FROM accounts"))
+        session.execute(text("DELETE FROM legal_consents"))
         session.execute(text("DELETE FROM organization_memberships"))
         session.execute(text("DELETE FROM organizations"))
         session.execute(text("DELETE FROM users"))
@@ -80,6 +81,11 @@ def test_current_balance_matches_recalculated(client: TestClient) -> None:
             "password": "WealthOS-2026-Segura",
             "display_name": "Bal",
             "organization_name": "Balance Org",
+            "legal_acceptances": [
+                {"document_type": "terms_of_service", "version": "1.0", "accepted": True},
+                {"document_type": "privacy_notice", "version": "1.0", "acknowledged": True},
+            ],
+            "marketing_consent": False,
         },
     )
     headers = {"Authorization": f"Bearer {register.json()['access_token']}"}

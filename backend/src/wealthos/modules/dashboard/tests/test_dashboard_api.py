@@ -62,6 +62,7 @@ def _cleanup() -> Generator[None]:
         session.execute(text("DELETE FROM debt_payments"))
         session.execute(text("DELETE FROM debts"))
         session.execute(text("DELETE FROM accounts"))
+        session.execute(text("DELETE FROM legal_consents"))
         session.execute(text("DELETE FROM organization_memberships"))
         session.execute(text("DELETE FROM organizations"))
         session.execute(text("DELETE FROM users"))
@@ -76,6 +77,11 @@ def _register(client: TestClient, org_name: str = "Dash Org") -> dict:
             "password": "WealthOS-2026-Segura",
             "display_name": "Dash",
             "organization_name": org_name,
+            "legal_acceptances": [
+                {"document_type": "terms_of_service", "version": "1.0", "accepted": True},
+                {"document_type": "privacy_notice", "version": "1.0", "acknowledged": True},
+            ],
+            "marketing_consent": False,
         },
     )
     assert response.status_code == 201, response.text

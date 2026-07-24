@@ -140,6 +140,11 @@ def _register(client: TestClient) -> dict:
             "password": LOAD_PASSWORD,
             "display_name": "Load Tester",
             "organization_name": LOAD_ORG_NAME,
+            "legal_acceptances": [
+                {"document_type": "terms_of_service", "version": "1.0", "accepted": True},
+                {"document_type": "privacy_notice", "version": "1.0", "acknowledged": True},
+            ],
+            "marketing_consent": False,
         },
     )
     if response.status_code == 201:

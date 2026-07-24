@@ -28,6 +28,13 @@ from wealthos.modules.identity.infrastructure.security.jwt_access_token_service 
 from wealthos.modules.identity.infrastructure.security.pwdlib_password_hasher import (
     PwdlibPasswordHasher,
 )
+from wealthos.modules.legal.application.services.legal_consent_service import (
+    LegalConsentService,
+)
+from wealthos.modules.legal.infrastructure.repositories import (
+    SqlAlchemyLegalConsentRepository,
+    SqlAlchemyLegalDocumentRepository,
+)
 from wealthos.modules.organizations.domain.repositories.membership_repository import (
     MembershipRepository,
 )
@@ -70,6 +77,10 @@ def get_register_user_command(
     organizations: OrganizationRepository = SqlAlchemyOrganizationRepository(session)
     memberships: MembershipRepository = SqlAlchemyMembershipRepository(session)
     category_seed = CategorySeedService(SqlAlchemyCategoryRepository(session))
+    legal = LegalConsentService(
+        documents=SqlAlchemyLegalDocumentRepository(session),
+        consents=SqlAlchemyLegalConsentRepository(session),
+    )
     return RegisterUserCommand(
         users=users,
         organizations=organizations,
@@ -77,6 +88,7 @@ def get_register_user_command(
         category_seed=category_seed,
         password_hasher=password_hasher,
         token_service=token_service,
+        legal=legal,
     )
 
 
