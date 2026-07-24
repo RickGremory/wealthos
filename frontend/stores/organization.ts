@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
+import { toUserMessage } from '~/lib/api/errors'
 import { createOrganizationsRepository } from '~/repositories/organizations.repository'
+import type { CreateOrganizationInput } from '~/repositories/organizations.repository'
 import type { OrganizationSummary } from '~/types/domain'
 
 export const useOrganizationStore = defineStore('organization', () => {
@@ -12,14 +14,25 @@ export const useOrganizationStore = defineStore('organization', () => {
   const memberships = ref<OrganizationSummary[]>([])
   const currentOrganizationId = computed(() => orgCookie.value)
   const loading = ref(false)
+  const switching = ref(false)
   const hydrated = ref(false)
 
   const currentOrganization = computed(() =>
     memberships.value.find(m => m.id === orgCookie.value) ?? null,
   )
 
+  function selectOrganization(organizationId: string) {
+    switching.value = true
+    try {
+      orgCookie.value = organizationId
+    } finally {
+      switching.value = false
+    }
+  }
+
+  /** @deprecated Prefer selectOrganization */
   function selectOrg(organizationId: string) {
-    orgCookie.value = organizationId
+    selectOrganization(organizationId)
   }
 
   function clear() {
@@ -28,7 +41,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     hydrated.value = false
   }
 
-  async function hydrate() {
+  async function loadMemberships() {
     const auth = useAuthStore()
     if (!auth.isAuthenticated) {
       memberships.value = []
@@ -59,14 +72,47 @@ export const useOrganizationStore = defineStore('organization', () => {
     }
   }
 
+  /** Alias used by existing hydrate call sites. */
+  async function hydrate() {
+    return loadMemberships()
+  }
+
+  async function createOrganization(input: CreateOrganizationInput) {
+    loading.value = true
+    try {
+      const { $api } = useNuxtApp()
+      const repo = createOrganizationsRepository($api)
+      const created = await repo.create(input)
+      const summary: OrganizationSummary = {
+        ...created,
+        role: 'owner',
+      }
+      const exists = memberships.value.some(m => m.id === summary.id)
+      if (!exists) {
+        memberships.value = [...memberships.value, summary]
+      }
+      selectOrganization(summary.id)
+      hydrated.value = true
+      return summary
+    } catch (error) {
+      throw new Error(toUserMessage(error), { cause: error })
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     memberships,
     currentOrganizationId,
     currentOrganization,
     loading,
+    switching,
     hydrated,
+    selectOrganization,
     selectOrg,
     clear,
+    loadMemberships,
     hydrate,
+    createOrganization,
   }
 })
