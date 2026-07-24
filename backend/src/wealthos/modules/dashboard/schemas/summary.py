@@ -41,6 +41,12 @@ class GoalsCountResponse(BaseModel):
     completed: int
 
 
+class DebtsSummaryResponse(BaseModel):
+    total_debt: Decimal
+    total_minimum_payments: Decimal
+    active_count: int
+
+
 class DashboardSummaryResponse(BaseModel):
     """Current balances + period cash flow.
 
@@ -58,6 +64,7 @@ class DashboardSummaryResponse(BaseModel):
         description="Transactions with occurred_at in the selected period (any status).",
     )
     goals: GoalsCountResponse | None = None
+    debts: DebtsSummaryResponse | None = None
 
     @classmethod
     def from_view(
@@ -67,10 +74,24 @@ class DashboardSummaryResponse(BaseModel):
         *,
         goals_active: int | None = None,
         goals_completed: int | None = None,
+        debts_total: Decimal | None = None,
+        debts_minimum_payments: Decimal | None = None,
+        debts_active_count: int | None = None,
     ) -> DashboardSummaryResponse:
         goals = None
         if goals_active is not None and goals_completed is not None:
             goals = GoalsCountResponse(active=goals_active, completed=goals_completed)
+        debts = None
+        if (
+            debts_total is not None
+            and debts_minimum_payments is not None
+            and debts_active_count is not None
+        ):
+            debts = DebtsSummaryResponse(
+                total_debt=debts_total,
+                total_minimum_payments=debts_minimum_payments,
+                active_count=debts_active_count,
+            )
         return cls(
             period=PeriodInfo(
                 date_from=date_range.display_from,
@@ -101,4 +122,5 @@ class DashboardSummaryResponse(BaseModel):
             ),
             transaction_count=view.transaction_count,
             goals=goals,
+            debts=debts,
         )

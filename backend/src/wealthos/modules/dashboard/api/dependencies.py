@@ -8,6 +8,12 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from wealthos.core.database import get_db
+from wealthos.modules.accounts.domain.repositories.account_repository import (
+    AccountRepository,
+)
+from wealthos.modules.accounts.infrastructure.repositories import (
+    SqlAlchemyAccountRepository,
+)
 from wealthos.modules.dashboard.application.queries.get_account_summary import (
     GetAccountSummaryQuery,
 )
@@ -30,6 +36,11 @@ from wealthos.modules.dashboard.domain.repositories.dashboard_read_repository im
 from wealthos.modules.dashboard.infrastructure.repositories import (
     SqlAlchemyDashboardReadRepository,
 )
+from wealthos.modules.debts.application.queries.get_debt_summary import (
+    GetDebtSummaryQuery,
+)
+from wealthos.modules.debts.domain.repositories.debt_repository import DebtRepository
+from wealthos.modules.debts.infrastructure.repositories import SqlAlchemyDebtRepository
 from wealthos.modules.goals.application.queries.get_goals_dashboard_summary import (
     GetGoalsDashboardSummaryQuery,
 )
@@ -44,6 +55,12 @@ def get_dashboard_repository(
     session: Annotated[Session, Depends(get_db)],
 ) -> DashboardReadRepository:
     return SqlAlchemyDashboardReadRepository(session)
+
+
+def get_account_repository(
+    session: Annotated[Session, Depends(get_db)],
+) -> AccountRepository:
+    return SqlAlchemyAccountRepository(session)
 
 
 def get_period_resolver() -> DashboardPeriodResolver:
@@ -93,3 +110,16 @@ def get_goals_dashboard_query(
     goals: Annotated[GoalRepository, Depends(get_goal_repository)],
 ) -> GetGoalsDashboardSummaryQuery:
     return GetGoalsDashboardSummaryQuery(goals, GoalProgressService(goals))
+
+
+def get_debt_repository(
+    session: Annotated[Session, Depends(get_db)],
+) -> DebtRepository:
+    return SqlAlchemyDebtRepository(session)
+
+
+def get_debts_dashboard_query(
+    debts: Annotated[DebtRepository, Depends(get_debt_repository)],
+    accounts: Annotated[AccountRepository, Depends(get_account_repository)],
+) -> GetDebtSummaryQuery:
+    return GetDebtSummaryQuery(debts, accounts)

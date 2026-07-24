@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -14,6 +15,7 @@ from wealthos.core.security.organization_context import OrganizationAccess
 from wealthos.modules.dashboard.api.dependencies import (
     get_account_summary_query,
     get_cash_flow_query,
+    get_debts_dashboard_query,
     get_goals_dashboard_query,
     get_recent_transactions_query,
     get_spending_query,
@@ -46,6 +48,10 @@ from wealthos.modules.dashboard.schemas.recent_transactions import (
     RecentTransactionsResponse,
 )
 from wealthos.modules.dashboard.schemas.summary import DashboardSummaryResponse
+from wealthos.modules.debts.application.queries.get_debt_summary import (
+    GetDebtSummaryQuery,
+)
+from wealthos.modules.debts.schemas.summary import DebtSummaryResponse
 from wealthos.modules.goals.application.queries.get_goals_dashboard_summary import (
     GetGoalsDashboardSummaryQuery,
 )
@@ -88,6 +94,7 @@ def get_summary(
     goals_query: Annotated[
         GetGoalsDashboardSummaryQuery, Depends(get_goals_dashboard_query)
     ],
+    debts_query: Annotated[GetDebtSummaryQuery, Depends(get_debts_dashboard_query)],
     params: Annotated[DashboardPeriodParams, Depends(parse_period_params)],
 ) -> DashboardSummaryResponse:
     summary, date_range = query.execute(
@@ -100,11 +107,27 @@ def get_summary(
         organization_id,
         currency=access.currency,
     )
+    debts_summary = debts_query.execute(organization_id)
+    primary_currency_debts = next(
+        (item for item in debts_summary.by_currency if item.currency == access.currency),
+        None,
+    )
     return DashboardSummaryResponse.from_view(
         summary,
         date_range,
         goals_active=goals.active_goals,
         goals_completed=goals.completed_goals,
+        debts_total=(
+            primary_currency_debts.total_debt if primary_currency_debts else Decimal("0.00")
+        ),
+        debts_minimum_payments=(
+            primary_currency_debts.total_minimum_payments
+            if primary_currency_debts
+            else Decimal("0.00")
+        ),
+        debts_active_count=(
+            primary_currency_debts.active_debt_count if primary_currency_debts else 0
+        ),
     )
 
 
@@ -203,3 +226,17 @@ def get_dashboard_goals(
 ) -> GoalsDashboardResponse:
     summary = query.execute(organization_id, currency=access.currency)
     return GoalsDashboardResponse.from_summary(summary)
+
+
+@router.get(
+    "/{organization_id}/dashboard/debts",
+    response_model=DebtSummaryResponse,
+    summary="Dashboard debts overview",
+)
+def get_dashboard_debts(
+    organization_id: UUID,
+    _access: OrganizationAccess,
+    query: Annotated[GetDebtSummaryQuery, Depends(get_debts_dashboard_query)],
+) -> DebtSummaryResponse:
+    summary = query.execute(organization_id)
+    return DebtSummaryResponse.from_summary(summary)
