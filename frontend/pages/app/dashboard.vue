@@ -6,6 +6,7 @@ definePageMeta({
 
 const preferences = usePreferencesStore()
 const { loading, error, view, load } = useDashboard()
+const cache = useFinanceCache()
 
 onMounted(() => {
   void load()
@@ -13,6 +14,13 @@ onMounted(() => {
 
 watch(
   () => useOrganizationStore().currentOrganizationId,
+  () => {
+    void load()
+  },
+)
+
+watch(
+  () => cache.dashboardVersion.value,
   () => {
     void load()
   },
