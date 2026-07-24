@@ -26,40 +26,40 @@ export function useAppNav() {
         id: 'money',
         label: 'Money',
         items: [
-          { label: 'Cuentas', to: '/app/accounts' },
-          { label: 'Movimientos', to: '/app/transactions' },
-          { label: 'Categorías', to: '/app/categories' },
+          { label: 'Accounts', to: '/app/accounts' },
+          { label: 'Transactions', to: '/app/transactions' },
+          { label: 'Categories', to: '/app/categories' },
         ],
       },
       {
-        id: 'plan',
-        label: 'Plan',
+        id: 'planning',
+        label: 'Planning',
         items: [
-          { label: 'Presupuesto', to: '/app/planning', flag: 'planning' },
-          { label: 'Flujo de caja', to: '/app/planning', flag: 'planning' },
-          { label: 'Calendario', to: '/app/calendar' },
+          { label: 'Budget', to: '/app/planning', flag: 'planning' },
+          { label: 'Cash Flow', to: '/app/planning', flag: 'planning' },
+          { label: 'Calendar', to: '/app/calendar' },
         ],
       },
       {
-        id: 'grow',
-        label: 'Grow',
+        id: 'growth',
+        label: 'Growth',
         items: [
-          { label: 'Metas', to: '/app/goals', flag: 'goals' },
-          { label: 'Deudas', to: '/app/debts', flag: 'debts' },
+          { label: 'Goals', to: '/app/goals', flag: 'goals' },
+          { label: 'Debts', to: '/app/debts', flag: 'debts' },
         ],
       },
       {
         id: 'taxes',
         label: 'Taxes',
         items: [
-          { label: 'Impuestos', to: '/app/taxes', flag: 'taxes' },
+          { label: 'Taxes', to: '/app/taxes', flag: 'taxes' },
         ],
       },
       {
         id: 'settings',
         label: 'Settings',
         items: [
-          { label: 'Ajustes', to: '/app/settings' },
+          { label: 'Settings', to: '/app/settings' },
         ],
       },
     ]

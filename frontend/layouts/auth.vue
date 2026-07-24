@@ -4,7 +4,7 @@
     <div class="layout-auth__content">
       <header class="layout-auth__brand">
         <p class="layout-auth__logo">WealthOS</p>
-        <p class="layout-auth__tagline">Claridad financiera, sin ruido</p>
+        <p class="layout-auth__tagline">Tu sistema operativo financiero</p>
       </header>
       <main class="layout-auth__main">
         <slot />

@@ -4,8 +4,7 @@ const props = defineProps<{
   currency?: string
 }>()
 
-const { isNegativeDecimal, formatMoney } = useMoney()
-const preferences = usePreferencesStore()
+const { isNegativeDecimal, format } = useMoney()
 
 const direction = computed(() => {
   if (props.value == null || props.value === '' || props.value === '0' || props.value === '0.00') {
@@ -17,7 +16,7 @@ const direction = computed(() => {
 const label = computed(() => {
   if (props.value == null) return '—'
   if (props.currency) {
-    return formatMoney(props.value, props.currency, preferences.locale)
+    return format(props.value, props.currency)
   }
   return props.value
 })

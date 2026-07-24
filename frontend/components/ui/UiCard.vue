@@ -40,6 +40,9 @@ withDefaults(
 
 .ui-card__header {
   margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .ui-card__title {

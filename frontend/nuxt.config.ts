@@ -10,6 +10,7 @@ export default defineNuxtConfig({
     { path: '~/components/finance', pathPrefix: false },
     { path: '~/components/layout', pathPrefix: false },
     { path: '~/components/feedback', pathPrefix: false },
+    { path: '~/components/dashboard', pathPrefix: false },
   ],
 
   css: [
