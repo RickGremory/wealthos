@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const E2E_PORT = 3010
+const E2E_ORIGIN = `http://localhost:${E2E_PORT}`
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
@@ -8,7 +11,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: E2E_ORIGIN,
     trace: 'on-first-retry',
   },
   projects: [
@@ -18,12 +21,14 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'NUXT_SSR=false npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    // Dedicated port + SPA mode so Playwright route mocks work (SSR bypasses them).
+    command: `NUXT_IGNORE_LOCK=1 NUXT_SSR=false npm run dev -- --host localhost --port ${E2E_PORT}`,
+    url: E2E_ORIGIN,
+    reuseExistingServer: false,
     timeout: 120_000,
     env: {
       NUXT_SSR: 'false',
+      NUXT_IGNORE_LOCK: '1',
     },
   },
 })
