@@ -64,6 +64,15 @@ describe('normalizeError', () => {
     expect(err.requestId).toBe('req-1')
   })
 
+  it('maps login 401 invalid credentials (not session expired)', async () => {
+    const err = await normalizeError({
+      statusCode: 401,
+      data: { detail: 'Invalid email or password.' },
+    })
+    expect(err.code).toBe('invalid_credentials')
+    expect(toUserMessage(err)).toMatch(/incorrectos/i)
+  })
+
   it('maps network failures', async () => {
     const err = await normalizeError(new Error('fetch failed'))
     expect(err.code).toBe('network_error')

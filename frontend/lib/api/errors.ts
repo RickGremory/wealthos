@@ -71,6 +71,7 @@ const USER_MESSAGES: Record<string, string> = {
 
 /** Match backend English detail strings when no structured code is present. */
 const DETAIL_PATTERNS: Array<{ pattern: RegExp, code: string }> = [
+  { pattern: /invalid email or password|incorrect (email|password)|invalid credentials/i, code: 'invalid_credentials' },
   { pattern: /account.*already exists|name already exists.*account/i, code: 'ACCOUNT_NAME_ALREADY_EXISTS' },
   { pattern: /account is already archived/i, code: 'ACCOUNT_ALREADY_ARCHIVED' },
   { pattern: /account not found/i, code: 'ACCOUNT_NOT_FOUND' },
@@ -129,7 +130,18 @@ export function toUserMessage(codeOrError: string | ApiError | unknown): string 
 }
 
 function pickCode(status: number, body: Record<string, unknown> | null): string {
-  const raw = body?.code ?? body?.error_code ?? body?.detail
+  const detail = body?.detail ?? body?.message ?? body?.error
+  if (typeof detail === 'string') {
+    if (/invalid email or password|incorrect (email|password)|invalid credentials/i.test(detail)) {
+      return 'invalid_credentials'
+    }
+    // Prefer structured code embedded in detail only when it's a slug (no spaces).
+    if (detail.length > 0 && !detail.includes(' ')) {
+      return detail
+    }
+  }
+
+  const raw = body?.code ?? body?.error_code
   if (typeof raw === 'string' && raw.length > 0 && !raw.includes(' ')) {
     return raw
   }
