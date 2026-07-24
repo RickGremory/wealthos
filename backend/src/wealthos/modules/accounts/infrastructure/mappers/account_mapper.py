@@ -36,6 +36,7 @@ class AccountMapper(BaseMapper[AccountModel, Account]):
             organization_id=entity.organization_id,
             name=entity.name.value,
             account_type=entity.account_type.value,
+            classification=entity.account_type.classification,
             currency=entity.currency.value,
             opening_balance=entity.opening_balance.amount,
             current_balance=entity.current_balance.amount,
@@ -50,6 +51,7 @@ class AccountMapper(BaseMapper[AccountModel, Account]):
     def apply_to_model(self, entity: Account, model: AccountModel) -> AccountModel:
         model.name = entity.name.value
         model.account_type = entity.account_type.value
+        model.classification = entity.account_type.classification
         model.currency = entity.currency.value
         model.opening_balance = entity.opening_balance.amount
         model.current_balance = entity.current_balance.amount

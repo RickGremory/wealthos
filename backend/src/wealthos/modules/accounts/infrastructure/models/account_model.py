@@ -32,6 +32,17 @@ class AccountModel(Base):
             "organization_id",
             "account_type",
         ),
+        Index(
+            "ix_accounts_organization_id_is_active_currency",
+            "organization_id",
+            "is_active",
+            "currency",
+        ),
+        Index(
+            "ix_accounts_organization_id_classification",
+            "organization_id",
+            "classification",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
@@ -42,6 +53,7 @@ class AccountModel(Base):
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     account_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    classification: Mapped[str] = mapped_column(String(20), nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     opening_balance: Mapped[Decimal] = mapped_column(Numeric(19, 4), nullable=False)
     current_balance: Mapped[Decimal] = mapped_column(Numeric(19, 4), nullable=False)
