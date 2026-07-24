@@ -44,7 +44,7 @@ export function useAppNav() {
         id: 'growth',
         label: 'Growth',
         items: [
-          { label: 'Goals', to: '/app/goals', flag: 'goals' },
+          { label: 'Metas', to: '/app/goals', flag: 'goals' },
           { label: 'Debts', to: '/app/debts', flag: 'debts' },
         ],
       },
