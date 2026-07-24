@@ -1,0 +1,36 @@
+GroupAggregate  (cost=4632.46..4864.19 rows=15 width=87) (actual time=29.565..31.588 rows=10 loops=1)
+  Group Key: te.currency, c.id
+  Buffers: shared hit=1714
+  ->  Sort  (cost=4632.46..4671.05 rows=15436 width=69) (actual time=29.323..29.790 rows=15455 loops=1)
+        Sort Key: te.currency, c.id, t.id
+        Sort Method: quicksort  Memory: 1508kB
+        Buffers: shared hit=1714
+        ->  Hash Join  (cost=2257.35..3558.58 rows=15436 width=69) (actual time=5.323..13.171 rows=15455 loops=1)
+              Hash Cond: (t.category_id = c.id)
+              Buffers: shared hit=1711
+              ->  Hash Join  (cost=2252.01..3501.28 rows=15436 width=42) (actual time=5.297..11.753 rows=15455 loops=1)
+                    Hash Cond: (te.transaction_id = t.id)
+                    Buffers: shared hit=1706
+                    ->  Seq Scan on transaction_entries te  (cost=0.00..1118.00 rows=50000 width=26) (actual time=0.001..1.680 rows=50000 loops=1)
+                          Buffers: shared hit=618
+                    ->  Hash  (cost=2059.06..2059.06 rows=15436 width=32) (actual time=5.266..5.267 rows=15455 loops=1)
+                          Buckets: 16384  Batches: 1  Memory Usage: 1094kB
+                          Buffers: shared hit=1088
+                          ->  Bitmap Heap Scan on transactions t  (cost=377.97..2059.06 rows=15436 width=32) (actual time=0.461..4.072 rows=15455 loops=1)
+                                Recheck Cond: ((organization_id = '6be48eb5-aeaf-4ca1-8bc0-4987d3d5ee6c'::uuid) AND ((transaction_type)::text = 'expense'::text))
+                                Filter: ((occurred_at >= '2026-01-01 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2027-01-01 00:00:00+00'::timestamp with time zone) AND ((status)::text = 'posted'::text))
+                                Rows Removed by Filter: 12049
+                                Heap Blocks: exact=1065
+                                Buffers: shared hit=1088
+                                ->  Bitmap Index Scan on ix_transactions_organization_id_transaction_type  (cost=0.00..374.11 rows=27382 width=0) (actual time=0.386..0.386 rows=27504 loops=1)
+                                      Index Cond: ((organization_id = '6be48eb5-aeaf-4ca1-8bc0-4987d3d5ee6c'::uuid) AND ((transaction_type)::text = 'expense'::text))
+                                      Buffers: shared hit=23
+              ->  Hash  (cost=5.15..5.15 rows=15 width=43) (actual time=0.019..0.019 rows=15 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=5
+                    ->  Seq Scan on categories c  (cost=0.00..5.15 rows=15 width=43) (actual time=0.014..0.015 rows=15 loops=1)
+                          Buffers: shared hit=5
+Planning:
+  Buffers: shared hit=135
+Planning Time: 0.974 ms
+Execution Time: 31.865 ms

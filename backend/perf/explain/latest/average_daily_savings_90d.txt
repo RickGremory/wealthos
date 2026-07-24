@@ -1,0 +1,28 @@
+Aggregate  (cost=448.28..448.29 rows=1 width=32) (actual time=177071.734..177073.021 rows=1 loops=1)
+  Buffers: shared hit=186046438
+  ->  Nested Loop  (cost=6.15..448.28 rows=1 width=20) (actual time=2.103..177028.070 rows=12452 loops=1)
+        Join Filter: (te.transaction_id = t.id)
+        Rows Removed by Join Filter: 622587548
+        Buffers: shared hit=186046438
+        ->  Index Scan using ix_transactions_organization_id_status on transactions t  (cost=0.29..8.31 rows=1 width=16) (actual time=0.009..49.493 rows=12452 loops=1)
+              Index Cond: ((organization_id = '6be48eb5-aeaf-4ca1-8bc0-4987d3d5ee6c'::uuid) AND ((status)::text = 'posted'::text))
+              Filter: (occurred_at >= '2026-04-25 00:37:56.308962+00'::timestamp with time zone)
+              Rows Removed by Filter: 37548
+              Buffers: shared hit=1106
+        ->  Nested Loop  (cost=5.87..439.84 rows=10 width=36) (actual time=0.083..12.607 rows=50000 loops=12452)
+              Buffers: shared hit=186045332
+              ->  Seq Scan on accounts a  (cost=0.00..2.25 rows=1 width=16) (actual time=0.002..0.010 rows=25 loops=12452)
+                    Filter: ((currency)::text = 'MXN'::text)
+                    Buffers: shared hit=24904
+              ->  Bitmap Heap Scan on transaction_entries te  (cost=5.87..437.58 rows=1 width=52) (actual time=0.076..0.398 rows=2000 loops=311300)
+                    Recheck Cond: (account_id = a.id)
+                    Filter: ((currency)::text = 'MXN'::text)
+                    Heap Blocks: exact=185086528
+                    Buffers: shared hit=186020428
+                    ->  Bitmap Index Scan on ix_transaction_entries_account_id  (cost=0.00..5.87 rows=210 width=0) (actual time=0.043..0.043 rows=2000 loops=311300)
+                          Index Cond: (account_id = a.id)
+                          Buffers: shared hit=933900
+Planning:
+  Buffers: shared hit=122
+Planning Time: 0.417 ms
+Execution Time: 177073.094 ms

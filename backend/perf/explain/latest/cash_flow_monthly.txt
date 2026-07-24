@@ -1,0 +1,23 @@
+GroupAggregate  (cost=5334.15..6182.27 rows=21201 width=76) (actual time=45.428..50.153 rows=8 loops=1)
+  Group Key: te.currency, (date_trunc('month'::text, timezone('America/Mexico_City'::text, t.occurred_at)))
+  Buffers: shared hit=1689
+  ->  Sort  (cost=5334.15..5387.16 rows=21205 width=25) (actual time=45.408..46.319 rows=28100 loops=1)
+        Sort Key: te.currency, (date_trunc('month'::text, timezone('America/Mexico_City'::text, t.occurred_at)))
+        Sort Method: quicksort  Memory: 2086kB
+        Buffers: shared hit=1689
+        ->  Hash Join  (cost=2455.06..3810.35 rows=21205 width=25) (actual time=25.374..39.002 rows=28100 loops=1)
+              Hash Cond: (te.transaction_id = t.id)
+              Buffers: shared hit=1683
+              ->  Seq Scan on transaction_entries te  (cost=0.00..1118.00 rows=50000 width=26) (actual time=0.008..1.943 rows=50000 loops=1)
+                    Buffers: shared hit=618
+              ->  Hash  (cost=2190.00..2190.00 rows=21205 width=31) (actual time=24.092..24.093 rows=28100 loops=1)
+                    Buckets: 32768  Batches: 1  Memory Usage: 2000kB
+                    Buffers: shared hit=1065
+                    ->  Seq Scan on transactions t  (cost=0.00..2190.00 rows=21205 width=31) (actual time=0.011..19.118 rows=28100 loops=1)
+                          Filter: (((transaction_type)::text = ANY ('{income,expense}'::text[])) AND (occurred_at >= '2026-01-01 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2027-01-01 00:00:00+00'::timestamp with time zone) AND (organization_id = '6be48eb5-aeaf-4ca1-8bc0-4987d3d5ee6c'::uuid) AND ((status)::text = 'posted'::text))
+                          Rows Removed by Filter: 21900
+                          Buffers: shared hit=1065
+Planning:
+  Buffers: shared hit=452
+Planning Time: 2.925 ms
+Execution Time: 50.408 ms

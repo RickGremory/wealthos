@@ -65,3 +65,13 @@ uv run python scripts/create_module.py accounts
 Then add `"accounts"` to `MODULES` in `src/wealthos/modules/__init__.py`.
 
 Standards: `docs/engineering/CODING_STANDARDS.md`.
+
+## Stabilization / perf
+
+```bash
+make perf-seed      # 50k transactions for load-test org
+make perf-explain   # EXPLAIN ANALYZE → perf/explain/latest
+make perf-bench     # p50/p95 dashboard + goals
+```
+
+See `docs/engineering/12-stabilization.md`.

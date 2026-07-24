@@ -1,0 +1,9 @@
+Limit  (cost=0.41..2.41 rows=20 width=32) (actual time=0.019..0.034 rows=20 loops=1)
+  Buffers: shared hit=23
+  ->  Index Scan Backward using ix_transactions_organization_id_occurred_created on transactions t  (cost=0.41..4991.91 rows=50000 width=32) (actual time=0.019..0.033 rows=20 loops=1)
+        Index Cond: (organization_id = '6be48eb5-aeaf-4ca1-8bc0-4987d3d5ee6c'::uuid)
+        Buffers: shared hit=23
+Planning:
+  Buffers: shared hit=8
+Planning Time: 0.077 ms
+Execution Time: 0.040 ms
