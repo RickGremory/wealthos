@@ -8,6 +8,12 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from wealthos.core.database import get_db
+from wealthos.modules.categories.application.services.category_seed_service import (
+    CategorySeedService,
+)
+from wealthos.modules.categories.infrastructure.repositories import (
+    SqlAlchemyCategoryRepository,
+)
 from wealthos.modules.identity.application.commands.login_user import LoginUserCommand
 from wealthos.modules.identity.application.commands.register_user import RegisterUserCommand
 from wealthos.modules.identity.application.services.access_token_service import (
@@ -63,10 +69,12 @@ def get_register_user_command(
     users: UserRepository = SqlAlchemyUserRepository(session)
     organizations: OrganizationRepository = SqlAlchemyOrganizationRepository(session)
     memberships: MembershipRepository = SqlAlchemyMembershipRepository(session)
+    category_seed = CategorySeedService(SqlAlchemyCategoryRepository(session))
     return RegisterUserCommand(
         users=users,
         organizations=organizations,
         memberships=memberships,
+        category_seed=category_seed,
         password_hasher=password_hasher,
         token_service=token_service,
     )

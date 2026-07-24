@@ -7,6 +7,11 @@ from uuid import UUID
 import pytest
 
 from wealthos.core.settings import Settings
+from wealthos.modules.categories.application.services.category_seed_service import (
+    CategorySeedService,
+)
+from wealthos.modules.categories.domain.entities.category import Category
+from wealthos.modules.categories.domain.value_objects.category_type import CategoryType
 from wealthos.modules.identity.application.commands.login_user import (
     LoginUserCommand,
     LoginUserInput,
@@ -105,27 +110,100 @@ class InMemoryMembershipRepository:
         return []
 
 
+class InMemoryCategoryRepository:
+    def __init__(self) -> None:
+        self.items: list[Category] = []
+
+    def add(self, category: Category) -> Category:
+        self.items.append(category)
+        return category
+
+    def add_many(self, categories: list[Category]) -> list[Category]:
+        self.items.extend(categories)
+        return categories
+
+    def get_by_id(self, organization_id: UUID, category_id: UUID) -> Category | None:
+        for item in self.items:
+            if item.organization_id == organization_id and item.id == category_id:
+                return item
+        return None
+
+    def exists_by_normalized_name(
+        self,
+        organization_id: UUID,
+        category_type: CategoryType,
+        normalized_name: str,
+        parent_id: UUID | None,
+        *,
+        exclude_id: UUID | None = None,
+    ) -> bool:
+        for item in self.items:
+            if exclude_id is not None and item.id == exclude_id:
+                continue
+            if (
+                item.organization_id == organization_id
+                and item.category_type == category_type
+                and item.name.normalized == normalized_name
+                and item.parent_id == parent_id
+            ):
+                return True
+        return False
+
+    def list_by_organization(
+        self,
+        organization_id: UUID,
+        *,
+        category_type: CategoryType | None = None,
+        include_archived: bool = False,
+    ) -> list[Category]:
+        result = [c for c in self.items if c.organization_id == organization_id]
+        if category_type is not None:
+            result = [c for c in result if c.category_type == category_type]
+        if not include_archived:
+            result = [c for c in result if c.is_active]
+        return result
+
+    def count_active_children(self, organization_id: UUID, category_id: UUID) -> int:
+        return sum(
+            1
+            for item in self.items
+            if item.organization_id == organization_id
+            and item.parent_id == category_id
+            and item.is_active
+        )
+
+    def save(self, category: Category) -> Category:
+        return category
+
+
 def _register_command(
     memberships: InMemoryMembershipRepository | None = None,
-) -> tuple[RegisterUserCommand, InMemoryUserRepository, InMemoryOrganizationRepository]:
+) -> tuple[
+    RegisterUserCommand,
+    InMemoryUserRepository,
+    InMemoryOrganizationRepository,
+    InMemoryCategoryRepository,
+]:
     users = InMemoryUserRepository()
     orgs = InMemoryOrganizationRepository()
     membership_repo = memberships or InMemoryMembershipRepository()
+    categories = InMemoryCategoryRepository()
     command = RegisterUserCommand(
         users=users,
         organizations=orgs,
         memberships=membership_repo,
+        category_seed=CategorySeedService(categories),
         password_hasher=PwdlibPasswordHasher(),
         token_service=JwtAccessTokenService(
             Settings(auth_jwt_secret="test-secret-key-for-register-tests")
         ),
     )
-    return command, users, orgs
+    return command, users, orgs, categories
 
 
 def test_register_creates_user_org_and_owner_membership() -> None:
     memberships = InMemoryMembershipRepository()
-    command, users, orgs = _register_command(memberships)
+    command, users, orgs, categories = _register_command(memberships)
     result = command.execute(
         RegisterUserInput(
             email="Ricardo@Example.com",
@@ -140,10 +218,12 @@ def test_register_creates_user_org_and_owner_membership() -> None:
     assert users.get_by_email(Email("ricardo@example.com")) is not None
     assert orgs.get_by_slug(OrganizationSlug("ricardo-personal")) is not None
     assert result.access_token
+    assert len(categories.items) == 15
+    assert all(c.is_system for c in categories.items)
 
 
 def test_register_rejects_duplicate_email() -> None:
-    command, _, _ = _register_command()
+    command, _, _, _ = _register_command()
     payload = RegisterUserInput(
         email="a@example.com",
         password="WealthOS-2026-Segura",
@@ -157,7 +237,7 @@ def test_register_rejects_duplicate_email() -> None:
 
 def test_register_rolls_back_when_membership_fails() -> None:
     memberships = InMemoryMembershipRepository(fail_on_add=True)
-    command, users, orgs = _register_command(memberships)
+    command, users, orgs, _ = _register_command(memberships)
     with pytest.raises(RuntimeError):
         command.execute(
             RegisterUserInput(
@@ -173,7 +253,7 @@ def test_register_rolls_back_when_membership_fails() -> None:
 
 
 def test_login_accepts_valid_credentials() -> None:
-    register, users, _ = _register_command()
+    register, users, _, _ = _register_command()
     register.execute(
         RegisterUserInput(
             email="a@example.com",
@@ -194,7 +274,7 @@ def test_login_accepts_valid_credentials() -> None:
 
 
 def test_login_rejects_wrong_password() -> None:
-    register, users, _ = _register_command()
+    register, users, _, _ = _register_command()
     register.execute(
         RegisterUserInput(
             email="a@example.com",
@@ -215,7 +295,7 @@ def test_login_rejects_wrong_password() -> None:
 
 
 def test_login_rejects_unknown_user() -> None:
-    _, users, _ = _register_command()
+    _, users, _, _ = _register_command()
     login = LoginUserCommand(
         users=users,
         password_hasher=PwdlibPasswordHasher(),

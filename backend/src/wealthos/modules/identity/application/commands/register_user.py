@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from wealthos.modules.categories.application.services.category_seed_service import (
+    CategorySeedService,
+)
 from wealthos.modules.identity.application.services.access_token_service import (
     AccessTokenService,
 )
@@ -57,12 +60,14 @@ class RegisterUserCommand:
         users: UserRepository,
         organizations: OrganizationRepository,
         memberships: MembershipRepository,
+        category_seed: CategorySeedService,
         password_hasher: PasswordHasher,
         token_service: AccessTokenService,
     ) -> None:
         self._users = users
         self._organizations = organizations
         self._memberships = memberships
+        self._category_seed = category_seed
         self._password_hasher = password_hasher
         self._token_service = token_service
 
@@ -93,6 +98,8 @@ class RegisterUserCommand:
             role="owner",
         )
         stored_membership = self._memberships.add(membership)
+
+        self._category_seed.seed_defaults(stored_organization.id)
 
         access_token = self._token_service.create(stored_user.id)
         return RegisterUserResult(
