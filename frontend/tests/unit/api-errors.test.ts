@@ -28,6 +28,27 @@ describe('toUserMessage', () => {
     })
     expect(toUserMessage(err)).toBe('Detalle custom')
   })
+
+  it('maps account and category codes to Spanish', () => {
+    expect(toUserMessage('ACCOUNT_NAME_ALREADY_EXISTS')).toMatch(/cuenta/i)
+    expect(toUserMessage('CATEGORY_HAS_ACTIVE_CHILDREN')).toMatch(/subcategor/i)
+    expect(toUserMessage('SYSTEM_CATEGORY_RESTRICTED')).toMatch(/sistema/i)
+  })
+
+  it('maps backend English detail strings', () => {
+    expect(
+      toUserMessage('Archive active child categories before archiving the parent.'),
+    ).toMatch(/subcategor/i)
+    expect(
+      toUserMessage(
+        new ApiError({
+          message: 'System categories cannot be archived.',
+          status: 400,
+          code: 'unknown_error',
+        }),
+      ),
+    ).toMatch(/sistema/i)
+  })
 })
 
 describe('normalizeError', () => {
