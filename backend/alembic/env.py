@@ -14,6 +14,10 @@ from wealthos.modules.organizations.infrastructure.models import (  # noqa: F401
     OrganizationMembershipModel,
     OrganizationModel,
 )
+from wealthos.modules.transactions.infrastructure.models import (  # noqa: F401
+    TransactionEntryModel,
+    TransactionModel,
+)
 
 config = context.config
 
