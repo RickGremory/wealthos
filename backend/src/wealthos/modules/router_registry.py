@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from wealthos.modules import MODULES
 from wealthos.modules.accounts.api.router import router as accounts_router
 from wealthos.modules.categories.api.router import router as categories_router
+from wealthos.modules.dashboard.api.router import router as dashboard_router
 from wealthos.modules.identity.api.auth_router import router as auth_router
 from wealthos.modules.identity.api.me_router import router as me_router
 from wealthos.modules.transactions.api.router import router as transactions_router
@@ -34,6 +35,11 @@ def register_modules(app: FastAPI) -> None:
         transactions_router,
         prefix=f"{API_V1_PREFIX}/organizations",
         tags=["Transactions"],
+    )
+    app.include_router(
+        dashboard_router,
+        prefix=f"{API_V1_PREFIX}/organizations",
+        tags=["Dashboard"],
     )
 
     for module_name in MODULES:
