@@ -1,0 +1,1 @@
+"""Mexico tax catalog package."""

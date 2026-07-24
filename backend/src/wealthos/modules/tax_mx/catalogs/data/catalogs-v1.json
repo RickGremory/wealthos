@@ -1,0 +1,38 @@
+{
+  "catalog_version": "v1",
+  "tax_regimes": [
+    {
+      "code": "605",
+      "name": "Sueldos y Salarios e Ingresos Asimilados a Salarios",
+      "person_type": "individual",
+      "valid_from": "2022-01-01"
+    },
+    {
+      "code": "612",
+      "name": "Personas Físicas con Actividades Empresariales y Profesionales",
+      "person_type": "individual",
+      "valid_from": "2022-01-01"
+    },
+    {
+      "code": "626",
+      "name": "Régimen Simplificado de Confianza",
+      "person_type": "individual",
+      "valid_from": "2022-01-01"
+    },
+    {
+      "code": "601",
+      "name": "General de Ley Personas Morales",
+      "person_type": "legal_entity",
+      "valid_from": "2022-01-01"
+    }
+  ],
+  "vat_rates": [
+    {"code": "VAT_16", "name": "IVA 16%", "rate": "16.0000", "valid_from": "2022-01-01"},
+    {"code": "VAT_0", "name": "IVA 0%", "rate": "0.0000", "valid_from": "2022-01-01"}
+  ],
+  "withholding_types": [
+    {"code": "income_tax", "name": "Retención de ISR", "valid_from": "2022-01-01"},
+    {"code": "vat", "name": "Retención de IVA", "valid_from": "2022-01-01"},
+    {"code": "other", "name": "Otra retención", "valid_from": "2022-01-01"}
+  ]
+}
