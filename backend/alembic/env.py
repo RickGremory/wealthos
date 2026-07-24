@@ -23,6 +23,17 @@ from wealthos.modules.organizations.infrastructure.models import (  # noqa: F401
     OrganizationMembershipModel,
     OrganizationModel,
 )
+from wealthos.modules.taxes.infrastructure.models import (  # noqa: F401
+    TaxCalculationLineModel,
+    TaxCalculationModel,
+    TaxCategoryMappingModel,
+    TaxPaymentModel,
+    TaxPeriodModel,
+    TaxProfileModel,
+    TaxRuleCategoryModel,
+    TaxRuleModel,
+    TaxTransactionOverrideModel,
+)
 from wealthos.modules.transactions.infrastructure.models import (  # noqa: F401
     TransactionEntryModel,
     TransactionModel,

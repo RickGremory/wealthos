@@ -1,0 +1,40 @@
+"""Percentage value object (0–100+ allowed for rates; deductibility capped 0–100)."""
+
+from __future__ import annotations
+
+from decimal import ROUND_HALF_UP, Decimal
+
+from wealthos.modules.taxes.domain.exceptions import InvalidPercentage
+
+_FOUR = Decimal("0.0001")
+
+
+class Percentage:
+    __slots__ = ("_value",)
+
+    def __init__(self, value: Decimal | str | int, *, max_value: Decimal | None = None) -> None:
+        if isinstance(value, float):
+            raise TypeError("Percentage does not accept float.")
+        amount = value if isinstance(value, Decimal) else Decimal(str(value))
+        if amount < 0:
+            raise InvalidPercentage("Percentage cannot be negative.")
+        if max_value is not None and amount > max_value:
+            raise InvalidPercentage(f"Percentage cannot exceed {max_value}.")
+        self._value = amount.quantize(_FOUR, rounding=ROUND_HALF_UP)
+
+    @property
+    def value(self) -> Decimal:
+        return self._value
+
+    def as_fraction(self) -> Decimal:
+        return (self._value / Decimal("100")).quantize(
+            Decimal("0.00000001"), rounding=ROUND_HALF_UP
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Percentage):
+            return NotImplemented
+        return self._value == other._value
+
+    def __repr__(self) -> str:
+        return f"Percentage({self._value!r})"
