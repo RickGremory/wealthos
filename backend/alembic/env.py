@@ -7,6 +7,10 @@ from wealthos.core.database import Base
 from wealthos.core.settings import get_settings
 from wealthos.modules.accounts.infrastructure.models import AccountModel  # noqa: F401
 from wealthos.modules.categories.infrastructure.models import CategoryModel  # noqa: F401
+from wealthos.modules.debts.infrastructure.models import (  # noqa: F401
+    DebtModel,
+    DebtPaymentModel,
+)
 from wealthos.modules.goals.infrastructure.models import (  # noqa: F401
     GoalAccountModel,
     GoalManualProgressModel,
