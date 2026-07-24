@@ -75,5 +75,11 @@ async function onSubmit() {
   margin: calc(var(--space-2) * -1) 0 0;
   font-size: 0.875rem;
   text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.login-forgot a {
+  display: inline-block;
+  max-width: 100%;
 }
 </style>

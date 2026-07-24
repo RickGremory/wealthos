@@ -96,6 +96,7 @@ const targetDateLabel = computed(() =>
   cursor: pointer;
   display: grid;
   gap: var(--space-4);
+  min-width: 0;
   transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
@@ -113,6 +114,12 @@ const targetDateLabel = computed(() =>
   justify-content: space-between;
   gap: var(--space-3);
   align-items: flex-start;
+  min-width: 0;
+}
+
+.goal-card__top > .stack-sm {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .goal-card__title-row {
@@ -120,33 +127,41 @@ const targetDateLabel = computed(() =>
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .goal-card__name {
   margin: 0;
   font-size: 1.05rem;
+  overflow-wrap: anywhere;
 }
 
 .goal-card__meta {
   margin: 0;
   font-size: 0.82rem;
+  overflow-wrap: anywhere;
 }
 
 .goal-card__footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: var(--space-2);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
+  min-width: 0;
 }
 
 .goal-card__footer-meta {
   font-size: 0.8rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .goal-card__actions {
   display: flex;
+  flex-shrink: 0;
   gap: var(--space-1);
 }
 </style>

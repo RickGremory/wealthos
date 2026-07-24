@@ -32,6 +32,7 @@ withDefaults(
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  min-width: 0;
 }
 
 .ui-card--padded {
@@ -48,6 +49,10 @@ withDefaults(
 .ui-card__title {
   font-size: 1.05rem;
   margin: 0;
+}
+
+.ui-card__body {
+  min-width: 0;
 }
 
 .ui-card__footer {

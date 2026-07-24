@@ -46,6 +46,8 @@ async function onSubmit() {
     <AppPageHeader
       title="Nueva cuenta"
       description="Agrega un lugar donde vive tu dinero o una deuda que quieras seguir."
+      back-to="/app/accounts"
+      back-label="← Todas las cuentas"
     />
 
     <UiCard>

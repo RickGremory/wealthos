@@ -39,6 +39,7 @@ onMounted(() => {
           @update:model-value="applyCurrency"
         />
         <UiButton
+          class="hide-on-mobile"
           variant="ghost"
           size="sm"
           type="button"
@@ -48,6 +49,7 @@ onMounted(() => {
         </UiButton>
         <UiButton
           v-if="canWrite"
+          class="hide-on-mobile"
           variant="primary"
           size="sm"
           type="button"

@@ -16,6 +16,9 @@ const emit = defineEmits<{
 <template>
   <header class="detail-header" data-testid="account-detail-header">
     <div class="stack-sm">
+      <NuxtLink to="/app/accounts" class="detail-header__back">
+        ← Todas las cuentas
+      </NuxtLink>
       <div class="detail-header__badges">
         <AccountTypeBadge
           :type-label="account.displayType"
@@ -81,6 +84,19 @@ const emit = defineEmits<{
   justify-content: space-between;
   gap: var(--space-5);
   margin-bottom: var(--space-6);
+}
+
+.detail-header__back {
+  display: inline-flex;
+  width: fit-content;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.detail-header__back:hover {
+  color: var(--color-primary);
 }
 
 .detail-header__badges {

@@ -37,6 +37,7 @@ function goNewTransaction() {
     <div class="cluster-sm topbar__actions">
       <UiButton
         v-if="canWrite"
+        class="hide-on-mobile"
         variant="primary"
         size="sm"
         type="button"
@@ -46,6 +47,7 @@ function goNewTransaction() {
         + Nueva transacción
       </UiButton>
       <UiButton
+        class="hide-on-mobile"
         variant="ghost"
         size="sm"
         type="button"
@@ -53,6 +55,17 @@ function goNewTransaction() {
         @click="preferences.toggleHideBalances()"
       >
         {{ preferences.hideBalances ? 'Mostrar montos' : 'Ocultar montos' }}
+      </UiButton>
+      <UiButton
+        class="show-on-mobile"
+        variant="ghost"
+        size="sm"
+        type="button"
+        :aria-pressed="preferences.hideBalances"
+        :aria-label="preferences.hideBalances ? 'Mostrar montos' : 'Ocultar montos'"
+        @click="preferences.toggleHideBalances()"
+      >
+        {{ preferences.hideBalances ? 'Mostrar' : '••••' }}
       </UiButton>
       <UiButton
         v-if="!isDashboard"
@@ -122,7 +135,19 @@ function goNewTransaction() {
     height: auto;
     min-height: var(--topbar-height);
     padding: var(--space-3) var(--space-4);
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+  }
+
+  .topbar__user {
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .topbar__actions {
+    flex-wrap: nowrap;
   }
 }
 </style>

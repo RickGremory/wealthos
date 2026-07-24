@@ -156,6 +156,7 @@ async function confirmArchive() {
 <style scoped>
 .goals-summary {
   margin-bottom: var(--space-5);
+  min-width: 0;
 }
 
 .goals-toolbar {
@@ -183,9 +184,14 @@ async function confirmArchive() {
   color: var(--color-teal-900);
 }
 
+.goals-list {
+  min-width: 0;
+}
+
 .goals-grid {
   display: grid;
   gap: var(--space-4);
+  min-width: 0;
 }
 
 @media (min-width: 800px) {

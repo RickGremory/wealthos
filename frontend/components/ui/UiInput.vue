@@ -47,6 +47,12 @@ withDefaults(
 </template>
 
 <style scoped>
+.ui-input {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+
 .ui-input__label {
   font-size: 0.8125rem;
   font-weight: 600;
@@ -54,7 +60,10 @@ withDefaults(
 }
 
 .ui-input__control {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);

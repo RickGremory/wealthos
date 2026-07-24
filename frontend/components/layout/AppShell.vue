@@ -94,6 +94,12 @@ function openNewTransaction() {
     display: none;
   }
 
+  .app-shell__content {
+    padding: var(--space-4);
+    padding-bottom: calc(var(--space-6) + 4rem);
+    overflow-x: hidden;
+  }
+
   .app-shell__fab {
     display: inline-grid;
     place-items: center;

@@ -67,6 +67,8 @@ async function onSubmit() {
     <AppPageHeader
       :title="accountName ? `Editar · ${accountName}` : 'Editar cuenta'"
       description="Actualiza el nombre y datos de identificación. El saldo se ajusta con una operación dedicada."
+      :back-to="`/app/accounts/${accountId}`"
+      back-label="← Volver a la cuenta"
     />
 
     <div v-if="loading">

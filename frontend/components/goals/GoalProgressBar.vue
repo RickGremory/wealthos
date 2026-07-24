@@ -72,12 +72,14 @@ const pctLabel = computed(() => {
   justify-content: space-between;
   align-items: baseline;
   gap: var(--space-3);
+  min-width: 0;
 }
 
 .goal-progress__pct {
   font-size: 1.15rem;
   color: var(--color-teal-900);
   font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 
 .goal-progress--compact .goal-progress__pct {
@@ -86,6 +88,9 @@ const pctLabel = computed(() => {
 
 .goal-progress__remaining {
   font-size: 0.82rem;
+  min-width: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .goal-progress__track {
@@ -108,7 +113,10 @@ const pctLabel = computed(() => {
 
 .goal-progress__amounts {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.35rem;
   font-size: 0.8rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 </style>

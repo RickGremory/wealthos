@@ -96,6 +96,7 @@ const summaryCurrency = computed(() => {
       <template #actions>
         <UiButton
           v-if="canWrite"
+          class="hide-on-mobile"
           variant="primary"
           type="button"
           data-testid="transactions-new-button"
@@ -185,6 +186,10 @@ const summaryCurrency = computed(() => {
 }
 
 @media (max-width: 900px) {
+  .transactions-page {
+    padding-bottom: calc(var(--space-10) + 3.5rem);
+  }
+
   .transactions-page__summary {
     grid-template-columns: 1fr;
   }
