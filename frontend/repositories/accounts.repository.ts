@@ -6,6 +6,7 @@ export interface CreateAccountInput {
   accountType: string
   currency: string
   openingBalance?: string
+  openingBalanceDate?: string | null
   institutionName?: string | null
   lastFour?: string | null
 }
@@ -72,6 +73,7 @@ export function createAccountsRepository(api: ApiClient) {
           account_type: input.accountType,
           currency: input.currency,
           opening_balance: input.openingBalance ?? '0.00',
+          opening_balance_date: input.openingBalanceDate ?? null,
           institution_name: input.institutionName ?? null,
           last_four: input.lastFour ?? null,
         },

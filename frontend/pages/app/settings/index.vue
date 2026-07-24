@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'app',
-  middleware: ['auth', 'organization'],
+  middleware: ['auth', 'organization', 'onboarding'],
 })
 
 const preferences = usePreferencesStore()
@@ -33,7 +33,7 @@ const organization = useOrganizationStore()
         </p>
         <p v-else class="text-muted">Ninguna seleccionada</p>
         <template #footer>
-          <NuxtLink to="/onboarding">Cambiar organización</NuxtLink>
+          <NuxtLink to="/select-organization">Cambiar organización</NuxtLink>
         </template>
       </UiCard>
     </div>
