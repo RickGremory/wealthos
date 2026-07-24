@@ -49,4 +49,8 @@ export default defineNuxtConfig({
     strict: true,
     typeCheck: false,
   },
+
+  experimental: {
+    appManifest: false,
+  },
 })
