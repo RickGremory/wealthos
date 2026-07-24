@@ -218,7 +218,7 @@ def test_register_creates_user_org_and_owner_membership() -> None:
     assert users.get_by_email(Email("ricardo@example.com")) is not None
     assert orgs.get_by_slug(OrganizationSlug("ricardo-personal")) is not None
     assert result.access_token
-    assert len(categories.items) == 15
+    assert len(categories.items) == 20
     assert all(c.is_system for c in categories.items)
 
 

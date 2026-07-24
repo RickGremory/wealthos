@@ -103,7 +103,7 @@ def test_register_seeds_default_categories(client: TestClient) -> None:
     )
     assert listed.status_code == 200
     body = listed.json()
-    assert body["total"] == 15
+    assert body["total"] == 20
     assert all(item["is_system"] for item in body["items"])
 
 

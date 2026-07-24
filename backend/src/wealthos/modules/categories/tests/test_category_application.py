@@ -344,5 +344,5 @@ def test_update_rename_and_seed_defaults() -> None:
     assert updated.name.value == "Renta mensual"
 
     seeded = CategorySeedService(repo).seed_defaults(uuid4())
-    assert len(seeded) == 15
+    assert len(seeded) == 20
     assert all(item.is_system for item in seeded)
