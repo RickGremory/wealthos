@@ -49,12 +49,30 @@ from wealthos.modules.goals.application.services.goal_progress_service import (
 )
 from wealthos.modules.goals.domain.repositories.goal_repository import GoalRepository
 from wealthos.modules.goals.infrastructure.repositories import SqlAlchemyGoalRepository
+from wealthos.modules.taxes.application.queries.get_tax_summary import GetTaxSummaryQuery
+from wealthos.modules.taxes.application.services.tax_period_generator import (
+    TaxPeriodGenerator,
+)
+from wealthos.modules.taxes.infrastructure.repositories import (
+    SqlAlchemyTaxCalculationRepository,
+    SqlAlchemyTaxPaymentRepository,
+    SqlAlchemyTaxPeriodRepository,
+    SqlAlchemyTaxProfileRepository,
+    SqlAlchemyTaxReadRepository,
+)
+from wealthos.shared.persistence import SqlAlchemyUnitOfWork
 
 
 def get_dashboard_repository(
     session: Annotated[Session, Depends(get_db)],
 ) -> DashboardReadRepository:
     return SqlAlchemyDashboardReadRepository(session)
+
+
+def get_unit_of_work(
+    session: Annotated[Session, Depends(get_db)],
+) -> SqlAlchemyUnitOfWork:
+    return SqlAlchemyUnitOfWork(session)
 
 
 def get_account_repository(
@@ -123,3 +141,62 @@ def get_debts_dashboard_query(
     accounts: Annotated[AccountRepository, Depends(get_account_repository)],
 ) -> GetDebtSummaryQuery:
     return GetDebtSummaryQuery(debts, accounts)
+
+
+def get_tax_profile_repository(
+    session: Annotated[Session, Depends(get_db)],
+):
+    return SqlAlchemyTaxProfileRepository(session)
+
+
+def get_tax_period_repository(
+    session: Annotated[Session, Depends(get_db)],
+):
+    return SqlAlchemyTaxPeriodRepository(session)
+
+
+def get_tax_calculation_repository(
+    session: Annotated[Session, Depends(get_db)],
+):
+    return SqlAlchemyTaxCalculationRepository(session)
+
+
+def get_tax_payment_repository(
+    session: Annotated[Session, Depends(get_db)],
+):
+    return SqlAlchemyTaxPaymentRepository(session)
+
+
+def get_tax_read_repository(
+    session: Annotated[Session, Depends(get_db)],
+):
+    return SqlAlchemyTaxReadRepository(session)
+
+
+def get_tax_period_generator(
+    periods: Annotated[SqlAlchemyTaxPeriodRepository, Depends(get_tax_period_repository)],
+) -> TaxPeriodGenerator:
+    return TaxPeriodGenerator(periods)
+
+
+def get_taxes_dashboard_query(
+    profiles: Annotated[SqlAlchemyTaxProfileRepository, Depends(get_tax_profile_repository)],
+    periods: Annotated[SqlAlchemyTaxPeriodRepository, Depends(get_tax_period_repository)],
+    calculations: Annotated[
+        SqlAlchemyTaxCalculationRepository,
+        Depends(get_tax_calculation_repository),
+    ],
+    payments: Annotated[SqlAlchemyTaxPaymentRepository, Depends(get_tax_payment_repository)],
+    read: Annotated[SqlAlchemyTaxReadRepository, Depends(get_tax_read_repository)],
+    accounts: Annotated[AccountRepository, Depends(get_account_repository)],
+    period_generator: Annotated[TaxPeriodGenerator, Depends(get_tax_period_generator)],
+) -> GetTaxSummaryQuery:
+    return GetTaxSummaryQuery(
+        profiles,
+        periods,
+        calculations,
+        payments,
+        read,
+        accounts,
+        period_generator,
+    )

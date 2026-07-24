@@ -20,6 +20,8 @@ from wealthos.modules.dashboard.api.dependencies import (
     get_recent_transactions_query,
     get_spending_query,
     get_summary_query,
+    get_taxes_dashboard_query,
+    get_unit_of_work,
 )
 from wealthos.modules.dashboard.application.queries.get_account_summary import (
     GetAccountSummaryQuery,
@@ -56,6 +58,10 @@ from wealthos.modules.goals.application.queries.get_goals_dashboard_summary impo
     GetGoalsDashboardSummaryQuery,
 )
 from wealthos.modules.goals.schemas.response import GoalsDashboardResponse
+from wealthos.modules.taxes.application.queries.get_tax_summary import (
+    GetTaxSummaryQuery,
+)
+from wealthos.shared.persistence import SqlAlchemyUnitOfWork
 
 router = APIRouter()
 
@@ -91,10 +97,10 @@ def get_summary(
     organization_id: UUID,
     access: OrganizationAccess,
     query: Annotated[GetDashboardSummaryQuery, Depends(get_summary_query)],
-    goals_query: Annotated[
-        GetGoalsDashboardSummaryQuery, Depends(get_goals_dashboard_query)
-    ],
+    goals_query: Annotated[GetGoalsDashboardSummaryQuery, Depends(get_goals_dashboard_query)],
     debts_query: Annotated[GetDebtSummaryQuery, Depends(get_debts_dashboard_query)],
+    taxes_query: Annotated[GetTaxSummaryQuery, Depends(get_taxes_dashboard_query)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
     params: Annotated[DashboardPeriodParams, Depends(parse_period_params)],
 ) -> DashboardSummaryResponse:
     summary, date_range = query.execute(
@@ -112,6 +118,13 @@ def get_summary(
         (item for item in debts_summary.by_currency if item.currency == access.currency),
         None,
     )
+    with uow:
+        taxes_summary = taxes_query.execute(organization_id)
+        uow.commit()
+    primary_taxes = next(
+        (item for item in taxes_summary.by_currency if item.currency == access.currency),
+        None,
+    )
     return DashboardSummaryResponse.from_view(
         summary,
         date_range,
@@ -127,6 +140,13 @@ def get_summary(
         ),
         debts_active_count=(
             primary_currency_debts.active_debt_count if primary_currency_debts else 0
+        ),
+        taxes_estimated=primary_taxes.estimated_tax if primary_taxes else Decimal("0.00"),
+        taxes_paid=primary_taxes.paid if primary_taxes else Decimal("0.00"),
+        taxes_balance=primary_taxes.balance if primary_taxes else Decimal("0.00"),
+        taxes_cash_like=primary_taxes.cash_like_assets if primary_taxes else Decimal("0.00"),
+        taxes_available_after_tax=(
+            primary_taxes.available_after_tax if primary_taxes else Decimal("0.00")
         ),
     )
 

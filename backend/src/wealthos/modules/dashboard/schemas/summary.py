@@ -47,6 +47,14 @@ class DebtsSummaryResponse(BaseModel):
     active_count: int
 
 
+class TaxesSummaryResponse(BaseModel):
+    estimated_tax: Decimal
+    paid: Decimal
+    balance: Decimal
+    cash_like_assets: Decimal
+    available_after_tax: Decimal
+
+
 class DashboardSummaryResponse(BaseModel):
     """Current balances + period cash flow.
 
@@ -65,6 +73,7 @@ class DashboardSummaryResponse(BaseModel):
     )
     goals: GoalsCountResponse | None = None
     debts: DebtsSummaryResponse | None = None
+    taxes: TaxesSummaryResponse | None = None
 
     @classmethod
     def from_view(
@@ -77,6 +86,11 @@ class DashboardSummaryResponse(BaseModel):
         debts_total: Decimal | None = None,
         debts_minimum_payments: Decimal | None = None,
         debts_active_count: int | None = None,
+        taxes_estimated: Decimal | None = None,
+        taxes_paid: Decimal | None = None,
+        taxes_balance: Decimal | None = None,
+        taxes_cash_like: Decimal | None = None,
+        taxes_available_after_tax: Decimal | None = None,
     ) -> DashboardSummaryResponse:
         goals = None
         if goals_active is not None and goals_completed is not None:
@@ -91,6 +105,21 @@ class DashboardSummaryResponse(BaseModel):
                 total_debt=debts_total,
                 total_minimum_payments=debts_minimum_payments,
                 active_count=debts_active_count,
+            )
+        taxes = None
+        if (
+            taxes_estimated is not None
+            and taxes_paid is not None
+            and taxes_balance is not None
+            and taxes_cash_like is not None
+            and taxes_available_after_tax is not None
+        ):
+            taxes = TaxesSummaryResponse(
+                estimated_tax=taxes_estimated,
+                paid=taxes_paid,
+                balance=taxes_balance,
+                cash_like_assets=taxes_cash_like,
+                available_after_tax=taxes_available_after_tax,
             )
         return cls(
             period=PeriodInfo(
@@ -123,4 +152,5 @@ class DashboardSummaryResponse(BaseModel):
             transaction_count=view.transaction_count,
             goals=goals,
             debts=debts,
+            taxes=taxes,
         )
