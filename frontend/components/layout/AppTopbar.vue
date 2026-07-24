@@ -4,6 +4,8 @@ defineEmits<{ toggleNav: [] }>()
 const auth = useAuthStore()
 const preferences = usePreferencesStore()
 const route = useRoute()
+const composer = useTransactionComposerStore()
+const { canWrite } = useOrganizationPermissions()
 
 const isDashboard = computed(() => route.path.startsWith('/app/dashboard'))
 
@@ -12,7 +14,7 @@ async function onLogout() {
 }
 
 function goNewTransaction() {
-  return navigateTo('/app/transactions')
+  composer.openCreate('expense')
 }
 </script>
 
@@ -34,6 +36,7 @@ function goNewTransaction() {
 
     <div class="cluster-sm topbar__actions">
       <UiButton
+        v-if="canWrite"
         variant="primary"
         size="sm"
         type="button"

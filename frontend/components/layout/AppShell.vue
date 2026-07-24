@@ -1,8 +1,19 @@
 <script setup lang="ts">
 const mobileOpen = ref(false)
+const route = useRoute()
+const composer = useTransactionComposerStore()
+const { canWrite } = useOrganizationPermissions()
+
+const showFab = computed(() =>
+  canWrite.value && route.path.startsWith('/app'),
+)
 
 function closeMobile() {
   mobileOpen.value = false
+}
+
+function openNewTransaction() {
+  composer.openCreate('expense')
 }
 </script>
 
@@ -16,6 +27,19 @@ function closeMobile() {
         <slot />
       </main>
     </div>
+
+    <button
+      v-if="showFab"
+      type="button"
+      class="app-shell__fab"
+      aria-label="Nueva transacción"
+      data-testid="mobile-new-transaction-fab"
+      @click="openNewTransaction"
+    >
+      +
+    </button>
+
+    <QuickTransactionDrawer />
   </div>
 </template>
 
@@ -43,6 +67,24 @@ function closeMobile() {
   margin: 0 auto;
 }
 
+.app-shell__fab {
+  display: none;
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 1.75rem;
+  line-height: 1;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  z-index: 30;
+}
+
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -50,6 +92,11 @@ function closeMobile() {
 
   .app-shell__sidebar {
     display: none;
+  }
+
+  .app-shell__fab {
+    display: inline-grid;
+    place-items: center;
   }
 }
 </style>

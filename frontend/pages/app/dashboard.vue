@@ -7,6 +7,12 @@ definePageMeta({
 const preferences = usePreferencesStore()
 const { loading, error, view, load } = useDashboard()
 const cache = useFinanceCache()
+const composer = useTransactionComposerStore()
+const { canWrite } = useOrganizationPermissions()
+
+function openNewTransaction() {
+  composer.openCreate('expense')
+}
 
 onMounted(() => {
   void load()
@@ -43,10 +49,11 @@ watch(
           {{ preferences.hideBalances ? 'Mostrar montos' : 'Ocultar montos' }}
         </UiButton>
         <UiButton
+          v-if="canWrite"
           variant="primary"
           size="sm"
           type="button"
-          @click="navigateTo('/app/transactions')"
+          @click="openNewTransaction"
         >
           + Nueva transacción
         </UiButton>
@@ -91,15 +98,6 @@ watch(
       <ModuleSummaryCard v-if="view.debtSummary" :summary="view.debtSummary" />
       <ModuleSummaryCard v-if="view.taxSummary" :summary="view.taxSummary" />
     </div>
-
-    <button
-      type="button"
-      class="dashboard__fab"
-      aria-label="Nueva transacción"
-      @click="navigateTo('/app/transactions')"
-    >
-      +
-    </button>
   </div>
 </template>
 
@@ -123,35 +121,10 @@ watch(
   gap: var(--space-4);
 }
 
-.dashboard__fab {
-  display: none;
-  position: fixed;
-  right: 1.25rem;
-  bottom: 1.25rem;
-  width: 3.25rem;
-  height: 3.25rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--color-primary);
-  color: white;
-  font-size: 1.75rem;
-  line-height: 1;
-  box-shadow: var(--shadow-lg);
-  cursor: pointer;
-  z-index: 30;
-}
-
 @media (max-width: 1000px) {
   .dashboard__mid,
   .dashboard__modules {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 700px) {
-  .dashboard__fab {
-    display: inline-grid;
-    place-items: center;
   }
 }
 </style>
