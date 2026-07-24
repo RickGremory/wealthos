@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from wealthos.core.timing import timed
 from wealthos.modules.dashboard.application.queries.period_filters import (
     DashboardPeriodFilters,
 )
@@ -49,10 +50,16 @@ class GetCashFlowQuery:
             date_from=filters.date_from,
             date_to=filters.date_to,
         )
-        series = self._repository.get_cash_flow(
-            organization_id,
-            date_range,
-            gran,
-            primary_currency=primary_currency,
-        )
+        with timed(
+            "dashboard.cash_flow",
+            organization_id=str(organization_id),
+            granularity=gran.value,
+            period=filters.period.value,
+        ):
+            series = self._repository.get_cash_flow(
+                organization_id,
+                date_range,
+                gran,
+                primary_currency=primary_currency,
+            )
         return series, date_range, gran

@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     auth_jwt_issuer: str = "wealthos-api"
     auth_jwt_audience: str = "wealthos-web"
 
+    # Observability (stabilization milestone)
+    request_timing_enabled: bool = Field(
+        default=True,
+        description="Log HTTP and critical usecase durations via structlog.",
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

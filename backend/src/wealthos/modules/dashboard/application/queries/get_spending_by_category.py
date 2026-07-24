@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from wealthos.core.timing import timed
 from wealthos.modules.dashboard.application.queries.period_filters import (
     DashboardPeriodFilters,
 )
@@ -50,11 +51,17 @@ class GetSpendingByCategoryQuery:
             date_from=filters.date_from,
             date_to=filters.date_to,
         )
-        series = self._repository.get_spending_by_category(
-            organization_id,
-            date_range,
-            limit=limit,
-            group_by=grouping,
-            primary_currency=primary_currency,
-        )
+        with timed(
+            "dashboard.spending_by_category",
+            organization_id=str(organization_id),
+            group_by=grouping.value,
+            period=filters.period.value,
+        ):
+            series = self._repository.get_spending_by_category(
+                organization_id,
+                date_range,
+                limit=limit,
+                group_by=grouping,
+                primary_currency=primary_currency,
+            )
         return series, date_range

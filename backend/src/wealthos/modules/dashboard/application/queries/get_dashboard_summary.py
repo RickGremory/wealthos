@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from wealthos.core.timing import timed
 from wealthos.modules.dashboard.application.queries.period_filters import (
     DashboardPeriodFilters,
 )
@@ -40,9 +41,14 @@ class GetDashboardSummaryQuery:
             date_from=filters.date_from,
             date_to=filters.date_to,
         )
-        summary = self._repository.get_summary(
-            organization_id,
-            date_range,
-            primary_currency=primary_currency,
-        )
+        with timed(
+            "dashboard.summary",
+            organization_id=str(organization_id),
+            period=filters.period.value,
+        ):
+            summary = self._repository.get_summary(
+                organization_id,
+                date_range,
+                primary_currency=primary_currency,
+            )
         return summary, date_range

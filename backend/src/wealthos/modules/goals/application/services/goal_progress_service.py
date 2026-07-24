@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
+from wealthos.core.timing import timed
 from wealthos.modules.goals.application.views.goal_progress import GoalProgress
 from wealthos.modules.goals.domain.entities.goal import Goal
 from wealthos.modules.goals.domain.repositories.goal_repository import GoalRepository
@@ -21,6 +22,15 @@ class GoalProgressService:
         self._repository = repository
 
     def calculate(self, goal: Goal) -> GoalProgress:
+        with timed(
+            "goals.progress",
+            goal_id=str(goal.id),
+            organization_id=str(goal.organization_id),
+            strategy=goal.strategy.value,
+        ):
+            return self._calculate(goal)
+
+    def _calculate(self, goal: Goal) -> GoalProgress:
         currency = goal.target_amount.currency.value
         current = self._current_amount(goal)
         target = goal.target_amount.amount
