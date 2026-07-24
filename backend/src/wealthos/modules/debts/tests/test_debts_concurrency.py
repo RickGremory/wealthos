@@ -1,4 +1,4 @@
-"""Concurrent balance update integration test."""
+"""Concurrent debt payment integration test."""
 
 from __future__ import annotations
 
@@ -29,14 +29,14 @@ def client() -> Generator[TestClient]:
 def _cleanup() -> Generator[None]:
     yield
     with SessionLocal() as session:
+        session.execute(text("DELETE FROM debt_payments"))
+        session.execute(text("DELETE FROM debts"))
         session.execute(text("DELETE FROM goal_manual_progress"))
         session.execute(text("DELETE FROM goal_accounts"))
         session.execute(text("DELETE FROM goals"))
         session.execute(text("DELETE FROM transaction_entries"))
         session.execute(text("DELETE FROM transactions"))
         session.execute(text("DELETE FROM categories"))
-        session.execute(text("DELETE FROM debt_payments"))
-        session.execute(text("DELETE FROM debts"))
         session.execute(text("DELETE FROM accounts"))
         session.execute(text("DELETE FROM organization_memberships"))
         session.execute(text("DELETE FROM organizations"))
@@ -44,14 +44,14 @@ def _cleanup() -> Generator[None]:
         session.commit()
 
 
-def test_concurrent_expenses_preserve_balance(client: TestClient) -> None:
+def test_concurrent_debt_payments_one_succeeds_one_fails(client: TestClient) -> None:
     register = client.post(
         f"{AUTH}/register",
         json={
-            "email": f"c-{uuid4().hex[:8]}@example.com",
+            "email": f"dc-{uuid4().hex[:8]}@example.com",
             "password": "WealthOS-2026-Segura",
-            "display_name": "Concurrent",
-            "organization_name": "Concurrent Org",
+            "display_name": "Concurrent Debts",
+            "organization_name": "Concurrent Debts Org",
         },
     )
     assert register.status_code == 201
@@ -59,56 +59,76 @@ def test_concurrent_expenses_preserve_balance(client: TestClient) -> None:
     headers = {"Authorization": f"Bearer {token}"}
     org_id = client.get(f"{ME}/organizations", headers=headers).json()["items"][0]["id"]
 
-    account = client.post(
+    bank = client.post(
         f"{ORG}/{org_id}/accounts",
         headers=headers,
         json={
-            "name": "HSBC",
+            "name": "Banco",
             "account_type": "checking",
             "currency": "MXN",
-            "opening_balance": "10000.00",
+            "opening_balance": "50000.00",
         },
     ).json()
-    expense_cat = client.get(
-        f"{ORG}/{org_id}/categories",
+    card = client.post(
+        f"{ORG}/{org_id}/accounts",
         headers=headers,
-        params={"type": "expense"},
-    ).json()["items"][0]["id"]
+        json={
+            "name": "Tarjeta",
+            "account_type": "credit_card",
+            "currency": "MXN",
+            "opening_balance": "-10000.00",
+        },
+    ).json()
+    debt = client.post(
+        f"{ORG}/{org_id}/debts",
+        headers=headers,
+        json={
+            "account_id": card["id"],
+            "name": "Tarjeta concurrente",
+            "debt_type": "credit_card",
+            "annual_interest_rate": "36.00",
+            "minimum_payment": "500.00",
+        },
+    ).json()
 
     payloads = [
         {
-            "transaction_type": "expense",
-            "account_id": account["id"],
-            "category_id": expense_cat,
-            "amount": "1000.00",
-            "description": "Gasto A",
+            "source_account_id": bank["id"],
+            "amount": "6000.00",
             "occurred_at": "2026-07-24T18:30:00Z",
+            "description": "Pago A",
         },
         {
-            "transaction_type": "expense",
-            "account_id": account["id"],
-            "category_id": expense_cat,
-            "amount": "2000.00",
-            "description": "Gasto B",
+            "source_account_id": bank["id"],
+            "amount": "6000.00",
             "occurred_at": "2026-07-24T18:31:00Z",
+            "description": "Pago B",
         },
     ]
 
-    def post_expense(payload: dict) -> int:
+    def post_payment(payload: dict) -> int:
         with TestClient(app) as thread_client:
             response = thread_client.post(
-                f"{ORG}/{org_id}/transactions",
+                f"{ORG}/{org_id}/debts/{debt['id']}/payments",
                 headers=headers,
                 json=payload,
             )
             return response.status_code
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        statuses = list(executor.map(post_expense, payloads))
+        statuses = sorted(executor.map(post_payment, payloads))
 
-    assert statuses == [201, 201]
-    balance = client.get(
-        f"{ORG}/{org_id}/accounts/{account['id']}",
+    assert statuses == [201, 400]
+
+    card_after = client.get(f"{ORG}/{org_id}/accounts/{card['id']}", headers=headers).json()
+    assert Decimal(str(card_after["current_balance"])) == Decimal("-4000.00")
+
+    debt_after = client.get(f"{ORG}/{org_id}/debts/{debt['id']}", headers=headers).json()
+    assert Decimal(str(debt_after["current_balance"])) == Decimal("4000.00")
+    assert debt_after["status"] == "active"
+
+    payments = client.get(
+        f"{ORG}/{org_id}/debts/{debt['id']}/payments",
         headers=headers,
     ).json()
-    assert Decimal(str(balance["current_balance"])) == Decimal("7000.00")
+    assert payments["total"] == 1
