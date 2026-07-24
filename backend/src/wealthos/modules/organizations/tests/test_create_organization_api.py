@@ -27,6 +27,7 @@ def client() -> Generator[TestClient]:
 def _cleanup_tables() -> Generator[None]:
     yield
     with SessionLocal() as session:
+        session.execute(text("DELETE FROM categories"))
         session.execute(text("DELETE FROM organization_memberships"))
         session.execute(text("DELETE FROM organizations"))
         session.execute(text("DELETE FROM users"))
