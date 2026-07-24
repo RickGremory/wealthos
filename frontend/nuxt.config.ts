@@ -16,6 +16,7 @@ export default defineNuxtConfig({
     { path: '~/components/onboarding', pathPrefix: false },
     { path: '~/components/accounts', pathPrefix: false },
     { path: '~/components/categories', pathPrefix: false },
+    { path: '~/components/transactions', pathPrefix: false },
   ],
 
   css: [

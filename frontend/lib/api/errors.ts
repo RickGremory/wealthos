@@ -54,6 +54,19 @@ const USER_MESSAGES: Record<string, string> = {
   CATEGORY_NOT_FOUND: 'No se encontró la categoría.',
   CATEGORY_ALREADY_ARCHIVED: 'Esta categoría ya está archivada.',
   CATEGORY_DEPTH_EXCEEDED: 'Solo se permiten dos niveles de categorías.',
+
+  // Transactions
+  TRANSACTION_NOT_FOUND: 'No se encontró la transacción.',
+  TRANSACTION_ALREADY_VOIDED: 'Esta transacción ya está anulada.',
+  TRANSACTION_VOID_RESTRICTED: 'No tienes permiso para anular esta transacción.',
+  INSUFFICIENT_BALANCE: 'Saldo insuficiente en la cuenta.',
+  INVALID_TRANSACTION_AMOUNT: 'El monto de la transacción no es válido.',
+  INVALID_TRANSFER_ACCOUNTS: 'Las cuentas de la transferencia no son válidas.',
+  CURRENCY_MISMATCH: 'Las cuentas deben compartir la misma moneda.',
+  ACCOUNT_TYPE_NOT_ALLOWED: 'Este tipo de cuenta no admite esa operación.',
+  CATEGORY_REQUIRED: 'Selecciona una categoría.',
+  SAME_ACCOUNT_TRANSFER: 'Origen y destino deben ser cuentas distintas.',
+  IDEMPOTENCY_CONFLICT: 'Esta operación ya se procesó. Revisa tus movimientos.',
 }
 
 /** Match backend English detail strings when no structured code is present. */
@@ -71,6 +84,11 @@ const DETAIL_PATTERNS: Array<{ pattern: RegExp, code: string }> = [
   { pattern: /already archived/i, code: 'CATEGORY_ALREADY_ARCHIVED' },
   { pattern: /last.?four|4-digit/i, code: 'INVALID_LAST_FOUR' },
   { pattern: /invalid.*account type|account type.*not supported/i, code: 'INVALID_ACCOUNT_TYPE' },
+  { pattern: /transaction not found/i, code: 'TRANSACTION_NOT_FOUND' },
+  { pattern: /already voided|already cancelled/i, code: 'TRANSACTION_ALREADY_VOIDED' },
+  { pattern: /insufficient (funds|balance)/i, code: 'INSUFFICIENT_BALANCE' },
+  { pattern: /currency mismatch|same currency/i, code: 'CURRENCY_MISMATCH' },
+  { pattern: /same account|source and destination/i, code: 'SAME_ACCOUNT_TRANSFER' },
 ]
 
 function messageFromDetail(detail: string): string | null {

@@ -6,6 +6,7 @@
 const accountsVersion = ref(0)
 const categoriesVersion = ref(0)
 const dashboardVersion = ref(0)
+const transactionsVersion = ref(0)
 
 export function useFinanceCache() {
   function invalidateAccounts() {
@@ -21,19 +22,28 @@ export function useFinanceCache() {
     dashboardVersion.value += 1
   }
 
+  function invalidateTransactions() {
+    transactionsVersion.value += 1
+    accountsVersion.value += 1
+    dashboardVersion.value += 1
+  }
+
   function invalidateAll() {
     accountsVersion.value += 1
     categoriesVersion.value += 1
     dashboardVersion.value += 1
+    transactionsVersion.value += 1
   }
 
   return {
     accountsVersion: readonly(accountsVersion),
     categoriesVersion: readonly(categoriesVersion),
     dashboardVersion: readonly(dashboardVersion),
+    transactionsVersion: readonly(transactionsVersion),
     invalidateAccounts,
     invalidateCategories,
     invalidateDashboard,
+    invalidateTransactions,
     invalidateAll,
   }
 }
