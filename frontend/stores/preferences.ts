@@ -13,6 +13,15 @@ export const usePreferencesStore = defineStore('preferences', () => {
     maxAge: 60 * 60 * 24 * 365,
   })
 
+  const preferredDashboardCurrencyCookie = useCookie<string | null>(
+    'wealthos_dashboard_currency',
+    {
+      default: () => null,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 365,
+    },
+  )
+
   const locale = computed({
     get: () => localeCookie.value || 'es-MX',
     set: (value: string) => {
@@ -27,6 +36,13 @@ export const usePreferencesStore = defineStore('preferences', () => {
     },
   })
 
+  const preferredDashboardCurrency = computed({
+    get: () => preferredDashboardCurrencyCookie.value || null,
+    set: (value: string | null) => {
+      preferredDashboardCurrencyCookie.value = value
+    },
+  })
+
   function toggleHideBalances() {
     hideBalances.value = !hideBalances.value
   }
@@ -34,6 +50,7 @@ export const usePreferencesStore = defineStore('preferences', () => {
   return {
     locale,
     hideBalances,
+    preferredDashboardCurrency,
     toggleHideBalances,
   }
 })

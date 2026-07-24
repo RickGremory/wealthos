@@ -8,7 +8,7 @@ defineProps<{
 
 <template>
   <section
-    v-if="!onboarding.completed"
+    v-if="onboarding.isVisible !== false && !onboarding.completed"
     id="onboarding"
     class="onboarding"
     aria-label="Comienza a construir tu panorama financiero"

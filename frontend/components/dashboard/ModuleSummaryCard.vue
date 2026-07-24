@@ -19,7 +19,13 @@ function displayValue(value: string): string {
 
 <template>
   <UiCard :title="summary.title">
-    <div v-if="summary.status === 'not_configured'" class="stack">
+    <div v-if="summary.status === 'error'" class="stack">
+      <p class="text-muted">No se pudo cargar este bloque.</p>
+      <NuxtLink v-if="summary.ctaTo" class="module-cta" :to="summary.ctaTo">
+        {{ summary.ctaLabel || 'Reintentar en el módulo' }}
+      </NuxtLink>
+    </div>
+    <div v-else-if="summary.status === 'not_configured'" class="stack">
       <p class="text-muted">{{ summary.hint }}</p>
       <NuxtLink v-if="summary.ctaTo" class="module-cta" :to="summary.ctaTo">
         {{ summary.ctaLabel }}

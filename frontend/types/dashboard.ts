@@ -4,6 +4,15 @@ export type DashboardWidgetStatus =
   | 'empty'
   | 'error'
   | 'not_configured'
+  | 'available'
+  | 'unavailable'
+
+export type DashboardMetricStatus =
+  | 'loading'
+  | 'ready'
+  | 'empty'
+  | 'error'
+  | 'not_configured'
 
 export interface DashboardMetric {
   id: string
@@ -13,7 +22,7 @@ export interface DashboardMetric {
   hint?: string
   trendAmount?: string | null
   trendLabel?: string
-  status: DashboardWidgetStatus
+  status: DashboardMetricStatus
   detailLines?: Array<{ label: string, amount: string }>
   ctaLabel?: string
   ctaTo?: string
@@ -39,10 +48,12 @@ export interface DashboardOnboardingStep {
 }
 
 export interface DashboardOnboarding {
+  isVisible: boolean
   completed: boolean
   completedSteps: number
   totalSteps: number
   steps: DashboardOnboardingStep[]
+  status: 'ready' | 'empty'
 }
 
 export interface DashboardRecentTransaction {
@@ -64,17 +75,103 @@ export interface DashboardModuleSummary {
   hint?: string
   ctaLabel?: string
   ctaTo?: string
+  errorCode?: string | null
+}
+
+export interface DashboardCurrencySlice {
+  currency: string
+  netWorth: string
+  liquidBalance: string
+  totalAssets: string
+  totalLiabilities: string
+  monthlyIncome: string
+  monthlyExpenses: string
+  monthlyNetFlow: string
+}
+
+export interface DashboardCashFlowPoint {
+  periodStart: string
+  income: string
+  expenses: string
+  netCashFlow: string
+}
+
+export interface DashboardCashFlowSummary {
+  status: 'ready' | 'empty' | 'error'
+  currency: string | null
+  income: string | null
+  expenses: string | null
+  netCashFlow: string | null
+  points: DashboardCashFlowPoint[]
+  errorCode?: string | null
+}
+
+export interface DashboardSafeToSpend {
+  status: 'available' | 'not_configured' | 'unavailable' | 'error'
+  amount: string | null
+  currency: string | null
+  fundingGap: string | null
+  ctaLabel?: string
+  ctaTo?: string
+  errorCode?: string | null
+}
+
+export interface DashboardWidgetErrorState {
+  id: string
+  title: string
+  message: string
+}
+
+export interface DashboardProjection {
+  asOf: string
+  organization: {
+    id: string
+    name: string
+    timezone: string
+    currency: string
+  }
+  period: {
+    dateFrom: string
+    dateTo: string
+    timezone: string
+  }
+  currencies: DashboardCurrencySlice[]
+  selectedCurrency: string
+  availableCurrencies: string[]
+  metricsStatus: 'ready'
+  onboarding: DashboardOnboarding
+  attentionItems: DashboardAttentionItem[]
+  recentTransactions: DashboardRecentTransaction[]
+  activityStatus: 'ready' | 'empty' | 'error'
+  cashFlow: DashboardCashFlowSummary
+  upcoming: Array<{
+    id: string
+    dateLabel: string
+    description: string
+    amount: string
+    currency: string
+    status: string
+  }>
+  upcomingStatus: 'not_configured' | 'empty'
+  safeToSpend: DashboardSafeToSpend
+  budget: DashboardModuleSummary | null
+  primaryGoal: DashboardModuleSummary | null
+  debtSummary: DashboardModuleSummary | null
+  taxSummary: DashboardModuleSummary | null
+  widgetErrors: DashboardWidgetErrorState[]
 }
 
 export interface DashboardViewModel {
   greeting: string
   subtitle: string
   currency: string
+  availableCurrencies: string[]
   asOf: string | null
   metrics: DashboardMetric[]
   attentionItems: DashboardAttentionItem[]
   onboarding: DashboardOnboarding
   recentTransactions: DashboardRecentTransaction[]
+  cashFlow: DashboardCashFlowSummary | null
   budget: DashboardModuleSummary | null
   primaryGoal: DashboardModuleSummary | null
   debtSummary: DashboardModuleSummary | null
@@ -87,4 +184,5 @@ export interface DashboardViewModel {
     currency: string
     status: string
   }>
+  widgetErrors: DashboardWidgetErrorState[]
 }

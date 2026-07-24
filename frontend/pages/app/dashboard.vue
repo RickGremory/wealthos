@@ -5,8 +5,14 @@ definePageMeta({
 })
 
 const preferences = usePreferencesStore()
-const { loading, error, view, load } = useDashboard()
-const cache = useFinanceCache()
+const {
+  loading,
+  error,
+  view,
+  selectedCurrency,
+  applyCurrency,
+  load,
+} = useDashboard()
 const composer = useTransactionComposerStore()
 const { canWrite } = useOrganizationPermissions()
 
@@ -17,29 +23,21 @@ function openNewTransaction() {
 onMounted(() => {
   void load()
 })
-
-watch(
-  () => useOrganizationStore().currentOrganizationId,
-  () => {
-    void load()
-  },
-)
-
-watch(
-  () => cache.dashboardVersion.value,
-  () => {
-    void load()
-  },
-)
 </script>
 
 <template>
   <div class="dashboard" data-testid="dashboard-page">
     <DashboardHeader
       :greeting="view?.greeting || 'Dashboard'"
-      :subtitle="view?.subtitle || 'Así están tus finanzas hoy.'"
+      :subtitle="view?.subtitle || 'Así van tus finanzas hoy.'"
     >
       <template #actions>
+        <DashboardCurrencySelector
+          v-if="view?.availableCurrencies?.length"
+          :currencies="view.availableCurrencies"
+          :model-value="selectedCurrency"
+          @update:model-value="applyCurrency"
+        />
         <UiButton
           variant="ghost"
           size="sm"
@@ -69,13 +67,22 @@ watch(
       </div>
     </UiAlert>
 
+    <div v-if="view?.widgetErrors?.length" class="dashboard__errors stack">
+      <DashboardWidgetError
+        v-for="item in view.widgetErrors"
+        :key="item.id"
+        :title="item.title"
+        :message="item.message"
+      />
+    </div>
+
     <DashboardMetricGrid
       :metrics="view?.metrics || []"
       :loading="loading"
     />
 
     <OnboardingChecklist
-      v-if="view && !view.onboarding.completed"
+      v-if="view?.onboarding?.isVisible"
       :onboarding="view.onboarding"
     />
 
@@ -85,6 +92,10 @@ watch(
     />
 
     <div class="dashboard__mid">
+      <DashboardCashFlowCard
+        v-if="view?.cashFlow?.status === 'ready'"
+        :cash-flow="view.cashFlow"
+      />
       <UpcomingFinancialEvents :items="view?.upcoming || []" />
       <RecentTransactions
         :items="view?.recentTransactions || []"
@@ -107,10 +118,14 @@ watch(
   padding-bottom: var(--space-12);
 }
 
+.dashboard__errors {
+  margin-top: var(--space-4);
+}
+
 .dashboard__mid {
   margin-top: var(--space-6);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: var(--space-4);
 }
 
@@ -119,6 +134,12 @@ watch(
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
+}
+
+@media (max-width: 1100px) {
+  .dashboard__mid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 1000px) {

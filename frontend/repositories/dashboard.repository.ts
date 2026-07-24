@@ -1,57 +1,52 @@
 import type { ApiClient } from '~/lib/api/types'
-import type { DashboardRecentTransaction } from '~/types/dashboard'
+import type {
+  DashboardAttentionItem,
+  DashboardCashFlowSummary,
+  DashboardCurrencySlice,
+  DashboardModuleSummary,
+  DashboardOnboarding,
+  DashboardProjection,
+  DashboardRecentTransaction,
+  DashboardSafeToSpend,
+  DashboardWidgetErrorState,
+} from '~/types/dashboard'
 
 interface NamedRefDto {
   id: string
   name: string
 }
 
-interface CurrencyBalanceDto {
+interface CurrencyMetricsDto {
   currency: string
+  net_worth: string
+  liquid_balance: string
   total_assets: string
   total_liabilities: string
-  net_worth: string
+  monthly_income: string
+  monthly_expenses: string
+  monthly_net_flow: string
 }
 
-interface CurrencyCashFlowDto {
-  currency: string
-  income: string
-  expenses: string
-  net_cash_flow: string
+interface OnboardingStepDto {
+  id: string
+  label: string
+  description: string
+  completed: boolean
+  to: string
 }
 
-interface DashboardSummaryDto {
-  period: {
-    date_from: string
-    date_to: string
-    timezone: string
-  }
-  balances: CurrencyBalanceDto[]
-  cash_flow: CurrencyCashFlowDto[]
-  account_count: {
-    active: number
-    archived: number
-  }
-  transaction_count: number
-  goals?: {
-    active: number
-    completed: number
-  } | null
-  debts?: {
-    total_debt: string
-    total_minimum_payments: string
-    active_count: number
-  } | null
-  taxes?: {
-    estimated_tax: string
-    paid: string
-    balance: string
-    cash_like_assets: string
-    available_after_tax: string
-  } | null
+interface AttentionItemDto {
+  id: string
+  severity: 'info' | 'warning' | 'critical'
+  title: string
+  message: string
+  amount?: string | null
+  currency?: string | null
+  action_label: string
+  action_to: string
 }
 
-interface RecentTransactionDto {
+interface ActivityItemDto {
   id: string
   transaction_type: string
   description: string
@@ -63,110 +58,329 @@ interface RecentTransactionDto {
   account: NamedRefDto | null
 }
 
-interface RecentTransactionsDto {
-  items: RecentTransactionDto[]
-  total: number
+interface CashFlowPointDto {
+  period_start: string
+  income: string
+  expenses: string
+  net_cash_flow: string
 }
 
-export interface DashboardSummaryData {
-  currency: string
-  netWorth: string
-  totalAssets: string
-  totalLiabilities: string
-  monthlyIncome: string
-  monthlyExpenses: string
-  monthlyNetFlow: string
-  activeAccounts: number
-  transactionCount: number
-  goalsActive: number
-  goalsCompleted: number
-  totalDebt: string | null
-  debtMinimumPayments: string | null
-  activeDebts: number
-  taxEstimated: string | null
-  taxPaid: string | null
-  taxBalance: string | null
-  taxReserveAssets: string | null
-  periodFrom: string
-  periodTo: string
+interface ModuleLineDto {
+  label: string
+  value: string
+}
+
+interface ModuleWidgetDto {
+  status: string
+  data: {
+    title: string
+    lines: ModuleLineDto[]
+    hint?: string | null
+  } | null
+  action?: { label: string, to: string } | null
+  error_code?: string | null
+}
+
+interface DashboardAggregateDto {
+  as_of: string
+  organization: {
+    id: string
+    name: string
+    timezone: string
+    currency: string
+  }
+  period: {
+    date_from: string
+    date_to: string
+    timezone: string
+  }
+  currencies: CurrencyMetricsDto[]
+  selected_currency: string
+  available_currencies: string[]
+  widgets: {
+    metrics: { status: 'ready' }
+    onboarding: {
+      status: 'ready' | 'empty'
+      data: {
+        is_visible: boolean
+        completed: boolean
+        completed_steps: number
+        total_steps: number
+        steps: OnboardingStepDto[]
+      }
+    }
+    attention: {
+      status: 'ready' | 'empty'
+      data: { items: AttentionItemDto[] }
+    }
+    activity: {
+      status: 'ready' | 'empty' | 'error'
+      data: { items: ActivityItemDto[] } | null
+      error_code?: string | null
+    }
+    cash_flow: {
+      status: 'ready' | 'empty' | 'error'
+      data: {
+        currency: string
+        granularity: string
+        income: string
+        expenses: string
+        net_cash_flow: string
+        points: CashFlowPointDto[]
+      } | null
+      error_code?: string | null
+    }
+    upcoming: {
+      status: 'not_configured' | 'empty'
+      data: { items: unknown[] }
+    }
+    safe_to_spend: {
+      status: 'available' | 'not_configured' | 'unavailable' | 'error'
+      data: {
+        currency: string | null
+        safe_to_spend: string | null
+        funding_gap?: string | null
+      } | null
+      action?: { label: string, to: string } | null
+      error_code?: string | null
+    }
+    budget: ModuleWidgetDto
+    goal: ModuleWidgetDto
+    debts: ModuleWidgetDto
+    taxes: ModuleWidgetDto
+  }
+}
+
+/** @internal Exported for unit tests. */
+export function mapDashboardAggregate(dto: DashboardAggregateDto): DashboardProjection {
+  const currencies: DashboardCurrencySlice[] = (dto.currencies ?? []).map(item => ({
+    currency: item.currency,
+    netWorth: String(item.net_worth ?? '0.00'),
+    liquidBalance: String(item.liquid_balance ?? '0.00'),
+    totalAssets: String(item.total_assets ?? '0.00'),
+    totalLiabilities: String(item.total_liabilities ?? '0.00'),
+    monthlyIncome: String(item.monthly_income ?? '0.00'),
+    monthlyExpenses: String(item.monthly_expenses ?? '0.00'),
+    monthlyNetFlow: String(item.monthly_net_flow ?? '0.00'),
+  }))
+
+  const onboardingDto = dto.widgets.onboarding
+  const onboarding: DashboardOnboarding = {
+    isVisible: Boolean(onboardingDto.data.is_visible),
+    completed: Boolean(onboardingDto.data.completed),
+    completedSteps: onboardingDto.data.completed_steps,
+    totalSteps: onboardingDto.data.total_steps,
+    status: onboardingDto.status,
+    steps: (onboardingDto.data.steps ?? []).map(step => ({
+      id: step.id,
+      label: step.label,
+      description: step.description,
+      completed: step.completed,
+      to: step.to,
+    })),
+  }
+
+  const attentionItems: DashboardAttentionItem[] = (dto.widgets.attention.data.items ?? []).map(
+    item => ({
+      id: item.id,
+      severity: item.severity,
+      title: item.title,
+      message: item.message,
+      amount: item.amount != null ? String(item.amount) : null,
+      currency: item.currency ?? undefined,
+      actionLabel: item.action_label,
+      actionTo: item.action_to,
+    }),
+  )
+
+  const activityItems = dto.widgets.activity.data?.items ?? []
+  const recentTransactions: DashboardRecentTransaction[] = activityItems.map(item => ({
+    id: item.id,
+    description: item.description,
+    transactionType: item.transaction_type,
+    amount: String(item.amount),
+    currency: item.currency,
+    occurredAt: item.occurred_at,
+    categoryName: item.category?.name ?? null,
+    accountName: item.account?.name ?? null,
+    status: item.status,
+  }))
+
+  const cashDto = dto.widgets.cash_flow
+  const cashFlow: DashboardCashFlowSummary = cashDto.status === 'ready' && cashDto.data
+    ? {
+        status: 'ready',
+        currency: cashDto.data.currency,
+        income: String(cashDto.data.income),
+        expenses: String(cashDto.data.expenses),
+        netCashFlow: String(cashDto.data.net_cash_flow),
+        points: (cashDto.data.points ?? []).map(point => ({
+          periodStart: point.period_start,
+          income: String(point.income),
+          expenses: String(point.expenses),
+          netCashFlow: String(point.net_cash_flow),
+        })),
+      }
+    : {
+        status: cashDto.status,
+        currency: null,
+        income: null,
+        expenses: null,
+        netCashFlow: null,
+        points: [],
+        errorCode: cashDto.error_code ?? null,
+      }
+
+  const sts = dto.widgets.safe_to_spend
+  const safeToSpend: DashboardSafeToSpend = {
+    status: sts.status,
+    amount: sts.status === 'available' && sts.data?.safe_to_spend != null
+      ? String(sts.data.safe_to_spend)
+      : null,
+    currency: sts.data?.currency ?? null,
+    fundingGap: sts.data?.funding_gap != null ? String(sts.data.funding_gap) : null,
+    ctaLabel: sts.action?.label,
+    ctaTo: sts.action?.to,
+    errorCode: sts.error_code ?? null,
+  }
+
+  const widgetErrors: DashboardWidgetErrorState[] = []
+  if (dto.widgets.activity.status === 'error') {
+    widgetErrors.push({
+      id: 'activity',
+      title: 'Actividad reciente',
+      message: 'No se pudieron cargar los movimientos recientes.',
+    })
+  }
+  if (dto.widgets.cash_flow.status === 'error') {
+    widgetErrors.push({
+      id: 'cash_flow',
+      title: 'Flujo de caja',
+      message: 'No se pudo cargar el resumen de flujo de caja.',
+    })
+  }
+  if (dto.widgets.safe_to_spend.status === 'error') {
+    widgetErrors.push({
+      id: 'safe_to_spend',
+      title: 'Disponible para gastar',
+      message: 'No se pudo calcular el disponible para gastar.',
+    })
+  }
+
+  return {
+    asOf: dto.as_of,
+    organization: {
+      id: dto.organization.id,
+      name: dto.organization.name,
+      timezone: dto.organization.timezone,
+      currency: dto.organization.currency,
+    },
+    period: {
+      dateFrom: dto.period.date_from,
+      dateTo: dto.period.date_to,
+      timezone: dto.period.timezone,
+    },
+    currencies,
+    selectedCurrency: dto.selected_currency,
+    availableCurrencies: dto.available_currencies ?? currencies.map(c => c.currency),
+    metricsStatus: 'ready',
+    onboarding,
+    attentionItems,
+    recentTransactions,
+    activityStatus: dto.widgets.activity.status,
+    cashFlow,
+    upcoming: [],
+    upcomingStatus: dto.widgets.upcoming.status,
+    safeToSpend,
+    budget: mapModuleWidget(dto.widgets.budget, widgetErrors, 'budget', 'Presupuesto'),
+    primaryGoal: mapModuleWidget(dto.widgets.goal, widgetErrors, 'goal', 'Metas'),
+    debtSummary: mapModuleWidget(dto.widgets.debts, widgetErrors, 'debts', 'Deudas'),
+    taxSummary: mapModuleWidget(dto.widgets.taxes, widgetErrors, 'taxes', 'Impuestos'),
+    widgetErrors,
+  }
+}
+
+function mapModuleWidget(
+  widget: ModuleWidgetDto,
+  errors: DashboardWidgetErrorState[],
+  id: string,
+  title: string,
+): DashboardModuleSummary | null {
+  if (widget.status === 'error') {
+    errors.push({
+      id,
+      title,
+      message: `No se pudo cargar ${title.toLowerCase()}.`,
+    })
+    return {
+      status: 'error',
+      title: widget.data?.title ?? title,
+      lines: [],
+      hint: widget.data?.hint ?? undefined,
+      ctaLabel: widget.action?.label,
+      ctaTo: widget.action?.to,
+      errorCode: widget.error_code ?? null,
+    }
+  }
+  return {
+    status: widget.status as DashboardModuleSummary['status'],
+    title: widget.data?.title ?? title,
+    lines: (widget.data?.lines ?? []).map(line => ({
+      label: line.label,
+      value: String(line.value),
+    })),
+    hint: widget.data?.hint ?? undefined,
+    ctaLabel: widget.action?.label,
+    ctaTo: widget.action?.to,
+    errorCode: widget.error_code ?? null,
+  }
 }
 
 export function createDashboardRepository(api: ApiClient) {
   return {
-    async getSummary(organizationId: string): Promise<DashboardSummaryData> {
-      const dto = await api.get<DashboardSummaryDto>(
-        `/organizations/${organizationId}/dashboard/summary`,
-        { query: { period: 'this_month' } },
-      )
-
-      const balance = dto.balances[0]
-      const flow = dto.cash_flow[0]
-      const currency = balance?.currency ?? flow?.currency ?? 'MXN'
-
-      return {
-        currency,
-        netWorth: String(balance?.net_worth ?? '0.00'),
-        totalAssets: String(balance?.total_assets ?? '0.00'),
-        totalLiabilities: String(balance?.total_liabilities ?? '0.00'),
-        monthlyIncome: String(flow?.income ?? '0.00'),
-        monthlyExpenses: String(flow?.expenses ?? '0.00'),
-        monthlyNetFlow: String(flow?.net_cash_flow ?? '0.00'),
-        activeAccounts: dto.account_count.active,
-        transactionCount: dto.transaction_count,
-        goalsActive: dto.goals?.active ?? 0,
-        goalsCompleted: dto.goals?.completed ?? 0,
-        totalDebt: dto.debts ? String(dto.debts.total_debt) : null,
-        debtMinimumPayments: dto.debts ? String(dto.debts.total_minimum_payments) : null,
-        activeDebts: dto.debts?.active_count ?? 0,
-        taxEstimated: dto.taxes ? String(dto.taxes.estimated_tax) : null,
-        taxPaid: dto.taxes ? String(dto.taxes.paid) : null,
-        taxBalance: dto.taxes ? String(dto.taxes.balance) : null,
-        taxReserveAssets: dto.taxes ? String(dto.taxes.cash_like_assets) : null,
-        periodFrom: dto.period.date_from,
-        periodTo: dto.period.date_to,
-      }
-    },
-
-    async getRecentTransactions(
+    async get(
       organizationId: string,
-      limit = 8,
-    ): Promise<DashboardRecentTransaction[]> {
-      const dto = await api.get<RecentTransactionsDto>(
-        `/organizations/${organizationId}/dashboard/recent-transactions`,
-        { query: { limit } },
+      options: { period?: string, currency?: string } = {},
+    ): Promise<DashboardProjection> {
+      const dto = await api.get<DashboardAggregateDto>(
+        `/organizations/${organizationId}/dashboard`,
+        {
+          query: {
+            period: options.period ?? 'this_month',
+            ...(options.currency ? { currency: options.currency } : {}),
+          },
+        },
       )
-      return (dto.items ?? []).map(item => ({
-        id: item.id,
-        description: item.description,
-        transactionType: item.transaction_type,
-        amount: String(item.amount),
-        currency: item.currency,
-        occurredAt: item.occurred_at,
-        categoryName: item.category?.name ?? null,
-        accountName: item.account?.name ?? null,
-        status: item.status,
-      }))
+      return mapDashboardAggregate(dto)
     },
 
-    async getSafeToSpend(organizationId: string): Promise<{
-      currency: string | null
-      safeToSpend: string | null
-      configured: boolean
-    } | null> {
-      try {
-        const dto = await api.get<{
-          currency: string | null
-          safe_to_spend: string | null
-          active_budgets: number
-          active_cash_plans: number
-        }>(`/organizations/${organizationId}/planning/summary`)
-        return {
-          currency: dto.currency,
-          safeToSpend: dto.safe_to_spend != null ? String(dto.safe_to_spend) : null,
-          configured: dto.active_cash_plans > 0 || dto.active_budgets > 0,
-        }
-      } catch {
-        return null
+    /** Thin adapter kept for callers that still expect the legacy summary shape. */
+    async getSummary(organizationId: string) {
+      const projection = await this.get(organizationId)
+      const slice = projection.currencies.find(c => c.currency === projection.selectedCurrency)
+        ?? projection.currencies[0]
+      return {
+        currency: projection.selectedCurrency,
+        netWorth: slice?.netWorth ?? '0.00',
+        liquidBalance: slice?.liquidBalance ?? '0.00',
+        totalAssets: slice?.totalAssets ?? '0.00',
+        totalLiabilities: slice?.totalLiabilities ?? '0.00',
+        monthlyIncome: slice?.monthlyIncome ?? '0.00',
+        monthlyExpenses: slice?.monthlyExpenses ?? '0.00',
+        monthlyNetFlow: slice?.monthlyNetFlow ?? '0.00',
+        activeAccounts: 0,
+        transactionCount: projection.recentTransactions.length,
+        goalsActive: 0,
+        goalsCompleted: 0,
+        totalDebt: null as string | null,
+        debtMinimumPayments: null as string | null,
+        activeDebts: 0,
+        taxEstimated: null as string | null,
+        taxPaid: null as string | null,
+        taxBalance: null as string | null,
+        taxReserveAssets: null as string | null,
+        periodFrom: projection.period.dateFrom,
+        periodTo: projection.period.dateTo,
       }
     },
   }
