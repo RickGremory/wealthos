@@ -18,9 +18,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: 'NUXT_SSR=false npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    env: {
+      NUXT_SSR: 'false',
+    },
   },
 })

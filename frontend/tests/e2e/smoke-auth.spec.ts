@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+const ORG_ID = '00000000-0000-4000-8000-000000000001'
+
 test.describe('smoke auth shell', () => {
   test('shows app shell when cookie is set and skips real API', async ({ page, context }) => {
     await context.addCookies([
@@ -11,7 +13,20 @@ test.describe('smoke auth shell', () => {
       },
       {
         name: 'wealthos_organization_id',
-        value: '00000000-0000-4000-8000-000000000001',
+        value: ORG_ID,
+        domain: 'localhost',
+        path: '/',
+      },
+      {
+        name: 'wealthos_onboarding_progress',
+        value: JSON.stringify({
+          [ORG_ID]: {
+            hasPreferences: true,
+            preferences: ['spend_control'],
+            skippedAccount: true,
+            markedComplete: true,
+          },
+        }),
         domain: 'localhost',
         path: '/',
       },
@@ -39,7 +54,7 @@ test.describe('smoke auth shell', () => {
         body: JSON.stringify({
           items: [
             {
-              id: '00000000-0000-4000-8000-000000000001',
+              id: ORG_ID,
               name: 'Org E2E',
               slug: 'org-e2e',
               currency: 'MXN',
@@ -50,6 +65,14 @@ test.describe('smoke auth shell', () => {
           ],
           total: 1,
         }),
+      })
+    })
+
+    await page.route('**/api/v1/organizations/*/accounts**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ items: [], total: 0 }),
       })
     })
 
