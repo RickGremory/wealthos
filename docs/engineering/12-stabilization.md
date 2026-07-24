@@ -62,30 +62,32 @@ shows sequential scans or poor index usage on seeded data.
 
 ## Baseline (2026-07-23, 50k txs / 25 accounts)
 
+### After optimizations (query rewrite + `0011` indexes + ANALYZE)
+
 SQL `Execution Time` (`perf/explain/latest/SUMMARY.txt`):
 
-| Query | Time |
-|-------|------|
-| cash_flow_monthly | ~50 ms |
-| period_cash_flow_summary | ~20 ms |
-| spending_by_category | ~32 ms |
-| average_daily_savings_90d | ~13 ms |
-| recent_transactions | ~0.04 ms |
-| net_worth_mxn | ~0.03 ms |
+| Query | Before | After |
+|-------|--------|-------|
+| cash_flow_monthly | ~50 ms | ~36 ms |
+| period_cash_flow_summary | ~20 ms | ~20 ms |
+| spending_by_category | ~32 ms | ~30 ms |
+| average_daily_savings_90d | unstable (nested-loop blowups) | ~12 ms |
+| recent_transactions | ~0.04 ms | ~0.1 ms |
+| net_worth_mxn | ~0.03 ms | ~0.02 ms |
 
-HTTP p50 (TestClient, `BENCHMARK.txt`): summary ~45 ms, cash-flow ~32 ms,
-spending ~34 ms, goals ~22 ms.
+HTTP p50 (`BENCHMARK.txt`): summary ~45 ms, cash-flow ~30 ms, spending ~33 ms,
+goals ~22–23 ms.
 
-### Follow-ups from EXPLAIN
+### Changes shipped
 
-1. **cash_flow / period summary** — planner chose `Seq Scan` on `transactions`
-   and `transaction_entries` at 50k rows. Indexes from `0009` exist; at this
-   size seq scan can be cheaper. Re-check at 200k–500k before adding indexes.
-2. **average_daily_savings** — still `Seq Scan` on all entries then joins.
-   Prefer rewriting the query to start from `transactions` filtered by
-   `(organization_id, status, occurred_at)` then join entries/accounts.
-3. **goals dashboard** — N progress calculations (linked/net-worth each hit
-   savings SQL). Batch or cache avg-daily-savings per org/currency when many
-   goals exist.
-4. **recent_transactions** — uses
-   `ix_transactions_organization_id_occurred_created` correctly (keep).
+1. **`average_daily_savings`** starts from `transactions` (uses org/status/time indexes).
+2. **`GoalProgressService`** request-scoped cache for manual/balances/net-worth/savings.
+3. **`0011_stabilize_query_indexes`**: partial cash-flow index + entry covering indexes.
+4. **Seed** runs `ANALYZE` after bulk insert so the planner stays honest.
+
+### Remaining notes
+
+- At 50k rows the planner may still prefer seq/hash plans for full-year cash-flow;
+  re-check at 200k–500k.
+- Dashboard `summary` still embeds goals counts (extra work vs pure balances).
+- Prefer re-seeding with `make perf-seed` after large data loads so `ANALYZE` runs.

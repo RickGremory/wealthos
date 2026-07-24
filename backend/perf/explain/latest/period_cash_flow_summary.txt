@@ -1,20 +1,20 @@
-HashAggregate  (cost=4022.40..4022.41 rows=1 width=68) (actual time=20.249..20.251 rows=1 loops=1)
+HashAggregate  (cost=4209.58..4209.60 rows=1 width=68) (actual time=19.621..19.623 rows=1 loops=1)
   Group Key: te.currency
   Batches: 1  Memory Usage: 24kB
-  Buffers: shared hit=1683
-  ->  Hash Join  (cost=2455.06..3704.32 rows=21205 width=17) (actual time=7.585..15.838 rows=28100 loops=1)
+  Buffers: shared hit=1682
+  ->  Hash Join  (cost=2539.60..3788.86 rows=28048 width=17) (actual time=7.988..15.434 rows=28100 loops=1)
         Hash Cond: (te.transaction_id = t.id)
-        Buffers: shared hit=1683
-        ->  Seq Scan on transaction_entries te  (cost=0.00..1118.00 rows=50000 width=26) (actual time=0.004..2.222 rows=50000 loops=1)
+        Buffers: shared hit=1682
+        ->  Seq Scan on transaction_entries te  (cost=0.00..1118.00 rows=50000 width=26) (actual time=0.003..1.707 rows=50000 loops=1)
               Buffers: shared hit=618
-        ->  Hash  (cost=2190.00..2190.00 rows=21205 width=23) (actual time=7.539..7.539 rows=28100 loops=1)
+        ->  Hash  (cost=2189.00..2189.00 rows=28048 width=23) (actual time=7.946..7.947 rows=28100 loops=1)
               Buckets: 32768  Batches: 1  Memory Usage: 1781kB
-              Buffers: shared hit=1065
-              ->  Seq Scan on transactions t  (cost=0.00..2190.00 rows=21205 width=23) (actual time=0.003..5.546 rows=28100 loops=1)
-                    Filter: (((transaction_type)::text = ANY ('{income,expense}'::text[])) AND (occurred_at >= '2026-01-01 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2027-01-01 00:00:00+00'::timestamp with time zone) AND (organization_id = '6be48eb5-aeaf-4ca1-8bc0-4987d3d5ee6c'::uuid) AND ((status)::text = 'posted'::text))
+              Buffers: shared hit=1064
+              ->  Seq Scan on transactions t  (cost=0.00..2189.00 rows=28048 width=23) (actual time=0.003..5.775 rows=28100 loops=1)
+                    Filter: (((transaction_type)::text = ANY ('{income,expense}'::text[])) AND (occurred_at >= '2026-01-01 00:00:00+00'::timestamp with time zone) AND (occurred_at < '2027-01-01 00:00:00+00'::timestamp with time zone) AND (organization_id = '0f16349c-fb46-456c-bf4e-7b0d4766503a'::uuid) AND ((status)::text = 'posted'::text))
                     Rows Removed by Filter: 21900
-                    Buffers: shared hit=1065
+                    Buffers: shared hit=1064
 Planning:
-  Buffers: shared hit=12
-Planning Time: 0.306 ms
-Execution Time: 20.413 ms
+  Buffers: shared hit=14
+Planning Time: 0.190 ms
+Execution Time: 19.781 ms

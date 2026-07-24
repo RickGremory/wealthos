@@ -1,14 +1,18 @@
-organization_id=6be48eb5-aeaf-4ca1-8bc0-4987d3d5ee6c
+organization_id=0f16349c-fb46-456c-bf4e-7b0d4766503a
 transactions=50000
 accounts=25
 iterations=10
-generated_note=TestClient in-process (not network)
+note=After query rewrite + indexes 0011 + ANALYZE
 
 endpoint                                              p50_ms   p95_ms   max_ms
-dashboard/summary                                       44.6    121.5    121.5
-dashboard/cash-flow                                     31.8     36.3     36.3
-dashboard/spending-by-category                          34.3     43.7     43.7
-dashboard/accounts                                       5.3      6.8      6.8
-dashboard/recent-transactions                            6.8      9.4      9.4
-dashboard/goals                                         22.1     23.9     23.9
-goals                                                   22.1     22.9     22.9
+dashboard/summary                                       44.9    105.7    105.7
+dashboard/cash-flow                                     30.4     32.4     32.4
+dashboard/spending-by-category                          33.4     39.5     39.5
+dashboard/accounts                                       4.3      7.6      7.6
+dashboard/recent-transactions                            6.0      8.3      8.3
+dashboard/goals                                         22.2     25.9     25.9
+goals                                                   23.4     28.3     28.3
+
+before (SQL Execution Time):
+  cash_flow_monthly ~50ms → after ~36ms
+  average_daily_savings_90d catastrophic nested-loop risk → ~12ms stable index nested loop

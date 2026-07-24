@@ -112,8 +112,8 @@ LIMIT 20;
     "average_daily_savings_90d": """
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
 SELECT COALESCE(SUM(te.amount), 0) AS total
-FROM transaction_entries te
-JOIN transactions t ON t.id = te.transaction_id
+FROM transactions t
+JOIN transaction_entries te ON te.transaction_id = t.id
 JOIN accounts a ON a.id = te.account_id
 WHERE t.organization_id = :org_id
   AND t.status = 'posted'

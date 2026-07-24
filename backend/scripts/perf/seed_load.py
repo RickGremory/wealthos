@@ -481,6 +481,11 @@ def main() -> None:
         )
         print("Seeding sample goals…")
         _seed_goals(session, user["org_id"], account_ids)
+        print("Refreshing planner statistics…")
+        session.execute(text("ANALYZE transactions"))
+        session.execute(text("ANALYZE transaction_entries"))
+        session.execute(text("ANALYZE accounts"))
+        session.commit()
 
     elapsed = round(time.perf_counter() - started, 2)
     print(f"Done in {elapsed}s")

@@ -34,15 +34,12 @@ class GetGoalQuery:
         goal = self._goals.get_by_id(organization_id, goal_id)
         if goal is None:
             raise GoalNotFoundError("Goal not found.")
-        goal = self._maybe_complete(goal)
-        return GoalWithProgress(goal=goal, progress=self._progress.calculate(goal))
-
-    def _maybe_complete(self, goal: Goal) -> Goal:
         progress = self._progress.calculate(goal)
         if progress.completion_percentage >= Decimal("100") and goal.status.is_active:
             goal.complete()
-            return self._goals.save(goal)
-        return goal
+            goal = self._goals.save(goal)
+            progress = self._progress.calculate(goal)
+        return GoalWithProgress(goal=goal, progress=progress)
 
 
 class ListGoalsQuery:
@@ -66,7 +63,10 @@ class ListGoalsQuery:
             include_archived=include_archived,
         ):
             progress = self._progress.calculate(goal)
-            if progress.completion_percentage >= Decimal("100") and goal.status.is_active:
+            if (
+                progress.completion_percentage >= Decimal("100")
+                and goal.status.is_active
+            ):
                 goal.complete()
                 goal = self._goals.save(goal)
                 progress = self._progress.calculate(goal)

@@ -19,6 +19,8 @@ class _FakeGoals:
         self.balances: dict[UUID, Decimal] = {}
         self.net_worth: Decimal = Decimal("0.00")
         self.daily_savings: Decimal = Decimal("0.00")
+        self.savings_calls = 0
+        self.net_worth_calls = 0
 
     def get_manual_progress(self, goal_id: UUID) -> Decimal | None:
         return self.manual.get(goal_id)
@@ -47,6 +49,7 @@ class _FakeGoals:
         days: int = 90,
     ) -> Decimal:
         _ = organization_id, currency, account_ids, days
+        self.savings_calls += 1
         return self.daily_savings
 
     def net_worth_for_currency(
@@ -55,6 +58,7 @@ class _FakeGoals:
         currency: str,
     ) -> Decimal:
         _ = organization_id, currency
+        self.net_worth_calls += 1
         return self.net_worth
 
 
@@ -155,3 +159,23 @@ def test_estimated_completion_with_positive_average() -> None:
     )
     estimated = service.calculate(goal).estimated_completion_date
     assert estimated == datetime.now(UTC).date() + timedelta(days=60)
+
+
+def test_request_cache_dedupes_net_worth_and_savings() -> None:
+    repo = _FakeGoals()
+    service = GoalProgressService(repo)  # type: ignore[arg-type]
+    org_id = uuid4()
+    repo.net_worth = Decimal("100000.00")
+    repo.daily_savings = Decimal("100.00")
+    goals = [
+        Goal.create(
+            organization_id=org_id,
+            name=f"FIRE {i}",
+            target_amount=Money(Decimal("1000000"), "MXN"),
+            strategy="net_worth_percentage",
+        )
+        for i in range(3)
+    ]
+    service.calculate_many(goals)
+    assert repo.net_worth_calls == 1
+    assert repo.savings_calls == 1

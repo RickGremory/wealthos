@@ -1,9 +1,9 @@
-Aggregate  (cost=2.69..2.70 rows=1 width=32) (actual time=0.023..0.023 rows=1 loops=1)
-  Buffers: shared hit=2
-  ->  Seq Scan on accounts a  (cost=0.00..2.38 rows=25 width=14) (actual time=0.006..0.010 rows=25 loops=1)
-        Filter: ((is_active IS TRUE) AND (organization_id = '6be48eb5-aeaf-4ca1-8bc0-4987d3d5ee6c'::uuid) AND ((currency)::text = 'MXN'::text))
-        Buffers: shared hit=2
+Aggregate  (cost=1.69..1.70 rows=1 width=32) (actual time=0.012..0.012 rows=1 loops=1)
+  Buffers: shared hit=1
+  ->  Seq Scan on accounts a  (cost=0.00..1.38 rows=25 width=14) (actual time=0.003..0.006 rows=25 loops=1)
+        Filter: ((is_active IS TRUE) AND (organization_id = '0f16349c-fb46-456c-bf4e-7b0d4766503a'::uuid) AND ((currency)::text = 'MXN'::text))
+        Buffers: shared hit=1
 Planning:
-  Buffers: shared hit=68
-Planning Time: 0.537 ms
-Execution Time: 0.034 ms
+  Buffers: shared hit=15
+Planning Time: 0.093 ms
+Execution Time: 0.019 ms

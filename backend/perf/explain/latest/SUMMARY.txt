@@ -1,9 +1,9 @@
-organization_id=6be48eb5-aeaf-4ca1-8bc0-4987d3d5ee6c
-generated_at=2026-07-24T00:37:56.308962+00:00
+organization_id=0f16349c-fb46-456c-bf4e-7b0d4766503a
+generated_at=2026-07-24T00:44:28.100490+00:00
 
-cash_flow_monthly: Execution Time: 86.132 ms
-period_cash_flow_summary: Execution Time: 43.238 ms
-spending_by_category: Execution Time: 44.546 ms
-recent_transactions: Execution Time: 0.043 ms
-average_daily_savings_90d: Execution Time: 177073.094 ms
-net_worth_mxn: Execution Time: 0.034 ms
+cash_flow_monthly: Execution Time: 35.865 ms
+period_cash_flow_summary: Execution Time: 19.781 ms
+spending_by_category: Execution Time: 30.442 ms
+recent_transactions: Execution Time: 0.118 ms
+average_daily_savings_90d: Execution Time: 12.391 ms
+net_worth_mxn: Execution Time: 0.019 ms

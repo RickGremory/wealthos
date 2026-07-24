@@ -134,13 +134,21 @@ class SqlAlchemyGoalRepository(BaseRepository[GoalModel]):
         account_ids: tuple[UUID, ...] | None,
         days: int = 90,
     ) -> Decimal:
+        """Average net entry flow per day over the lookback window.
+
+        Starts from ``transactions`` so Postgres can use
+        ``(organization_id, status, occurred_at)`` instead of scanning all entries.
+        """
+        if account_ids is not None and not account_ids:
+            return Decimal("0.00")
+
         since = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(func.coalesce(func.sum(TransactionEntryModel.amount), 0))
-            .select_from(TransactionEntryModel)
+            .select_from(TransactionModel)
             .join(
-                TransactionModel,
-                TransactionModel.id == TransactionEntryModel.transaction_id,
+                TransactionEntryModel,
+                TransactionEntryModel.transaction_id == TransactionModel.id,
             )
             .join(AccountModel, AccountModel.id == TransactionEntryModel.account_id)
             .where(
@@ -152,8 +160,6 @@ class SqlAlchemyGoalRepository(BaseRepository[GoalModel]):
             )
         )
         if account_ids is not None:
-            if not account_ids:
-                return Decimal("0.00")
             stmt = stmt.where(TransactionEntryModel.account_id.in_(account_ids))
         total = Decimal(str(self.session.scalar(stmt) or 0))
         return (total / Decimal(days)).quantize(Decimal("0.01"))
