@@ -36,6 +36,17 @@ class InMemoryAccountRepository:
     def get_by_id(self, organization_id: UUID, account_id: UUID) -> Account | None:
         return self._items.get((organization_id, account_id))
 
+    def get_many_for_update(
+        self,
+        organization_id: UUID,
+        account_ids: list[UUID],
+    ) -> list[Account]:
+        return [
+            self._items[(organization_id, account_id)]
+            for account_id in sorted(set(account_ids))
+            if (organization_id, account_id) in self._items
+        ]
+
     def list_by_organization(
         self,
         organization_id: UUID,

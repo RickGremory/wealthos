@@ -97,6 +97,11 @@ class Account:
         self.last_four = _normalize_last_four(last_four)
         self.updated_at = datetime.now(UTC)
 
+    def apply_balance_delta(self, delta: Money) -> None:
+        """Apply a signed ledger entry to current_balance (same currency required)."""
+        self.current_balance = self.current_balance + delta
+        self.updated_at = datetime.now(UTC)
+
     def archive(self) -> None:
         if not self.is_active or self.archived_at is not None:
             raise AccountAlreadyArchived("Account is already archived.")

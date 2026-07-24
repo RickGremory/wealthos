@@ -35,6 +35,26 @@ class SqlAlchemyAccountRepository(BaseRepository[AccountModel]):
             return None
         return self._mapper.to_entity(model)
 
+    def get_many_for_update(
+        self,
+        organization_id: UUID,
+        account_ids: list[UUID],
+    ) -> list[Account]:
+        if not account_ids:
+            return []
+        ordered_ids = sorted(set(account_ids))
+        stmt = (
+            select(AccountModel)
+            .where(
+                AccountModel.organization_id == organization_id,
+                AccountModel.id.in_(ordered_ids),
+            )
+            .order_by(AccountModel.id.asc())
+            .with_for_update()
+        )
+        models = list(self.session.scalars(stmt).all())
+        return [self._mapper.to_entity(model) for model in models]
+
     def list_by_organization(
         self,
         organization_id: UUID,
