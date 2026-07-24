@@ -7,11 +7,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from wealthos.core.security.current_user import CurrentUser
 from wealthos.core.security.organization_access import OrganizationMember
 from wealthos.core.security.organization_permissions import require_organization_role
 from wealthos.modules.accounts.api.dependencies import (
     get_archive_account_command,
-    get_create_account_command,
+    get_create_account_with_opening_balance_command,
     get_get_account_query,
     get_list_accounts_query,
     get_unit_of_work,
@@ -21,9 +22,9 @@ from wealthos.modules.accounts.application.commands.archive_account import (
     ArchiveAccountCommand,
     ArchiveAccountInput,
 )
-from wealthos.modules.accounts.application.commands.create_account import (
-    CreateAccountCommand,
-    CreateAccountInput,
+from wealthos.modules.accounts.application.commands.create_account_with_opening_balance import (
+    CreateAccountWithOpeningBalanceCommand,
+    CreateAccountWithOpeningBalanceInput,
 )
 from wealthos.modules.accounts.application.commands.update_account import (
     UpdateAccountCommand,
@@ -48,6 +49,7 @@ from wealthos.modules.organizations.domain.entities.organization_membership impo
     OrganizationMembership,
 )
 from wealthos.shared.domain.exceptions import InvalidCurrency
+from wealthos.modules.transactions.domain.exceptions import TransactionError
 from wealthos.shared.persistence import SqlAlchemyUnitOfWork
 
 router = APIRouter()
@@ -72,18 +74,24 @@ def create_account(
     organization_id: UUID,
     payload: AccountCreate,
     _membership: RequireWriter,
-    command: Annotated[CreateAccountCommand, Depends(get_create_account_command)],
+    current_user: CurrentUser,
+    command: Annotated[
+        CreateAccountWithOpeningBalanceCommand,
+        Depends(get_create_account_with_opening_balance_command),
+    ],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> AccountResponse:
     try:
         with uow:
             account = command.execute(
-                CreateAccountInput(
+                CreateAccountWithOpeningBalanceInput(
                     organization_id=organization_id,
                     name=payload.name,
                     account_type=payload.account_type,
                     currency=payload.currency,
+                    created_by_user_id=current_user.id,
                     opening_balance=payload.opening_balance,
+                    opening_balance_date=payload.opening_balance_date,
                     institution_name=payload.institution_name,
                     last_four=payload.last_four,
                 )
@@ -101,6 +109,8 @@ def create_account(
             detail=str(exc),
         ) from exc
     except AccountError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except TransactionError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     return AccountResponse.from_entity(account)

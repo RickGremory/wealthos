@@ -14,6 +14,9 @@ from wealthos.modules.accounts.application.commands.archive_account import (
 from wealthos.modules.accounts.application.commands.create_account import (
     CreateAccountCommand,
 )
+from wealthos.modules.accounts.application.commands.create_account_with_opening_balance import (
+    CreateAccountWithOpeningBalanceCommand,
+)
 from wealthos.modules.accounts.application.commands.update_account import (
     UpdateAccountCommand,
 )
@@ -25,6 +28,10 @@ from wealthos.modules.accounts.domain.repositories.account_repository import (
 from wealthos.modules.accounts.infrastructure.repositories import (
     SqlAlchemyAccountRepository,
 )
+from wealthos.modules.transactions.application.commands.create_adjustment import (
+    CreateAdjustmentCommand,
+)
+from wealthos.modules.transactions.api.dependencies import get_create_adjustment_command
 from wealthos.shared.persistence import SqlAlchemyUnitOfWork
 
 
@@ -44,6 +51,16 @@ def get_create_account_command(
     repository: Annotated[AccountRepository, Depends(get_account_repository)],
 ) -> CreateAccountCommand:
     return CreateAccountCommand(repository)
+
+
+def get_create_account_with_opening_balance_command(
+    repository: Annotated[AccountRepository, Depends(get_account_repository)],
+    adjustments: Annotated[
+        CreateAdjustmentCommand,
+        Depends(get_create_adjustment_command),
+    ],
+) -> CreateAccountWithOpeningBalanceCommand:
+    return CreateAccountWithOpeningBalanceCommand(repository, adjustments)
 
 
 def get_update_account_command(

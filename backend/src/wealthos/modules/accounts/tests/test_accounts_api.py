@@ -97,6 +97,20 @@ def test_account_lifecycle_and_isolation(client: TestClient) -> None:
     assert account["classification"] == "asset"
     assert Decimal(str(account["current_balance"])) == Decimal("15000")
 
+    txs = client.get(
+        f"{ORG}/{user_a['org_id']}/transactions",
+        headers=user_a["headers"],
+    )
+    assert txs.status_code == 200, txs.text
+    opening = [
+        item
+        for item in txs.json()["items"]
+        if item["transaction_type"] == "adjustment"
+        and str(item["description"]).startswith("Saldo inicial")
+    ]
+    assert len(opening) == 1
+    assert Decimal(str(opening[0]["entries"][0]["amount"])) == Decimal("15000")
+
     client.post(
         f"{ORG}/{user_a['org_id']}/accounts",
         headers=user_a["headers"],
