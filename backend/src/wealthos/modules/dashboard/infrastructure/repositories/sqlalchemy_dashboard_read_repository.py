@@ -320,7 +320,10 @@ class SqlAlchemyDashboardReadRepository:
     ) -> list[RecentTransactionView]:
         stmt = (
             select(TransactionModel)
-            .where(TransactionModel.organization_id == organization_id)
+            .where(
+                TransactionModel.organization_id == organization_id,
+                TransactionModel.status == "posted",
+            )
             .order_by(
                 TransactionModel.occurred_at.desc(),
                 TransactionModel.created_at.desc(),
@@ -411,6 +414,23 @@ class SqlAlchemyDashboardReadRepository:
             )
         return results
 
+    def has_posted_transaction_type(
+        self,
+        organization_id: UUID,
+        *,
+        transaction_type: str,
+    ) -> bool:
+        stmt = (
+            select(TransactionModel.id)
+            .where(
+                TransactionModel.organization_id == organization_id,
+                TransactionModel.status == "posted",
+                TransactionModel.transaction_type == transaction_type,
+            )
+            .limit(1)
+        )
+        return self._session.scalar(stmt) is not None
+
     def _currency_balances(
         self,
         organization_id: UUID,
@@ -443,6 +463,20 @@ class SqlAlchemyDashboardReadRepository:
                     ),
                     0,
                 ).label("liabilities"),
+                func.coalesce(
+                    func.sum(
+                        case(
+                            (
+                                AccountModel.account_type.in_(
+                                    ("checking", "savings", "cash", "digital_wallet")
+                                ),
+                                AccountModel.current_balance,
+                            ),
+                            else_=0,
+                        )
+                    ),
+                    0,
+                ).label("liquid"),
             )
             .where(
                 AccountModel.organization_id == organization_id,
@@ -451,21 +485,23 @@ class SqlAlchemyDashboardReadRepository:
             .group_by(AccountModel.currency)
         )
         rows = {
-            str(currency): (_money(assets), _money(liabilities))
-            for currency, assets, liabilities in self._session.execute(stmt).all()
+            str(currency): (_money(assets), _money(liabilities), _money(liquid))
+            for currency, assets, liabilities, liquid in self._session.execute(stmt).all()
         }
         currencies = self._ordered_currencies(set(rows.keys()), primary_currency)
         if not currencies and primary_currency:
             currencies = [primary_currency]
-            rows[primary_currency] = (_ZERO, _ZERO)
+            rows[primary_currency] = (_ZERO, _ZERO, _ZERO)
         return tuple(
             CurrencyBalanceView(
                 currency=currency,
-                total_assets=rows.get(currency, (_ZERO, _ZERO))[0],
-                total_liabilities=rows.get(currency, (_ZERO, _ZERO))[1],
+                total_assets=rows.get(currency, (_ZERO, _ZERO, _ZERO))[0],
+                total_liabilities=rows.get(currency, (_ZERO, _ZERO, _ZERO))[1],
                 net_worth=_money(
-                    rows.get(currency, (_ZERO, _ZERO))[0] - rows.get(currency, (_ZERO, _ZERO))[1]
+                    rows.get(currency, (_ZERO, _ZERO, _ZERO))[0]
+                    - rows.get(currency, (_ZERO, _ZERO, _ZERO))[1]
                 ),
+                liquid_balance=rows.get(currency, (_ZERO, _ZERO, _ZERO))[2],
             )
             for currency in currencies
         )

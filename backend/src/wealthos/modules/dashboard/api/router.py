@@ -15,6 +15,7 @@ from wealthos.core.security.organization_context import OrganizationAccess
 from wealthos.modules.dashboard.api.dependencies import (
     get_account_summary_query,
     get_cash_flow_query,
+    get_dashboard_query,
     get_debts_dashboard_query,
     get_goals_dashboard_query,
     get_recent_transactions_query,
@@ -27,6 +28,7 @@ from wealthos.modules.dashboard.application.queries.get_account_summary import (
     GetAccountSummaryQuery,
 )
 from wealthos.modules.dashboard.application.queries.get_cash_flow import GetCashFlowQuery
+from wealthos.modules.dashboard.application.queries.get_dashboard import GetDashboardQuery
 from wealthos.modules.dashboard.application.queries.get_dashboard_summary import (
     GetDashboardSummaryQuery,
 )
@@ -45,6 +47,7 @@ from wealthos.modules.dashboard.domain.value_objects.dashboard_period import (
 from wealthos.modules.dashboard.schemas.account_summary import AccountSummaryResponse
 from wealthos.modules.dashboard.schemas.cash_flow import CashFlowResponse
 from wealthos.modules.dashboard.schemas.category_spending import CategorySpendingResponse
+from wealthos.modules.dashboard.schemas.dashboard import DashboardResponse
 from wealthos.modules.dashboard.schemas.filters import DashboardPeriodParams
 from wealthos.modules.dashboard.schemas.recent_transactions import (
     RecentTransactionsResponse,
@@ -85,6 +88,28 @@ def _period_filters(params: DashboardPeriodParams) -> DashboardPeriodFilters:
         period=DashboardPeriod(params.period),
         date_from=params.date_from,
         date_to=params.date_to,
+    )
+
+
+@router.get(
+    "/{organization_id}/dashboard",
+    response_model=DashboardResponse,
+    summary="Dashboard aggregate projection",
+)
+def get_dashboard(
+    organization_id: UUID,
+    access: OrganizationAccess,
+    query: Annotated[GetDashboardQuery, Depends(get_dashboard_query)],
+    params: Annotated[DashboardPeriodParams, Depends(parse_period_params)],
+    currency: Annotated[str | None, Query(min_length=3, max_length=3)] = None,
+) -> DashboardResponse:
+    return query.execute(
+        organization_id,
+        organization_name=access.name,
+        timezone=access.timezone,
+        primary_currency=access.currency,
+        filters=_period_filters(params),
+        selected_currency=currency.upper() if currency else None,
     )
 
 

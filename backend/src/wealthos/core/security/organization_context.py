@@ -27,6 +27,7 @@ class OrganizationAccessContext:
     organization_id: UUID
     user_id: UUID
     role: str
+    name: str
     timezone: str
     currency: str
     membership: OrganizationMembership
@@ -60,6 +61,7 @@ def require_organization_access(
         organization_id=organization_id,
         user_id=current_user.id,
         role=membership.role.value,
+        name=organization.name.value,
         timezone=organization.timezone.value,
         currency=organization.currency.value,
         membership=membership,

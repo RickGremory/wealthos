@@ -67,3 +67,10 @@ class DashboardReadRepository(Protocol):
         *,
         limit: int,
     ) -> list[RecentTransactionView]: ...
+
+    def has_posted_transaction_type(
+        self,
+        organization_id: UUID,
+        *,
+        transaction_type: str,
+    ) -> bool: ...

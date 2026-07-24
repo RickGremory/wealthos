@@ -222,6 +222,7 @@ def test_dashboard_acceptance_flow(client: TestClient) -> None:
     assert Decimal(str(mxn_balance["total_assets"])) == Decimal("26000.00")
     assert Decimal(str(mxn_balance["total_liabilities"])) == Decimal("5000.00")
     assert Decimal(str(mxn_balance["net_worth"])) == Decimal("21000.00")
+    assert Decimal(str(mxn_balance["liquid_balance"])) == Decimal("21000.00")
     mxn_flow = body["cash_flow"][0]
     assert Decimal(str(mxn_flow["income"])) == Decimal("10000.00")
     assert Decimal(str(mxn_flow["expenses"])) == Decimal("4000.00")
@@ -258,10 +259,31 @@ def test_dashboard_acceptance_flow(client: TestClient) -> None:
     recent = client.get(
         f"{ORG}/{org_id}/dashboard/recent-transactions",
         headers=headers,
-        params={"limit": 5},
+        params={"limit": 10},
     )
     assert recent.status_code == 200
-    assert recent.json()["total"] == 5
+    recent_body = recent.json()
+    assert all(item["status"] == "posted" for item in recent_body["items"])
+    assert all(item["description"] != "Anulable" for item in recent_body["items"])
+    assert recent_body["total"] >= 4
+
+    dashboard = client.get(
+        f"{ORG}/{org_id}/dashboard",
+        headers=headers,
+        params={"period": "custom", "date_from": "2026-07-01", "date_to": "2026-07-31"},
+    )
+    assert dashboard.status_code == 200, dashboard.text
+    dash = dashboard.json()
+    assert "widgets" in dash
+    assert dash["widgets"]["metrics"]["status"] == "ready"
+    assert dash["selected_currency"] == "MXN"
+    assert Decimal(str(dash["currencies"][0]["liquid_balance"])) == Decimal("21000.00")
+    assert dash["widgets"]["activity"]["status"] == "ready"
+    assert all(
+        item["status"] == "posted" for item in dash["widgets"]["activity"]["data"]["items"]
+    )
+    assert dash["widgets"]["onboarding"]["status"] == "empty"
+    assert dash["widgets"]["onboarding"]["data"]["is_visible"] is False
 
 
 def test_dashboard_isolation_and_validation(client: TestClient) -> None:

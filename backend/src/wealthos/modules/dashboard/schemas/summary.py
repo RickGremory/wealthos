@@ -22,6 +22,7 @@ class CurrencyBalanceResponse(BaseModel):
     total_assets: Decimal
     total_liabilities: Decimal
     net_worth: Decimal
+    liquid_balance: Decimal = Decimal("0.00")
 
 
 class CurrencyCashFlowResponse(BaseModel):
@@ -133,6 +134,7 @@ class DashboardSummaryResponse(BaseModel):
                     total_assets=item.total_assets,
                     total_liabilities=item.total_liabilities,
                     net_worth=item.net_worth,
+                    liquid_balance=item.liquid_balance,
                 )
                 for item in view.balances
             ],

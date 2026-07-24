@@ -18,6 +18,7 @@ from wealthos.modules.dashboard.application.queries.get_account_summary import (
     GetAccountSummaryQuery,
 )
 from wealthos.modules.dashboard.application.queries.get_cash_flow import GetCashFlowQuery
+from wealthos.modules.dashboard.application.queries.get_dashboard import GetDashboardQuery
 from wealthos.modules.dashboard.application.queries.get_dashboard_summary import (
     GetDashboardSummaryQuery,
 )
@@ -49,6 +50,10 @@ from wealthos.modules.goals.application.services.goal_progress_service import (
 )
 from wealthos.modules.goals.domain.repositories.goal_repository import GoalRepository
 from wealthos.modules.goals.infrastructure.repositories import SqlAlchemyGoalRepository
+from wealthos.modules.planning.api.dependencies import get_planning_summary_query
+from wealthos.modules.planning.application.queries.get_planning_summary import (
+    GetPlanningSummaryQuery,
+)
 from wealthos.modules.taxes.application.queries.get_tax_summary import GetTaxSummaryQuery
 from wealthos.modules.taxes.application.services.tax_period_generator import (
     TaxPeriodGenerator,
@@ -199,4 +204,37 @@ def get_taxes_dashboard_query(
         read,
         accounts,
         period_generator,
+    )
+
+
+def get_dashboard_query(
+    summary_query: Annotated[GetDashboardSummaryQuery, Depends(get_summary_query)],
+    cash_flow_query: Annotated[GetCashFlowQuery, Depends(get_cash_flow_query)],
+    recent_query: Annotated[
+        GetRecentTransactionsQuery,
+        Depends(get_recent_transactions_query),
+    ],
+    repository: Annotated[DashboardReadRepository, Depends(get_dashboard_repository)],
+    goals_query: Annotated[
+        GetGoalsDashboardSummaryQuery,
+        Depends(get_goals_dashboard_query),
+    ],
+    debts_query: Annotated[GetDebtSummaryQuery, Depends(get_debts_dashboard_query)],
+    taxes_query: Annotated[GetTaxSummaryQuery, Depends(get_taxes_dashboard_query)],
+    planning_query: Annotated[
+        GetPlanningSummaryQuery,
+        Depends(get_planning_summary_query),
+    ],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> GetDashboardQuery:
+    return GetDashboardQuery(
+        summary_query=summary_query,
+        cash_flow_query=cash_flow_query,
+        recent_query=recent_query,
+        repository=repository,
+        goals_query=goals_query,
+        debts_query=debts_query,
+        taxes_query=taxes_query,
+        planning_query=planning_query,
+        uow=uow,
     )

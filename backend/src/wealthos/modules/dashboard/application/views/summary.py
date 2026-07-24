@@ -12,6 +12,7 @@ class CurrencyBalanceView:
     total_assets: Decimal
     total_liabilities: Decimal
     net_worth: Decimal
+    liquid_balance: Decimal = Decimal("0.00")
 
 
 @dataclass(frozen=True, slots=True)

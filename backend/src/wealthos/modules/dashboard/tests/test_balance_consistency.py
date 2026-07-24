@@ -58,12 +58,15 @@ def _cleanup() -> Generator[None]:
 def recalculate_account_balance(session, account_id) -> Decimal:  # noqa: ANN001
     account = session.get(AccountModel, account_id)
     assert account is not None
+    # Opening balance is already on the account; exclude the seeded opening adjustment.
     entries_sum = session.scalar(
-        select(func.coalesce(func.sum(TransactionEntryModel.amount), 0)).where(
+        select(func.coalesce(func.sum(TransactionEntryModel.amount), 0))
+        .select_from(TransactionEntryModel)
+        .join(TransactionModel, TransactionModel.id == TransactionEntryModel.transaction_id)
+        .where(
             TransactionEntryModel.account_id == account_id,
-            TransactionEntryModel.transaction_id.in_(
-                select(TransactionModel.id).where(TransactionModel.status == "posted")
-            ),
+            TransactionModel.status == "posted",
+            TransactionModel.notes.is_distinct_from("opening_balance"),
         )
     )
     return Decimal(str(account.opening_balance)) + Decimal(str(entries_sum or 0))
