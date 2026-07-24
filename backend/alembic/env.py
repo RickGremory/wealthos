@@ -23,6 +23,15 @@ from wealthos.modules.organizations.infrastructure.models import (  # noqa: F401
     OrganizationMembershipModel,
     OrganizationModel,
 )
+from wealthos.modules.planning.infrastructure.models import (  # noqa: F401
+    BudgetAllocationMatchModel,
+    BudgetAllocationModel,
+    BudgetModel,
+    CashPlanAccountModel,
+    CashPlanItemMatchModel,
+    CashPlanItemModel,
+    CashPlanModel,
+)
 from wealthos.modules.tax_mx.infrastructure.models import (  # noqa: F401
     MexicoTaxCalculationSnapshotModel,
     MexicoTaxCategoryMappingModel,
