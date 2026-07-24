@@ -8,6 +8,12 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from wealthos.core.database import get_db
+from wealthos.modules.categories.application.services.category_seed_service import (
+    CategorySeedService,
+)
+from wealthos.modules.categories.infrastructure.repositories import (
+    SqlAlchemyCategoryRepository,
+)
 from wealthos.modules.identity.domain.repositories.user_repository import UserRepository
 from wealthos.modules.identity.infrastructure.repositories import SqlAlchemyUserRepository
 from wealthos.modules.organizations.application.commands.add_organization_member import (
@@ -54,6 +60,12 @@ def get_user_repository(
     session: Annotated[Session, Depends(get_db)],
 ) -> UserRepository:
     return SqlAlchemyUserRepository(session)
+
+
+def get_category_seed_service(
+    session: Annotated[Session, Depends(get_db)],
+) -> CategorySeedService:
+    return CategorySeedService(SqlAlchemyCategoryRepository(session))
 
 
 def get_create_organization_command(

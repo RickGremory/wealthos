@@ -9,9 +9,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from wealthos.core.security.current_user import CurrentUser
 from wealthos.core.security.organization_access import OrganizationMember
+from wealthos.modules.categories.application.services.category_seed_service import (
+    CategorySeedService,
+)
 from wealthos.modules.identity.domain.exceptions import UserNotFoundError
 from wealthos.modules.organizations.api.dependencies import (
     get_add_organization_member_command,
+    get_category_seed_service,
     get_create_organization_command,
     get_list_organization_members_query,
     get_membership_repository,
@@ -77,6 +81,7 @@ def create_organization(
     current_user: CurrentUser,
     command: Annotated[CreateOrganizationCommand, Depends(get_create_organization_command)],
     memberships: Annotated[MembershipRepository, Depends(get_membership_repository)],
+    category_seed: Annotated[CategorySeedService, Depends(get_category_seed_service)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> OrganizationResponse:
     """Create a financial workspace owned by the current user."""
@@ -98,6 +103,7 @@ def create_organization(
                     role="owner",
                 )
             )
+            category_seed.seed_defaults(organization.id)
             uow.commit()
     except OrganizationSlugAlreadyExists as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
