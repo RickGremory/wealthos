@@ -39,6 +39,12 @@ class Settings(BaseSettings):
         description="Log HTTP and critical usecase durations via structlog.",
     )
 
+    # Browser clients (Nuxt on :3000)
+    cors_allowed_origins: str = Field(
+        default="http://127.0.0.1:3000,http://localhost:3000",
+        description="Comma-separated CORS origins allowed for the API.",
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -52,6 +58,10 @@ class Settings(BaseSettings):
     @property
     def sqlalchemy_echo(self) -> bool:
         return self.db_echo or (self.debug and self.is_development)
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
 
 
 @lru_cache
