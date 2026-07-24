@@ -1,7 +1,8 @@
 <script setup lang="ts">
-const auth = useAuthStore()
+const { resolveDestination } = useSessionEntry()
 
-await navigateTo(auth.isAuthenticated ? '/app' : '/login')
+const destination = await resolveDestination()
+await navigateTo(destination)
 </script>
 
 <template>

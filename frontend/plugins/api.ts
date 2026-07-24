@@ -26,6 +26,7 @@ export default defineNuxtPlugin(() => {
       if (auth.token) {
         auth.setToken(null)
         auth.user = null
+        auth.status = 'unauthenticated'
       }
     },
   })

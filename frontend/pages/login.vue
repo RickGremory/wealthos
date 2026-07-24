@@ -6,6 +6,7 @@ definePageMeta({
 
 const auth = useAuthStore()
 const toast = useToast()
+const { resolveDestination } = useSessionEntry()
 
 const email = ref('')
 const password = ref('')
@@ -17,8 +18,11 @@ async function onSubmit() {
   submitting.value = true
   try {
     await auth.login({ email: email.value, password: password.value })
+    const organization = useOrganizationStore()
+    await organization.loadMemberships()
     toast.success('Bienvenido', 'Sesión iniciada correctamente')
-    await navigateTo('/app')
+    const destination = await resolveDestination()
+    await navigateTo(destination)
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'No se pudo iniciar sesión'
   } finally {
@@ -41,16 +45,19 @@ async function onSubmit() {
         autocomplete="email"
         required
       />
-      <UiInput
+      <PasswordInput
         v-model="password"
         label="Contraseña"
-        type="password"
         autocomplete="current-password"
         required
       />
 
-      <UiButton type="submit" block :disabled="submitting">
-        {{ submitting ? 'Entrando…' : 'Entrar' }}
+      <p class="login-forgot">
+        <NuxtLink to="/forgot-password">¿Olvidaste tu contraseña?</NuxtLink>
+      </p>
+
+      <UiButton type="submit" block :loading="submitting">
+        Entrar
       </UiButton>
     </form>
 
@@ -62,3 +69,11 @@ async function onSubmit() {
     </template>
   </UiCard>
 </template>
+
+<style scoped>
+.login-forgot {
+  margin: calc(var(--space-2) * -1) 0 0;
+  font-size: 0.875rem;
+  text-align: right;
+}
+</style>

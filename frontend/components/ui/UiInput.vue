@@ -8,6 +8,7 @@ withDefaults(
     type?: string
     placeholder?: string
     autocomplete?: string
+    inputmode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
     disabled?: boolean
     required?: boolean
     error?: string
@@ -18,6 +19,7 @@ withDefaults(
     type: 'text',
     placeholder: undefined,
     autocomplete: undefined,
+    inputmode: undefined,
     disabled: false,
     required: false,
     error: undefined,
@@ -35,6 +37,7 @@ withDefaults(
       :type="type"
       :placeholder="placeholder"
       :autocomplete="autocomplete"
+      :inputmode="inputmode"
       :disabled="disabled"
       :required="required"
       :aria-invalid="Boolean(error) || undefined"

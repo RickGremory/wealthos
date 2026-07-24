@@ -2,6 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  ssr: process.env.NUXT_SSR !== 'false',
 
   modules: ['@pinia/nuxt', '@nuxt/eslint'],
 
@@ -11,6 +12,8 @@ export default defineNuxtConfig({
     { path: '~/components/layout', pathPrefix: false },
     { path: '~/components/feedback', pathPrefix: false },
     { path: '~/components/dashboard', pathPrefix: false },
+    { path: '~/components/auth', pathPrefix: false },
+    { path: '~/components/onboarding', pathPrefix: false },
   ],
 
   css: [

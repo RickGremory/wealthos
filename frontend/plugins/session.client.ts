@@ -1,11 +1,11 @@
 export default defineNuxtPlugin(async () => {
   const auth = useAuthStore()
-  if (auth.isAuthenticated && !auth.hydrated) {
-    await auth.hydrate()
+  if (!auth.initialized) {
+    await auth.initializeSession()
   }
 
   const organization = useOrganizationStore()
   if (auth.isAuthenticated && !organization.hydrated) {
-    await organization.hydrate()
+    await organization.loadMemberships()
   }
 })

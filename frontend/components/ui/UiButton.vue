@@ -5,6 +5,7 @@ withDefaults(
     size?: 'sm' | 'md'
     type?: 'button' | 'submit' | 'reset'
     disabled?: boolean
+    loading?: boolean
     block?: boolean
   }>(),
   {
@@ -12,6 +13,7 @@ withDefaults(
     size: 'md',
     type: 'button',
     disabled: false,
+    loading: false,
     block: false,
   },
 )
@@ -26,9 +28,11 @@ withDefaults(
       { 'ui-button--block': block },
     ]"
     :type="type"
-    :disabled="disabled"
+    :disabled="disabled || loading"
+    :aria-busy="loading || undefined"
   >
-    <slot />
+    <template v-if="loading">…</template>
+    <slot v-else />
   </button>
 </template>
 
