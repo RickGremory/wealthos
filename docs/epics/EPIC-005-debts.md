@@ -28,5 +28,5 @@ Assets − Liabilities = Net Worth
 
 - Backend: `modules/debts/`  
 - UI: `/app/commitments` · label Obligaciones / Financial Commitments  
-- **6.1–6.4** Accepted (domain · UX · integration · strategies)  
-- **6.5** Frontend & implementation specification → build  
+- **6.1–6.5** Design Accepted  
+- **Build:** [SPEC-002](../../specs/backend/debts/SPEC-002-financial-commitments.md)  

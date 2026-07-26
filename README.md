@@ -209,13 +209,16 @@ Still ahead: **debts** (next), taxes, planning UI, recurring transactions, and d
 
 ## Current Milestone
 
-**Sprint 6 — Financial Commitments** — Obligaciones at `/app/commitments`.
+**Sprint 6 — Financial Commitments** — design complete; building via [SPEC-002](./specs/backend/debts/SPEC-002-financial-commitments.md).
 
-- **6.1** Domain — [RFC-002](./docs/rfc/RFC-002-financial-commitments.md) ✓  
-- **6.2** UX — [6.2](./docs/roadmap/sprint-6.2-commitments-ux.md) ✓  
-- **6.3** Integration — [6.3](./docs/roadmap/sprint-6.3-commitments-integration.md) ✓  
-- **6.4** Strategies — [6.4](./docs/roadmap/sprint-6.4-payment-strategies.md) ✓  
-- **6.5** Frontend & implementation spec → build — [sprint brief](./docs/roadmap/sprint-6-financial-commitments.md)
+| Slice | Doc |
+|-------|-----|
+| 6.1 Domain ✓ | [RFC-002](./docs/rfc/RFC-002-financial-commitments.md) |
+| 6.2 UX ✓ | [6.2](./docs/roadmap/sprint-6.2-commitments-ux.md) |
+| 6.3 Integration ✓ | [6.3](./docs/roadmap/sprint-6.3-commitments-integration.md) |
+| 6.4 Strategies ✓ | [6.4](./docs/roadmap/sprint-6.4-payment-strategies.md) |
+| 6.5 Impl spec ✓ | [6.5](./docs/roadmap/sprint-6.5-implementation-spec.md) |
+| **Build** | [SPEC-002](./specs/backend/debts/SPEC-002-financial-commitments.md) phases 1–7 |
 
 Vocabulary: [PRODUCT_LANGUAGE.md](./docs/product/PRODUCT_LANGUAGE.md) · Principles: [P01–P08](./docs/product/02-product-principles.md).
 

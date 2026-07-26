@@ -302,4 +302,4 @@ Existing `DebtStrategySimulator` must converge to this contract (add `manual`, h
 
 ## Next
 
-**Sprint 6.5 — Frontend & Implementation Specification** — executable routes, repositories, ViewModels, cache, tests, and commits for end-to-end delivery (includes domain/API alignment still outstanding from earlier maps).
+Implementation: **[SPEC-002](../../specs/backend/debts/SPEC-002-financial-commitments.md)** (detail inventory: [Sprint 6.5](./sprint-6.5-implementation-spec.md)).

@@ -31,3 +31,4 @@ specs/
 | SPEC | Title | Area | Status |
 |------|-------|------|--------|
 | [SPEC-001](./backend/bootstrap/SPEC-001-backend-bootstrap.md) | Backend Bootstrap | backend | Draft |
+| [SPEC-002](./backend/debts/SPEC-002-financial-commitments.md) | Financial Commitments (E2E) | backend + frontend | Accepted |

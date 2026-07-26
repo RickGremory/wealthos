@@ -22,6 +22,7 @@ Newest first.
 | [Financial Timeline](./2026-07-25-financial-timeline.md) | Product · reserved signature · [Sprint 6.3](../roadmap/sprint-6.3-commitments-integration.md) |
 | [Payment strategies orient, never execute](./2026-07-25-payment-strategies.md) | Product + domain · [Sprint 6.4](../roadmap/sprint-6.4-payment-strategies.md) |
 | [Settled vs paid off (revolving credit)](./2026-07-25-settled-vs-paid-off.md) | Domain refinement of RFC-002 |
+| Sprint 6.5 implementation spec → [SPEC-002](../../specs/backend/debts/SPEC-002-financial-commitments.md) | Execution · design complete |
 | Product principles refreshed (P01–P08) | Product → [02-product-principles.md](../product/02-product-principles.md) |
 | Product language glossary | Product → [PRODUCT_LANGUAGE.md](../product/PRODUCT_LANGUAGE.md) |
 
