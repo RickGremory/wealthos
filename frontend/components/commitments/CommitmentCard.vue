@@ -12,6 +12,7 @@ const emit = defineEmits<{
   view: []
   edit: []
   archive: []
+  pay: []
 }>()
 </script>
 
@@ -71,6 +72,14 @@ const emit = defineEmits<{
         <template v-else>Sin fecha de pago</template>
       </span>
       <div class="commitment-card__actions" @click.stop>
+        <UiButton
+          v-if="canWrite && commitment.status === 'active' && Number(commitment.currentBalance) > 0"
+          type="button"
+          size="sm"
+          @click="emit('pay')"
+        >
+          Pagar
+        </UiButton>
         <UiButton
           v-if="canWrite && commitment.status !== 'archived'"
           type="button"

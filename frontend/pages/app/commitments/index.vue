@@ -30,6 +30,7 @@ const cache = useFinanceCache()
 const toast = useToast()
 const organization = useOrganizationStore()
 const { $api } = useNuxtApp()
+const { openPayment } = useCommitmentPayment()
 
 const archiveTarget = ref<CommitmentListItemView | null>(null)
 const archiveOpen = ref(false)
@@ -137,6 +138,7 @@ async function onStrategyChange(next: PaymentStrategy) {
               @view="goDetail(item.id)"
               @edit="goEdit(item.id)"
               @archive="openArchive(item)"
+              @pay="openPayment(item)"
             />
           </div>
         </section>
@@ -199,6 +201,7 @@ async function onStrategyChange(next: PaymentStrategy) {
               @view="goDetail(item.id)"
               @edit="goEdit(item.id)"
               @archive="openArchive(item)"
+              @pay="openPayment(item)"
             />
           </div>
         </section>

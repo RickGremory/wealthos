@@ -10,6 +10,11 @@ const props = defineProps<{
   action: CommitmentNextActionView | null
   currency?: string
   compact?: boolean
+  canPay?: boolean
+}>()
+
+const emit = defineEmits<{
+  pay: []
 }>()
 
 const title = computed(() =>
@@ -18,6 +23,11 @@ const title = computed(() =>
 const tone = computed(() =>
   props.action ? getNextActionTone(props.action.type) : 'neutral',
 )
+
+const showPay = computed(() => {
+  if (!props.canPay || !props.action) return false
+  return ['pay_overdue', 'pay_minimum', 'pay_priority_debt'].includes(props.action.type)
+})
 </script>
 
 <template>
@@ -35,6 +45,11 @@ const tone = computed(() =>
     <div v-if="action?.amount && currency" class="next-action__amount">
       <MoneyValue :amount="action.amount" :currency="currency" :emphasize-sign="false" />
       <span v-if="action.dueDate" class="text-muted"> · {{ action.dueDate }}</span>
+    </div>
+    <div v-if="showPay && !compact" class="next-action__cta">
+      <UiButton type="button" data-testid="commitment-next-action-pay" @click="emit('pay')">
+        Registrar pago
+      </UiButton>
     </div>
   </div>
 </template>
@@ -68,5 +83,9 @@ const tone = computed(() =>
 .next-action__amount {
   font-size: 0.9rem;
   font-variant-numeric: tabular-nums;
+}
+
+.next-action__cta {
+  margin-top: var(--space-1);
 }
 </style>

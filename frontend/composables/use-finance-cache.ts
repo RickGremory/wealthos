@@ -9,6 +9,8 @@ const dashboardVersion = ref(0)
 const transactionsVersion = ref(0)
 const goalsVersion = ref(0)
 const commitmentsVersion = ref(0)
+const planningVersion = ref(0)
+const calendarVersion = ref(0)
 
 export function useFinanceCache() {
   function invalidateAccounts() {
@@ -25,9 +27,14 @@ export function useFinanceCache() {
   }
 
   function invalidateTransactions() {
+    // Transfers/payments can change liabilities, goals progress, and dashboard.
     transactionsVersion.value += 1
     accountsVersion.value += 1
     dashboardVersion.value += 1
+    commitmentsVersion.value += 1
+    goalsVersion.value += 1
+    planningVersion.value += 1
+    calendarVersion.value += 1
   }
 
   function invalidateGoals() {
@@ -41,6 +48,11 @@ export function useFinanceCache() {
     dashboardVersion.value += 1
   }
 
+  /** Explicit payment side-effects (same as invalidateTransactions today). */
+  function invalidateAfterPayment() {
+    invalidateTransactions()
+  }
+
   function invalidateAll() {
     accountsVersion.value += 1
     categoriesVersion.value += 1
@@ -48,6 +60,8 @@ export function useFinanceCache() {
     transactionsVersion.value += 1
     goalsVersion.value += 1
     commitmentsVersion.value += 1
+    planningVersion.value += 1
+    calendarVersion.value += 1
   }
 
   return {
@@ -57,12 +71,15 @@ export function useFinanceCache() {
     transactionsVersion: readonly(transactionsVersion),
     goalsVersion: readonly(goalsVersion),
     commitmentsVersion: readonly(commitmentsVersion),
+    planningVersion: readonly(planningVersion),
+    calendarVersion: readonly(calendarVersion),
     invalidateAccounts,
     invalidateCategories,
     invalidateDashboard,
     invalidateTransactions,
     invalidateGoals,
     invalidateCommitments,
+    invalidateAfterPayment,
     invalidateAll,
   }
 }

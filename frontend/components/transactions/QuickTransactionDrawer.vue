@@ -74,7 +74,7 @@ watch(
       return
     }
     await loadEnrichment()
-    if (composer.mode === 'duplicate') {
+    if (composer.mode === 'duplicate' || composer.mode === 'prefill') {
       applyDuplicateDraft(composer.duplicateDraft)
     } else {
       reset(composer.initialType)
@@ -155,9 +155,13 @@ async function onVoidConfirm(reason: string) {
         <header class="tx-drawer__header">
           <div>
             <p class="tx-drawer__eyebrow">
-              {{ composer.mode === 'duplicate' ? 'Duplicar' : 'Nueva' }} transacción
+              <template v-if="composer.mode === 'duplicate'">Duplicar transacción</template>
+              <template v-else-if="composer.contextLabel">{{ composer.contextLabel }}</template>
+              <template v-else>Nueva transacción</template>
             </p>
-            <h2 class="tx-drawer__title">Registrar movimiento</h2>
+            <h2 class="tx-drawer__title">
+              {{ composer.mode === 'prefill' ? 'Registrar pago' : 'Registrar movimiento' }}
+            </h2>
           </div>
           <UiButton variant="ghost" size="sm" type="button" @click="close">
             Cerrar

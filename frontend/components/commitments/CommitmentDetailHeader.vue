@@ -14,6 +14,7 @@ const emit = defineEmits<{
   pause: []
   resume: []
   close: []
+  pay: []
 }>()
 </script>
 
@@ -38,6 +39,14 @@ const emit = defineEmits<{
     </div>
 
     <div class="detail-header__actions">
+      <UiButton
+        v-if="canWrite && commitment.status === 'active' && Number(commitment.currentBalance) > 0"
+        type="button"
+        data-testid="commitment-pay-button"
+        @click="emit('pay')"
+      >
+        Registrar pago
+      </UiButton>
       <UiButton
         v-if="canWrite && commitment.status === 'active'"
         type="button"

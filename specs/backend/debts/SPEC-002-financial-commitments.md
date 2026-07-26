@@ -203,8 +203,8 @@ Required NOT NULL: org, account, name, debt_type, currency, status, priority.
 
 ### Phase 5 — Payments
 
-- [ ] “Registrar pago” → transfer flow prefilled  
-- [ ] Central cache invalidation (accounts, commitments, dashboard, goals, calendar, timeline keys)  
+- [x] “Registrar pago” → transfer flow prefilled  
+- [x] Central cache invalidation (accounts, commitments, dashboard, goals, calendar, timeline keys)  
 
 ### Phase 6 — Ecosystem
 

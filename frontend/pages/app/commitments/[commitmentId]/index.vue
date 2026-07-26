@@ -17,6 +17,7 @@ const { canWrite, canArchive } = useOrganizationPermissions()
 const { $api } = useNuxtApp()
 const cache = useFinanceCache()
 const toast = useToast()
+const { openPayment } = useCommitmentPayment()
 
 const commitment = ref<CommitmentDetailView | null>(null)
 const activity = ref<Array<Record<string, unknown>>>([])
@@ -58,6 +59,18 @@ onMounted(() => {
 watch(commitmentId, () => {
   void load()
 })
+
+watch(
+  () => cache.commitmentsVersion.value,
+  () => {
+    void load()
+  },
+)
+
+function onPay() {
+  if (!commitment.value) return
+  openPayment(commitment.value)
+}
 
 async function runAction(kind: 'pause' | 'resume' | 'close' | 'archive') {
   if (!commitment.value) return
@@ -122,6 +135,7 @@ async function runAction(kind: 'pause' | 'resume' | 'close' | 'archive') {
         @pause="runAction('pause')"
         @resume="runAction('resume')"
         @close="runAction('close')"
+        @pay="onPay"
       />
 
       <div class="detail-grid">
@@ -129,6 +143,8 @@ async function runAction(kind: 'pause' | 'resume' | 'close' | 'archive') {
           <CommitmentNextAction
             :action="commitment.nextAction"
             :currency="commitment.currency"
+            :can-pay="canWrite && commitment.status === 'active'"
+            @pay="onPay"
           />
         </UiCard>
 

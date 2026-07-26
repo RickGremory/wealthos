@@ -38,9 +38,33 @@ onMounted(async () => {
   await refresh()
   if (route.query.new === '1' || route.query.new === 'true') {
     composer.openCreate('expense')
-    // clear query without reload noise
     const { new: _drop, ...rest } = route.query
     void navigateTo({ query: rest }, { replace: true })
+    return
+  }
+
+  const type = String(route.query.type ?? '')
+  const destination = String(route.query.destination_account_id ?? '')
+  if (type === 'transfer' || destination) {
+    composer.openWithDraft(
+      {
+        type: 'transfer',
+        destinationAccountId: destination || undefined,
+        sourceAccountId: route.query.source_account_id
+          ? String(route.query.source_account_id)
+          : undefined,
+        amount: route.query.amount ? String(route.query.amount) : undefined,
+        description: route.query.description
+          ? String(route.query.description)
+          : undefined,
+      },
+      {
+        label: String(route.query.source ?? '') === 'commitment'
+          ? 'Pago de obligación'
+          : undefined,
+      },
+    )
+    void navigateTo({ path: '/app/transactions', query: {} }, { replace: true })
   }
 })
 
