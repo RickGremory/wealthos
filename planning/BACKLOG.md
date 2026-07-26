@@ -4,23 +4,23 @@ Living list of upcoming work. Not a substitute for SPECs — items become Epics/
 
 ## Now
 
-- [ ] **Sprint 6 — Debt Management** ([brief](../docs/roadmap/sprint-6-debt-management.md), [EPIC-005](../docs/epics/EPIC-005-debts.md))
-  - Domain + migration
-  - API (CRUD + archive)
-  - Dashboard Assets / Liabilities / Net Worth
-  - Nuxt UI
-  - Demo seed sample debt
+- [ ] **Sprint 6 — Financial Commitments** ([brief](../docs/roadmap/sprint-6-financial-commitments.md), [RFC-002](../docs/rfc/RFC-002-financial-commitments.md), [EPIC-005](../docs/epics/EPIC-005-debts.md))
+  - [x] 6.1 Product model (RFC + language + Principle 08)
+  - [ ] 6.2 Debt persistence/API aligned to RFC
+  - [ ] 6.3 Payment strategy preferences
+  - [ ] 6.4 Dashboard commitments / liabilities
+  - [ ] 6.5 Frontend Obligaciones
 
 ## Next
 
-- [ ] Taxes (after Debts)
-- [ ] Budgets & cash-flow planning
+- [ ] Taxes (as commitment family later)
+- [ ] Budgets & cash-flow planning (Safe to Spend)
 - [ ] Recurring transactions
 - [ ] Deeper privacy (ARCO, account deletion)
 
 ## Later
 
-- [ ] AI context seams / payoff coaching (consumes Debt)
+- [ ] AI context seams / obligation prioritization
 - [ ] Advisor / collaboration mode
 
 ## Icebox

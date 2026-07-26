@@ -45,7 +45,7 @@ AI
 | 5 | **Categories** | Structure spending/income without rewriting the ledger |
 | 6 | **Dashboard** | Product center — answers questions from projections |
 | 7 | **Goals** | Targets that never own money; progress from transactions/accounts |
-| 8 | **Debts** | Obligations visible against the same financial reality |
+| 8 | **Debts** (Financial Commitments) | Obligations visible against the same financial reality; UI: Obligaciones |
 | 9 | **Taxes** | Reserves/estimates grounded in income transactions |
 | 10 | **AI** | Consumes structured context only after the ledger is trustworthy |
 
@@ -106,7 +106,7 @@ This roadmap governs **feature order after the foundation** (and may overlap ear
 | Dashboard | Done (foundation) |
 | Goals | Done (foundation) |
 | Legal consent (cross-cutting) | Done (foundation) |
-| **Debts** | **Next — [Sprint 6](./sprint-6-debt-management.md)** |
+| **Debts** (first Financial Commitment) | **In progress — [Sprint 6](./sprint-6-financial-commitments.md)** · [RFC-002](../rfc/RFC-002-financial-commitments.md) |
 | Taxes → AI | Later |
 
 Foundation closed at git tag **`v0.5.0-foundation`**. No dedicated polish sprint before Debts — see [decision](../decisions/2026-07-25-foundation-complete-debt-next.md).

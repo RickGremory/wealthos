@@ -32,4 +32,4 @@ Frontend / SaaS hardening
 
 Update this file when a milestone ships or priorities shift. Do not use it as a commit checklist — that is the SPEC.
 
-**Current:** Foundation closed (`v0.5.0-foundation`). Next module: **Debts** ([Sprint 6](../docs/roadmap/sprint-6-debt-management.md)).
+**Current:** Foundation closed (`v0.5.0-foundation`). Next: **Financial Commitments** — [Sprint 6](../docs/roadmap/sprint-6-financial-commitments.md) · [RFC-002](../docs/rfc/RFC-002-financial-commitments.md).

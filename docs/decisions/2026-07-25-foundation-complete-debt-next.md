@@ -11,7 +11,7 @@
 
 2. **Do not run another dedicated polish sprint** before the next domain module. Remaining polish is opportunistic (bugs found while building).
 
-3. **Start Sprint 6 — Debt Management** as the next product module — because it maximizes user value once income/expenses are under control, not merely because it was next on a list.
+3. **Start Sprint 6 — Financial Commitments** (Debt first) — because it maximizes user value once income/expenses are under control, not merely because it was next on a list. See [RFC-002](../rfc/RFC-002-financial-commitments.md).
 
 4. From this point, treat WealthOS as a product that **may have real users**: design for recovery from mistakes, multi-account scale, migrations, and feedback — not only for feature completeness.
 

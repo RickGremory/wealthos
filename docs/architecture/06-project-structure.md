@@ -46,7 +46,9 @@ WealthOS/
 |------|---------|
 | `product/00-manifesto.md` | Why we exist |
 | `product/01-product-vision.md` | Where we are going |
-| `product/02-product-principles.md` | What we choose to build |
+| `product/02-product-principles.md` | What we choose to build (P01–P08) |
+| `product/PRODUCT_LANGUAGE.md` | Product glossary (Organization, Commitment, …) |
+| `product/PRODUCT_PRINCIPLES.md` | Alias → `02-product-principles.md` |
 | `engineering/03-engineering-principles.md` | How we build |
 | `architecture/04-architecture-principles.md` | System constraints |
 | `decisions/` | Product decisions + index log |

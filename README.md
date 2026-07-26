@@ -120,7 +120,7 @@ WealthOS exists to solve that problem.
 ✅ Dashboard
 ✅ Goals
 ✅ Legal consent & privacy pages
-🟡 Debts
+🟡 Debts / Obligaciones (Financial Commitments)
 🟡 Taxes
 🟡 Budgets & cash-flow planning
 🟡 Recurring transactions
@@ -128,6 +128,7 @@ WealthOS exists to solve that problem.
 ⬜ Advisor / collaboration mode
 ```
 
+Product language and principles: [`docs/product/`](./docs/product/).
 ---
 
 ## Technology
@@ -208,9 +209,12 @@ Still ahead: **debts** (next), taxes, planning UI, recurring transactions, and d
 
 ## Current Milestone
 
-**Sprint 6 — Debt Management** — make liabilities first-class so net worth is Assets − Liabilities, and unlock richer Dashboard / Goals / Planning later.
+**Sprint 6 — Financial Commitments** (Debt first) — make **Obligaciones** visible so future money claims are clear; Net Worth stays Assets − Liabilities.
 
-See [sprint brief](./docs/roadmap/sprint-6-debt-management.md) and [decision](./docs/decisions/2026-07-25-foundation-complete-debt-next.md). A separate polish-only sprint was skipped; polish continues in-place while shipping Debt.
+- **6.1** Product model — [RFC-002](./docs/rfc/RFC-002-financial-commitments.md) (Accepted)
+- **6.2+** API / dashboard / UI — [sprint brief](./docs/roadmap/sprint-6-financial-commitments.md)
+
+Product vocabulary: [PRODUCT_LANGUAGE.md](./docs/product/PRODUCT_LANGUAGE.md) · Principles: [P01–P08](./docs/product/02-product-principles.md).
 
 ---
 

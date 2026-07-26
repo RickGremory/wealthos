@@ -17,6 +17,9 @@ Newest first.
 | Decision | Kind |
 |----------|------|
 | [Foundation complete; Debt next (skip polish sprint)](./2026-07-25-foundation-complete-debt-next.md) | Product + process · tag `v0.5.0-foundation` |
+| [Financial Commitments (Obligaciones)](./2026-07-25-financial-commitments.md) | Product · [RFC-002](../rfc/RFC-002-financial-commitments.md) · Principle 08 |
+| Product principles refreshed (P01–P08) | Product → [02-product-principles.md](../product/02-product-principles.md) |
+| Product language glossary | Product → [PRODUCT_LANGUAGE.md](../product/PRODUCT_LANGUAGE.md) |
 
 ## 2026-07-23
 

@@ -1,30 +1,35 @@
 # Debts
 
+First **Financial Commitment** type in WealthOS.
+
 ## Purpose
 
-Track **liabilities** so net worth is honest:
+Make obligations visible without a second ledger:
 
 ```text
-Assets − Liabilities = Net Worth
+Debt → Liability Account → Transactions
 ```
 
-Debts never invent a second ledger: balances and payments must remain explainable against financial accounts and transactions.
+Product UI: **Obligaciones**. Domain module: `debts/`.
+
+Contract: [RFC-002](../../../../../docs/rfc/RFC-002-financial-commitments.md).
 
 ## Responsibilities
 
-- Debt aggregate (org-scoped): type, balance, currency, rate, minimums, status
-- Archive / restore (mistake recovery) rather than silent hard delete
-- Feed Dashboard liabilities and (later) Planning / Goals / AI consumers
+- Debt aggregate (org-scoped): type, creditor, priority, optional rate/minimums, status
+- **Never** store `current_balance` on Debt — derive from liability Account
+- Payments only via Transactions
+- Archive keeps history; strategies recommend only
 
 ## Public API
 
-Target (Sprint 6 — see [sprint brief](../../../../../docs/roadmap/sprint-6-debt-management.md)):
+Under `/api/v1/organizations/{organization_id}` (evolve toward RFC-002):
 
-- `GET/POST /organizations/{organization_id}/debts`
-- `GET/PATCH /organizations/{organization_id}/debts/{debt_id}`
-- Archive (and optional restore) endpoints
+- `GET/POST /debts`
+- `GET/PATCH /debts/{debt_id}`
+- Archive / payment endpoints as specified in Sprint 6.2+
 
 ## Notes
 
-Scaffold exists; feature work starts in Sprint 6 ([EPIC-005](../../../../../docs/epics/EPIC-005-debts.md)).
-Register in `wealthos.modules.MODULES` when HTTP routes ship.
+Sprint: [Financial Commitments](../../../../../docs/roadmap/sprint-6-financial-commitments.md).  
+Language: [PRODUCT_LANGUAGE.md](../../../../../docs/product/PRODUCT_LANGUAGE.md).
