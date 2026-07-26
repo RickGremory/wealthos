@@ -5,11 +5,12 @@ Living list of upcoming work. Not a substitute for SPECs — items become Epics/
 ## Now
 
 - [ ] **Sprint 6 — Financial Commitments** ([brief](../docs/roadmap/sprint-6-financial-commitments.md), [RFC-002](../docs/rfc/RFC-002-financial-commitments.md), [EPIC-005](../docs/epics/EPIC-005-debts.md))
-  - [x] 6.1 Product model (RFC + language + Principle 08)
-  - [ ] 6.2 Debt persistence/API aligned to RFC
-  - [ ] 6.3 Payment strategy preferences
-  - [ ] 6.4 Dashboard commitments / liabilities
-  - [ ] 6.5 Frontend Obligaciones
+  - [x] 6.1 Product model
+  - [x] 6.2 UX & user flows ([doc](../docs/roadmap/sprint-6.2-commitments-ux.md))
+  - [ ] 6.3 Debt API / persistence
+  - [ ] 6.4 Payment strategy preferences
+  - [ ] 6.5 Dashboard widget (3 signals)
+  - [ ] 6.6 Frontend `/app/commitments`
 
 ## Next
 

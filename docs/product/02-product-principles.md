@@ -91,7 +91,8 @@ These remain useful and align with the principles above:
 
 - **Clarity over complexity** — if finances are not clear in minutes, we failed (P01, P04).  
 - **Goals before reports** — destinations beat vanity dashboards (P04, P07).  
-- **Education through the product** — teach healthy habits in context (P05, P07).
+- **Education through the product** — teach healthy habits in context (P05, P07).  
+- **Orient before overwhelm** — lead with *What should I do next?* before raw metrics (P04, P08). Debts create stress; the UI must not. See [Sprint 6.2](../roadmap/sprint-6.2-commitments-ux.md).
 
 ---
 

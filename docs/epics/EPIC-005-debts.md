@@ -27,5 +27,6 @@ Assets − Liabilities = Net Worth
 ## Notes
 
 - Backend: `modules/debts/`  
-- UI label: Obligaciones  
-- Slice 6.1 Accepted (RFC-002). Implementation convergence starts at 6.2.
+- UI: `/app/commitments` · label Obligaciones / Financial Commitments  
+- **6.1** Accepted (RFC-002) · **6.2** Accepted ([UX flows](../roadmap/sprint-6.2-commitments-ux.md))  
+- Implementation: **6.3** API → **6.6** frontend  

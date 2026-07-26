@@ -1,9 +1,9 @@
 # Sprint 6 — Financial Commitments
 
-**Status:** In progress (6.1 Accepted)  
+**Status:** In progress (6.1–6.2 Accepted)  
 **Epic:** [EPIC-005](../epics/EPIC-005-debts.md)  
-**RFC:** [RFC-002 — Financial Commitments / Debt product model](../rfc/RFC-002-financial-commitments.md)  
-**Decision:** [Financial Commitments](../decisions/2026-07-25-financial-commitments.md)  
+**RFC:** [RFC-002 — Debt product model](../rfc/RFC-002-financial-commitments.md)  
+**UX:** [Sprint 6.2 — UX & User Flows](./sprint-6.2-commitments-ux.md)  
 **Baseline tag:** `v0.5.0-foundation`
 
 ---
@@ -12,7 +12,7 @@
 
 > ¿Qué compromete mi dinero futuro?
 
-Backend implements **Debt** first. UI speaks **Obligaciones**.
+Backend implements **Debt** first. UI speaks **Financial Commitments / Obligaciones** at `/app/commitments`.
 
 ---
 
@@ -20,54 +20,49 @@ Backend implements **Debt** first. UI speaks **Obligaciones**.
 
 | Slice | Focus | Status |
 |-------|--------|--------|
-| **6.1** | Domain / product model (language + invariants) | **Accepted** — [RFC-002](../rfc/RFC-002-financial-commitments.md) |
-| **6.2** | Debt Management (persist + API aligned to RFC) | Next |
-| **6.3** | Payment strategies (preferences + recommendations only) | Planned |
-| **6.4** | Dashboard integration (liabilities / commitments widgets) | Planned |
-| **6.5** | Frontend (Obligaciones UI) | Planned |
-
-Legacy brief [sprint-6-debt-management.md](./sprint-6-debt-management.md) redirects here conceptually; prefer this file.
+| **6.1** | Domain / product model | **Accepted** — [RFC-002](../rfc/RFC-002-financial-commitments.md) |
+| **6.2** | UX & user flows (cards, next action, create flow) | **Accepted** — [6.2 UX](./sprint-6.2-commitments-ux.md) |
+| **6.3** | Debt API / persistence aligned to RFC + UX needs | **Next** |
+| **6.4** | Payment strategy preferences | Planned |
+| **6.5** | Dashboard widget (3 signals) | Planned |
+| **6.6** | Frontend Obligaciones (`/app/commitments`) | Planned |
 
 ---
 
 ## Exit criteria (Sprint 6 complete)
 
 - [x] Product model frozen in RFC-002  
+- [x] UX & flows frozen in 6.2 (including Next Action pattern)  
 - [ ] Domain + migration match RFC (creditor, optional enrichment, statuses, 1:1 liability account, no stored balance)  
-- [ ] Payments only via Transactions  
+- [ ] Payments only via Transactions / Transfer  
 - [ ] Strategy preference does not mutate ledger  
-- [ ] Dashboard: assets / liabilities / net worth (+ commitment summary if ready)  
-- [ ] Nuxt **Obligaciones** UI at Goals quality bar  
+- [ ] Dashboard: three commitment signals (+ assets/liabilities/net worth as ready)  
+- [ ] Nuxt **Obligaciones** UI per 6.2  
 - [ ] Demo seed sample obligation  
 - [ ] Org isolation + archive history tests  
 
 ---
 
-## 6.1 acceptance (done)
+## 6.3 focus (next)
 
-See RFC-002 §16. Glossary and Principle 08 published under `docs/product/`.
+Converge `modules/debts/` to RFC-002 **and** fields required by UX:
 
----
-
-## 6.2 focus (next)
-
-Converge `modules/debts/` to RFC-002:
-
-- Optional interest / minimum payment  
+- Optional interest / minimum payment / credit limit / due day  
 - Creditor + emotional priority  
-- Statuses: `paused`, `defaulted`  
-- Types: `business_loan`, `family_loan`, `installment_plan`  
+- Statuses: `paused`, `defaulted` (+ UX-derived overdue)  
+- Types including MSI / family / business  
 - Auto paid_off / revive from account balance  
-- Remove any path that treats Debt as a wallet  
+- Transfer-based payment path with preselected liability  
+- Summary endpoints for the four index cards + three dashboard signals  
 
 ---
 
 ## Out of scope (whole Sprint 6)
 
-Refinancing, consolidation, amortization engines, credit score, bank import, AI coaching, tax obligations as first-class rows (Taxes module later).
+Refinancing, consolidation, amortization engines, credit score, bank import, AI coaching, bulk actions, tax obligations as first-class rows.
 
 ---
 
-## Related principles
+## Related
 
-[P08 Financial Commitments](../product/02-product-principles.md) · [PRODUCT_LANGUAGE.md](../product/PRODUCT_LANGUAGE.md)
+[P08](../product/02-product-principles.md) · [PRODUCT_LANGUAGE](../product/PRODUCT_LANGUAGE.md) · [Next Action decision](../decisions/2026-07-25-commitments-ux-next-action.md)

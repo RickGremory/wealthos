@@ -106,6 +106,18 @@ User-chosen High / Medium / Low on a commitment.
 
 System-derived ranking (rates, balances, dues) for recommendations — separate from emotional priority.
 
+### Next Action (*What should I do next?*)
+
+A single orienting sentence on a commitment (and later Goals / Taxes / Planning) that tells the user the most useful next step.
+
+Not a task system. Not a second ledger. Pure guidance copy derived from existing data (due date, minimum, status).
+
+See [Sprint 6.2 UX](../roadmap/sprint-6.2-commitments-ux.md).
+
+### Overdue (UX state)
+
+Derived when a due date has passed and the commitment still has a balance. Shown with danger emphasis. Distinct from domain status `defaulted`.
+
 ---
 
 ## Naming map (product ↔ code)
@@ -116,10 +128,11 @@ System-derived ranking (rates, balances, dues) for recommendations — separate 
 | Cuenta | `Account` |
 | Movimiento / Transacción | `Transaction` |
 | Meta | `Goal` |
-| Obligaciones / Financial Commitments | UI label; domain starts as `modules/debts/` |
+| Obligaciones / Financial Commitments | UI routes `/app/commitments`; domain `modules/debts/` |
 | Deuda (tipo de obligación) | `Debt` aggregate |
 | Patrimonio neto | Net Worth (Dashboard projection) |
 | Verdad financiera | Principle + invariant, not a table |
+| ¿Qué debo hacer ahora? / Next Action | Guidance section — not persisted as tasks |
 
 ---
 
@@ -127,9 +140,11 @@ System-derived ranking (rates, balances, dues) for recommendations — separate 
 
 | Prefer | Avoid |
 |--------|--------|
-| Obligaciones | “Módulo de debts” in UI |
+| Obligaciones / Financial Commitments | “Debts” as the only nav label |
+| `/app/commitments` | `/app/debts` in new UI |
 | El saldo viene de la cuenta | “Balance de la deuda” as stored field |
-| Registrar un pago (transacción) | “Pago manual de deuda” sin ledger |
+| New Payment → Transfer flow | “Make Payment” engine aparte del ledger |
+| What should I do next? | Solo métricas sin orientación |
 | Compromiso financiero | “Pasivo genérico” in user-facing copy when we mean a managed obligation |
 
 ---
