@@ -98,6 +98,21 @@ This protects financial truth (P01) and context (P04).
 
 ---
 
+## Principle 10 — Spendable ≠ Available
+
+Not all available money is spendable money.
+
+- An **Account** balance answers: *¿Cuánto dinero tengo?*  
+- **Safe To Spend** (from a **Financial Projection**) answers: *¿Cuánto puedo usar sin comprometer mi futuro?*
+
+Planning classifies money as **Disponible / Comprometido / Reservado / Gastado**.  
+Safe To Spend is a **consequence of projection**, never a stored ledger field.  
+Every spendable number must explain *why* (deduction chain). Projections separate **Facts** from **Forecasts**.
+
+See [RFC-004](../rfc/RFC-004-planning-projection.md) and [Sprint 8.1](../roadmap/sprint-8.1-planning-domain-model.md).
+
+---
+
 ## Supporting heuristics (still true)
 
 These remain useful and align with the principles above:

@@ -29,6 +29,8 @@ Debts
   ↓
 Taxes
   ↓
+Planning / Safe To Spend
+  ↓
 AI
 ```
 
@@ -47,7 +49,8 @@ AI
 | 7 | **Goals** | Targets that never own money; progress from transactions/accounts |
 | 8 | **Debts** (Financial Commitments) | Obligations visible against the same financial reality; UI: Obligaciones |
 | 9 | **Taxes** | Reserves/estimates grounded in income transactions |
-| 10 | **AI** | Consumes structured context only after the ledger is trustworthy |
+| 10 | **Planning / Safe To Spend** | Financial Projection over facts+forecasts; spendable ≠ balance ([RFC-004](../rfc/RFC-004-planning-projection.md)) |
+| 11 | **AI** | Consumes structured context (Timeline + Projection) only after the ledger is trustworthy |
 
 ---
 
@@ -62,8 +65,10 @@ AI
 | Categories | `finance/` | Classification of transactions |
 | Dashboard | `dashboard/` | Read models / answers for the home experience |
 | Goals | `goals/` | Goals never hold balances |
-| Debts | `debts/` | Debt tracking |
+| Debts | `debts/` | Debt tracking / Financial Commitments |
 | Taxes | `taxes/` | Tax reserve / estimates |
+| Planning | `planning/` | Projection spine + budgets/cash-plan tools |
+| Timeline | `timeline/` | Narrative event projection |
 | AI | `ai/` | Context APIs / coaching seams — not a second ledger |
 
 `finance/` therefore lands in slices: **Accounts → Transactions → Categories**, not as one big bang.

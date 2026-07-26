@@ -80,10 +80,37 @@ Always explainable back to accounts (and thus transactions). No silent FX across
 Every displayed amount can be explained from the source of truth (usually transactions → accounts).  
 Never invent a convenient number.
 
-### Safe to Spend
+### Safe to Spend (*Disponible para gastar*)
 
-Cash that can be used without breaking commitments, goals, or planned reserves.  
-(Concept reserved for Planning — must stay consistent when introduced.)
+Cash that can be used in a horizon without breaking commitments, goals, tax set-asides, or the safety reserve.
+
+**Not a balance.** Consequence of a **Financial Projection** (`PlanningProjection`). Always shown with **Comprometido** and an explanation chain.
+
+Answers: *¿Cuánto puedo gastar con tranquilidad?*
+
+See [RFC-004](../rfc/RFC-004-planning-projection.md) · [Principle 10](./02-product-principles.md).
+
+### Financial Projection
+
+Computed photograph of the future for one org, currency, and horizon (today / 7d / 30d / 90d). Ephemeral — not persisted. Orchestrated by Planning from other modules’ facts and forecasts.
+
+### Money states (Planning)
+
+| ES | Meaning |
+|----|---------|
+| Disponible | May still be used (spendable slice) |
+| Comprometido | Known future claim (obligations, fixed outflows) |
+| Reservado | Should not touch (tax, goals, safety) |
+| Gastado | Already occurred (ledger facts) |
+
+### Facts vs Forecasts
+
+| | |
+|--|--|
+| **Fact** | Confirmed (balances, posted transactions, existing commitments) |
+| **Forecast** | Projected (expected income, future payments, planned savings) |
+
+Projections must expose the mix for trust and future AI confidence.
 
 ### Cash Flow
 
@@ -149,9 +176,10 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Dashboard | ¿Cómo está mi salud financiera? |
 | Goals | ¿Qué estoy construyendo? |
 | Financial Commitments | ¿Qué parte de mi futuro ya está comprometida? |
-| Planning | ¿Qué puedo hacer el próximo mes? |
+| Planning | ¿Qué puedo hacer el próximo mes? / ¿Cuánto puedo gastar con tranquilidad? |
 | Taxes | ¿Qué debo reservar al gobierno? |
 | Financial Timeline | ¿Qué ha pasado en mi vida financiera, en orden? |
+
 ## Naming map (product ↔ code)
 
 | Product (ES / EN) | Code / module |
@@ -166,6 +194,8 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Verdad financiera | Principle + invariant, not a table |
 | ¿Qué debo hacer ahora? / Next Action | Guidance section — not persisted as tasks |
 | Historia / Financial Timeline | UI `/app/timeline`; module `modules/timeline/`; contract `shared/events/` |
+| Disponible para gastar / Safe To Spend | Consequence of `PlanningProjection`; module `modules/planning/` |
+| Financial Projection | Computed view — not a table; see RFC-004 |
 
 ---
 
@@ -176,7 +206,8 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Obligaciones / Financial Commitments | “Debts” as the only nav label |
 | `/app/commitments` | `/app/debts` in new UI |
 | El saldo viene de la cuenta | “Balance de la deuda” as stored field |
-| New Payment → Transfer flow | “Make Payment” engine aparte del ledger |
+| Disponible para gastar + por qué | Solo un número sin explicación |
+| Disponible / Comprometido / Reservado | “Saldo” como si fuera gastable |
 | What should I do next? | Solo métricas sin orientación |
 | Compromiso financiero | “Pasivo genérico” in user-facing copy when we mean a managed obligation |
 

@@ -21,3 +21,4 @@ See [Delivery Workflow](../engineering/11-delivery-workflow.md).
 | [EPIC-004](./EPIC-004-dashboard.md) | Dashboard | Module roadmap | Planned |
 | [EPIC-005](./EPIC-005-debts.md) | Financial Commitments (Debt) | [RFC-002](../rfc/RFC-002-financial-commitments.md) | Done |
 | [EPIC-006](./EPIC-006-timeline.md) | Financial Timeline | [RFC-003](../rfc/RFC-003-financial-timeline.md) | Done |
+| [EPIC-007](./EPIC-007-planning-safe-to-spend.md) | Planning & Safe To Spend | [RFC-004](../rfc/RFC-004-planning-projection.md) | In progress |

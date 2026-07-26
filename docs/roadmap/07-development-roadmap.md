@@ -53,12 +53,13 @@ Detalle ejecutable: [Sprint 1 — Backend Foundation](./sprint-1-backend-foundat
 
 ## Phase 4 — Decision support
 
+- **Safe To Spend / Financial Projection** — [Sprint 8](./sprint-8-planning-safe-to-spend.md) (8.1 domain Accepted)
 - Decision / journal hooks tied to material money events
 - Budgets or allocations that still settle via transactions
 - Export / reporting basics
-- AI-ready structured context (consumes Timeline — M7+)
+- AI-ready structured context (consumes Timeline + Projection — later milestone)
 
-**Exit criteria:** decisions leave a trail; reports are traceable to transactions.
+**Exit criteria:** user knows what they can safely spend and why; decisions leave a trail.
 
 ## Phase 5 — Open-core SaaS hardening
 

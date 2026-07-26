@@ -16,6 +16,7 @@ Newest first.
 
 | Decision | Kind |
 |----------|------|
+| [Safe To Spend as Financial Projection](./2026-07-25-safe-to-spend-projection.md) | Product + domain · [RFC-004](../rfc/RFC-004-planning-projection.md) · Principle 10 · Sprint 8.1 |
 | [Foundation complete; Debt next (skip polish sprint)](./2026-07-25-foundation-complete-debt-next.md) | Product + process · tag `v0.5.0-foundation` |
 | [Financial Commitments (Obligaciones)](./2026-07-25-financial-commitments.md) | Product · [RFC-002](../rfc/RFC-002-financial-commitments.md) · Principle 08 |
 | [Commitments UX: Next Action pattern](./2026-07-25-commitments-ux-next-action.md) | Product / UX · [Sprint 6.2](../roadmap/sprint-6.2-commitments-ux.md) |
