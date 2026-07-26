@@ -32,4 +32,4 @@ Frontend / SaaS hardening
 
 Update this file when a milestone ships or priorities shift. Do not use it as a commit checklist — that is the SPEC.
 
-**Current:** Foundation closed (`v0.5.0-foundation`). Sprint 6 design pillars Accepted (6.1–6.3). Next implementation: **6.4** — [sprint brief](../docs/roadmap/sprint-6-financial-commitments.md).
+**Current:** Design pillars Sprint 6.1–6.4 Accepted. Next: **6.5** Frontend & implementation specification — [sprint brief](../docs/roadmap/sprint-6-financial-commitments.md).

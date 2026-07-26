@@ -268,10 +268,8 @@ Example:
 
 | Slice | Owns |
 |-------|------|
-| **6.4** | Domain/API + projections that power `financial_commitments` |
-| **6.5** | Strategy preferences (feed future next-action / AI inputs) |
-| **6.6** | Dashboard UI block + Needs Attention + Net Worth drill-down |
-| **6.7** | Full `/app/commitments` FE per 6.2 |
+| **6.4** | Domain/API + org strategy + projections (`financial_commitments`, `/commitments/strategy`) |
+| **6.5** | Dashboard UI + full `/app/commitments` FE (per 6.2–6.4) — via Implementation Spec |
 
 ---
 

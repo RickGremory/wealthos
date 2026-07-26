@@ -95,8 +95,20 @@ Dates that matter financially (due dates, statement days, estimated payoff) — 
 
 ### Payment strategy
 
-User preference for ordering obligations (`avalanche`, `snowball`, `manual`).  
-Produces recommendations only; never mutates the ledger.
+Organization-level preference (`avalanche` | `snowball` | `minimum_only` | `manual`) that **ranks and explains** which obligation to prioritize. Never creates transactions. See [Sprint 6.4](../roadmap/sprint-6.4-payment-strategies.md).
+
+### Minimum payment vs scheduled payment
+
+- **Minimum payment** — typically credit cards (variable floor).  
+- **Scheduled payment** — mortgages / MSI / installment contracts.  
+
+ViewModels may collapse to `required_payment` + `required_payment_type`; the domain keeps both.
+
+### Settled (paid currently)
+
+Revolving commitment with zero balance **now**, still open to new charges. Distinct from permanent **paid off** / **closed**.
+
+---
 
 ### Emotional priority
 

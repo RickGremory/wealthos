@@ -293,10 +293,8 @@ No decorative motion beyond that.
 | Slice | Owns |
 |-------|------|
 | 6.3 | Ecosystem integration contract |
-| 6.4 | API/domain fields + projections the UX and Dashboard need |
-| 6.5 | Strategy preferences (feeds future next-action copy) |
-| 6.6 | Dashboard UI block + Needs Attention + Net Worth drill-down |
-| 6.7 | Nuxt routes `/app/commitments`, nav label, cards, flows |
+| 6.4 | Payment strategies & recommendations |
+| 6.5 | Implementation spec + end-to-end build |
 
 ---
 

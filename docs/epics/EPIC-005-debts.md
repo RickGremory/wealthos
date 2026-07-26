@@ -28,5 +28,5 @@ Assets − Liabilities = Net Worth
 
 - Backend: `modules/debts/`  
 - UI: `/app/commitments` · label Obligaciones / Financial Commitments  
-- **6.1** Accepted (RFC-002) · **6.2** Accepted ([UX](../roadmap/sprint-6.2-commitments-ux.md)) · **6.3** Accepted ([Integration](../roadmap/sprint-6.3-commitments-integration.md))  
-- Implementation: **6.4** API/projections → **6.7** frontend  
+- **6.1–6.4** Accepted (domain · UX · integration · strategies)  
+- **6.5** Frontend & implementation specification → build  

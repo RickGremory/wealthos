@@ -12,7 +12,7 @@ Debt → Liability Account → Transactions
 
 Product UI: **Obligaciones**. Domain module: `debts/`.
 
-Contract: [RFC-002](../../../../../docs/rfc/RFC-002-financial-commitments.md) · UX: [6.2](../../../../../docs/roadmap/sprint-6.2-commitments-ux.md) · Integration: [6.3](../../../../../docs/roadmap/sprint-6.3-commitments-integration.md).
+Contract: [RFC-002](../../../../../docs/rfc/RFC-002-financial-commitments.md) · [6.2](../../../../../docs/roadmap/sprint-6.2-commitments-ux.md) · [6.3](../../../../../docs/roadmap/sprint-6.3-commitments-integration.md) · [6.4](../../../../../docs/roadmap/sprint-6.4-payment-strategies.md).
 
 ## Responsibilities
 

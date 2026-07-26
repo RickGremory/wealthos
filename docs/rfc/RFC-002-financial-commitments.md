@@ -156,8 +156,11 @@ Examples: HSBC, BBVA, Mercado Pago, INFONAVIT, Papá, Empresa XYZ.
 
 ### Auto close / revive
 
-- A debt becomes **paid off when account balance reaches zero** — not when the user clicks a button.
-- If the liability balance becomes non-zero again (new charges), the debt **revives** to `active` automatically (unless `archived`).
+**Refined by [settled vs paid off](../decisions/2026-07-25-settled-vs-paid-off.md) (Sprint 6.4):**
+
+- **Revolving** (credit card, line of credit): balance → 0 means **settled / paid currently**, not permanent `paid_off`. Product stays open until closed; new charges revive activity without a false “debt finished forever” signal.
+- **Installment loans** (mortgage, auto, personal, …): `paid_off` when balance = 0 **and** (liability account closed **or** user confirmation). Avoid auto-close on a temporary zero from an adjustment error.
+- If an open liability balance becomes non-zero again, the commitment is active again (unless `archived`).
 
 Manual status changes (pause / default / archive) are user intent; they must not invent balances.
 
