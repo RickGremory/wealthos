@@ -32,9 +32,9 @@ Day-to-day coding follows **SPEC-004**. Do not reopen 8.1–8.4 for implementati
 ## Exit criteria (Sprint 8 complete)
 
 - [x] Design pillars 8.1–8.5 Accepted  
-- [ ] SPEC-004 Completed (golden path live)  
+- [x] SPEC-004 Completed (golden path live)  
 - [ ] Demo seed + E2E green  
-- [ ] README / epic marked Done for Planning MVP  
+- [x] README / epic marked Done for Planning MVP  
 
 ---
 
