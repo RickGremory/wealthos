@@ -197,12 +197,15 @@ class FinancialCommitmentsNextDue(BaseModel):
     commitment_id: UUID
     name: str
     due_in_days: int
+    currency: str | None = None
+    amount: Decimal | None = None
 
 
 class FinancialCommitmentsAttentionItem(BaseModel):
     commitment_id: UUID
     code: str
     message: str
+    currency: str | None = None
 
 
 class FinancialCommitmentsProjection(BaseModel):

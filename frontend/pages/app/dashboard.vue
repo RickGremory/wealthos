@@ -4,7 +4,6 @@ definePageMeta({
   middleware: ['auth', 'organization', 'onboarding'],
 })
 
-const preferences = usePreferencesStore()
 const {
   loading,
   error,
@@ -15,10 +14,16 @@ const {
 } = useDashboard()
 const composer = useTransactionComposerStore()
 const { canWrite } = useOrganizationPermissions()
+const currencyWhyOpen = ref(false)
 
 function openNewTransaction() {
   composer.openCreate('expense')
 }
+
+const selectedCommitmentTotal = computed(() => {
+  const groups = view.value?.financialCommitments?.totalsByCurrency ?? []
+  return groups.find(g => g.currency === selectedCurrency.value) ?? groups[0] ?? null
+})
 
 onMounted(() => {
   void load()
@@ -39,15 +44,6 @@ onMounted(() => {
           @update:model-value="applyCurrency"
         />
         <UiButton
-          class="hide-on-mobile"
-          variant="ghost"
-          size="sm"
-          type="button"
-          @click="preferences.toggleHideBalances()"
-        >
-          {{ preferences.hideBalances ? 'Mostrar montos' : 'Ocultar montos' }}
-        </UiButton>
-        <UiButton
           v-if="canWrite"
           class="hide-on-mobile"
           variant="primary"
@@ -59,6 +55,28 @@ onMounted(() => {
         </UiButton>
       </template>
     </DashboardHeader>
+
+    <div
+      v-if="view?.multiCurrency"
+      class="dashboard__currency-note"
+      data-testid="dashboard-currency-note"
+    >
+      <p>
+        Mostrando información en <strong>{{ selectedCurrency }}</strong>.
+        Los importes se muestran por moneda; WealthOS no convierte saldos entre monedas.
+        <button
+          type="button"
+          class="dashboard__why"
+          @click="currencyWhyOpen = !currencyWhyOpen"
+        >
+          ¿Por qué?
+        </button>
+      </p>
+      <p v-if="currencyWhyOpen" class="dashboard__why-body text-muted">
+        Cada moneda se calcula por separado para evitar totales imprecisos.
+        La conversión de divisas todavía no forma parte del producto.
+      </p>
+    </div>
 
     <UiAlert v-if="error" tone="danger" title="No se pudo cargar el dashboard">
       <p>{{ error }}</p>
@@ -113,32 +131,34 @@ onMounted(() => {
     </div>
 
     <UiCard
-      v-if="view?.financialCommitments?.status === 'ready'"
-      title="Obligaciones"
+      v-if="view?.financialCommitments?.status === 'ready' || view?.financialCommitments?.status === 'empty'"
+      :title="`Obligaciones (${selectedCurrency})`"
       class="dashboard__commitments"
     >
-      <p class="text-muted">
-        {{ view.financialCommitments.activeCount }} activas
-        <template v-if="view.financialCommitments.overdueCount">
-          · {{ view.financialCommitments.overdueCount }} vencidas
-        </template>
-      </p>
-      <ul
-        v-if="view.financialCommitments.totalsByCurrency.length"
-        class="commitments-totals"
-      >
-        <li
-          v-for="group in view.financialCommitments.totalsByCurrency"
-          :key="group.currency"
-        >
-          <CurrencyBadge :currency="group.currency" />
-          <MoneyValue
-            :amount="group.totalObligations"
-            :currency="group.currency"
-            :emphasize-sign="false"
-          />
-        </li>
-      </ul>
+      <template v-if="view.financialCommitments.status === 'empty'">
+        <p class="text-muted">
+          No hay obligaciones activas en {{ selectedCurrency }}.
+        </p>
+      </template>
+      <template v-else>
+        <p class="text-muted">
+          {{ view.financialCommitments.activeCount }}
+          {{ view.financialCommitments.activeCount === 1 ? 'obligación activa' : 'obligaciones activas' }}
+          <template v-if="view.financialCommitments.overdueCount">
+            · {{ view.financialCommitments.overdueCount }} vencidas
+          </template>
+        </p>
+        <div v-if="selectedCommitmentTotal" class="commitments-pending">
+          <span class="text-muted">Saldo pendiente</span>
+          <strong>
+            <MoneyValue
+              :amount="selectedCommitmentTotal.totalObligations"
+              :currency="selectedCommitmentTotal.currency"
+              :emphasize-sign="false"
+            />
+          </strong>
+        </div>
+      </template>
       <div class="cluster" style="margin-top: 0.75rem">
         <UiButton type="button" variant="secondary" @click="navigateTo('/app/commitments')">
           Ver obligaciones
@@ -152,6 +172,36 @@ onMounted(() => {
 .dashboard {
   position: relative;
   padding-bottom: var(--space-12);
+}
+
+.dashboard__currency-note {
+  margin: calc(var(--space-4) * -1) 0 var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted, rgba(11, 61, 58, 0.04));
+  border: 1px solid var(--color-border);
+  font-size: 0.88rem;
+}
+
+.dashboard__currency-note p {
+  margin: 0;
+}
+
+.dashboard__why {
+  margin-left: 0.35rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dashboard__why-body {
+  margin-top: var(--space-2) !important;
+  font-size: 0.84rem;
 }
 
 .dashboard__errors {
@@ -176,18 +226,15 @@ onMounted(() => {
   margin-top: var(--space-6);
 }
 
-.commitments-totals {
-  list-style: none;
-  margin: var(--space-3) 0 0;
-  padding: 0;
+.commitments-pending {
+  margin-top: var(--space-3);
   display: grid;
-  gap: var(--space-2);
+  gap: 0.2rem;
 }
 
-.commitments-totals li {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
+.commitments-pending strong {
+  font-size: 1.25rem;
+  color: var(--color-teal-900);
 }
 
 @media (max-width: 1100px) {

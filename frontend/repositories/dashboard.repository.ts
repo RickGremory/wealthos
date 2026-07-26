@@ -172,11 +172,14 @@ interface DashboardAggregateDto {
       commitment_id: string
       name: string
       due_in_days: number
+      currency?: string | null
+      amount?: string | number | null
     } | null
     attention: Array<{
       commitment_id: string
       code: string
       message: string
+      currency?: string | null
     }>
     error_code?: string | null
   } | null
@@ -345,12 +348,17 @@ export function mapDashboardAggregate(dto: DashboardAggregateDto): DashboardProj
                 commitmentId: dto.financial_commitments.next_due.commitment_id,
                 name: dto.financial_commitments.next_due.name,
                 dueInDays: dto.financial_commitments.next_due.due_in_days,
+                currency: dto.financial_commitments.next_due.currency ?? undefined,
+                amount: dto.financial_commitments.next_due.amount != null
+                  ? String(dto.financial_commitments.next_due.amount)
+                  : null,
               }
             : null,
           attention: (dto.financial_commitments.attention ?? []).map(a => ({
             commitmentId: a.commitment_id,
             code: a.code,
             message: a.message,
+            currency: a.currency ?? undefined,
           })),
           errorCode: dto.financial_commitments.error_code ?? null,
         }

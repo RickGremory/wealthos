@@ -159,7 +159,10 @@ class GetDashboardQuery:
         )
         goals = self._safe_goals(organization_id, currency)
         debts = self._safe_debts(organization_id, currency)
-        financial_commitments = self._build_financial_commitments(organization_id)
+        financial_commitments = self._build_financial_commitments(
+            organization_id,
+            currency=currency,
+        )
         taxes = self._safe_taxes(organization_id, currency)
 
         attention = self._build_attention(
@@ -171,7 +174,7 @@ class GetDashboardQuery:
             monthly_income=selected_metrics.monthly_income,
             monthly_expenses=selected_metrics.monthly_expenses,
         )
-        activity = self._build_activity(organization_id)
+        activity = self._build_activity(organization_id, currency=currency)
         cash_flow = self._build_cash_flow(
             organization_id,
             timezone=timezone,
@@ -183,7 +186,7 @@ class GetDashboardQuery:
         goal = self._build_goal(goals)
         debts_widget = self._build_debts_widget(debts)
         taxes_widget = self._build_taxes_widget(taxes)
-        upcoming = self._build_upcoming(financial_commitments)
+        upcoming = self._build_upcoming(financial_commitments, currency=currency)
 
         return DashboardResponse(
             as_of=datetime.now(UTC),
@@ -394,9 +397,14 @@ class GetDashboardQuery:
             data=AttentionWidgetData(items=items),
         )
 
-    def _build_activity(self, organization_id: UUID) -> ActivityWidget:
+    def _build_activity(
+        self,
+        organization_id: UUID,
+        *,
+        currency: str,
+    ) -> ActivityWidget:
         try:
-            recent = self._recent_query.execute(organization_id, limit=8)
+            recent = self._recent_query.execute(organization_id, limit=20)
             items = [
                 ActivityItemData(
                     id=item.id,
@@ -418,7 +426,8 @@ class GetDashboardQuery:
                     ),
                 )
                 for item in recent
-            ]
+                if item.currency == currency
+            ][:8]
             return ActivityWidget(
                 status="ready" if items else "empty",
                 data=ActivityWidgetData(items=items),
@@ -541,21 +550,36 @@ class GetDashboardQuery:
     def _build_financial_commitments(
         self,
         organization_id: UUID,
+        *,
+        currency: str,
     ) -> FinancialCommitmentsProjection:
         try:
             summary = self._debts_query.execute(organization_id)
-            overdue_count = sum(1 for item in summary.attention if item.code == "overdue")
+            groups = [item for item in summary.by_currency if item.currency == currency]
+            attention = [
+                item for item in summary.attention if item.currency == currency
+            ]
+            overdue_count = sum(1 for item in attention if item.code == "overdue")
+            active_count = sum(item.active_debt_count for item in groups)
+
             next_due = None
-            if summary.next_due is not None:
+            per_currency_due = next(
+                (item for item in summary.next_due_by_currency if item.currency == currency),
+                None,
+            )
+            if per_currency_due is not None:
                 next_due = FinancialCommitmentsNextDue(
-                    commitment_id=summary.next_due.commitment_id,
-                    name=summary.next_due.name,
-                    due_in_days=summary.next_due.days_until_due,
+                    commitment_id=per_currency_due.commitment_id,
+                    name=per_currency_due.name,
+                    due_in_days=per_currency_due.days_until_due,
+                    currency=per_currency_due.currency,
+                    amount=per_currency_due.amount,
                 )
-            status = "ready" if summary.active_commitments > 0 else "empty"
+
+            status = "ready" if active_count > 0 else "empty"
             return FinancialCommitmentsProjection(
                 status=status,
-                active_count=summary.active_commitments,
+                active_count=active_count,
                 overdue_count=overdue_count,
                 totals_by_currency=[
                     FinancialCommitmentsTotalByCurrency(
@@ -563,7 +587,7 @@ class GetDashboardQuery:
                         total_obligations=item.total_debt,
                         monthly_payments=item.total_minimum_payments,
                     )
-                    for item in summary.by_currency
+                    for item in groups
                 ],
                 next_due=next_due,
                 attention=[
@@ -571,8 +595,9 @@ class GetDashboardQuery:
                         commitment_id=item.commitment_id,
                         code=item.code,
                         message=item.message,
+                        currency=item.currency,
                     )
-                    for item in summary.attention
+                    for item in attention
                 ],
             )
         except Exception:
@@ -585,19 +610,27 @@ class GetDashboardQuery:
     @staticmethod
     def _build_upcoming(
         financial_commitments: FinancialCommitmentsProjection,
+        *,
+        currency: str,
     ) -> UpcomingWidget:
         if financial_commitments.status == "error":
             return UpcomingWidget(status="empty", data=UpcomingWidgetData(items=[]))
         items: list[dict] = []
-        if financial_commitments.next_due is not None:
+        if (
+            financial_commitments.next_due is not None
+            and (
+                financial_commitments.next_due.currency is None
+                or financial_commitments.next_due.currency == currency
+            )
+        ):
             nd = financial_commitments.next_due
             items.append(
                 {
                     "id": str(nd.commitment_id),
                     "date_label": f"En {nd.due_in_days} día(s)",
                     "description": f"Pago · {nd.name}",
-                    "amount": None,
-                    "currency": None,
+                    "amount": nd.amount,
+                    "currency": nd.currency or currency,
                     "status": "attention" if nd.due_in_days <= 7 else "normal",
                     "to": f"/app/commitments/{nd.commitment_id}",
                 }

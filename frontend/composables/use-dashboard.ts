@@ -26,38 +26,50 @@ function sliceForCurrency(projection: DashboardProjection, currency: string) {
 function buildMetrics(
   projection: DashboardProjection,
   currency: string,
+  multiCurrency: boolean,
 ): DashboardMetric[] {
   const slice = sliceForCurrency(projection, currency)
   const sts = projection.safeToSpend
+  const hasSlice = projection.currencies.some(item => item.currency === currency)
+  const emptyHint = multiCurrency
+    ? `Sin movimientos en ${currency}. Los importes no se mezclan con otras monedas.`
+    : undefined
+  const currencyHint = multiCurrency
+    ? `Calculado solo con cuentas ${currency}. WealthOS no convierte entre monedas.`
+    : 'Activos menos pasivos'
 
   return [
     {
       id: 'net_worth',
-      label: 'Patrimonio neto',
-      amount: slice?.netWorth ?? '0.00',
+      label: `Patrimonio neto (${currency})`,
+      amount: hasSlice ? (slice?.netWorth ?? '0.00') : null,
       currency,
-      hint: 'Activos menos pasivos',
-      trendAmount: slice?.monthlyNetFlow ?? null,
+      hint: hasSlice ? currencyHint : emptyHint,
+      trendAmount: hasSlice ? (slice?.monthlyNetFlow ?? null) : null,
       trendLabel: 'flujo del mes',
-      status: 'ready',
+      status: hasSlice ? 'ready' : 'empty',
     },
     {
       id: 'liquid',
-      label: 'Efectivo disponible',
-      amount: slice?.liquidBalance ?? '0.00',
+      label: `Efectivo disponible (${currency})`,
+      amount: hasSlice ? (slice?.liquidBalance ?? '0.00') : null,
       currency,
-      hint: 'Cuentas líquidas (checking, ahorro, efectivo, wallet)',
-      status: 'ready',
+      hint: hasSlice
+        ? 'Cuentas líquidas (checking, ahorro, efectivo, wallet)'
+        : emptyHint,
+      status: hasSlice ? 'ready' : 'empty',
     },
     {
       id: 'safe_to_spend',
-      label: 'Disponible para gastar',
-      amount: sts.status === 'available' ? sts.amount : null,
+      label: `Disponible para gastar (${currency})`,
+      amount: sts.status === 'available' && (sts.currency === currency || !sts.currency)
+        ? sts.amount
+        : null,
       currency: sts.currency ?? currency,
       hint: sts.status === 'available'
         ? 'Después de próximos pagos, impuestos y reserva mínima'
         : undefined,
-      status: sts.status === 'available'
+      status: sts.status === 'available' && (sts.currency === currency || !sts.currency)
         ? 'ready'
         : sts.status === 'error'
           ? 'error'
@@ -67,15 +79,17 @@ function buildMetrics(
     },
     {
       id: 'monthly_flow',
-      label: 'Flujo del mes',
-      amount: slice?.monthlyNetFlow ?? '0.00',
+      label: `Flujo del mes (${currency})`,
+      amount: hasSlice ? (slice?.monthlyNetFlow ?? '0.00') : null,
       currency,
-      status: 'ready',
-      detailLines: [
-        { label: 'Ingresos', amount: slice?.monthlyIncome ?? '0.00' },
-        { label: 'Gastos', amount: `-${slice?.monthlyExpenses ?? '0.00'}` },
-        { label: 'Balance', amount: slice?.monthlyNetFlow ?? '0.00' },
-      ],
+      status: hasSlice ? 'ready' : 'empty',
+      detailLines: hasSlice
+        ? [
+            { label: 'Ingresos', amount: slice?.monthlyIncome ?? '0.00' },
+            { label: 'Gastos', amount: `-${slice?.monthlyExpenses ?? '0.00'}` },
+            { label: 'Balance', amount: slice?.monthlyNetFlow ?? '0.00' },
+          ]
+        : undefined,
     },
   ]
 }
@@ -95,24 +109,28 @@ function toViewModel(
   currency: string,
   displayName: string | undefined,
 ): DashboardViewModel {
+  const multiCurrency = projection.availableCurrencies.length > 1
   return {
     greeting: greetingForNow(displayName),
-    subtitle: 'Así van tus finanzas hoy.',
+    subtitle: multiCurrency
+      ? `Perspectiva en ${currency}. Los importes no se mezclan entre monedas.`
+      : 'Así van tus finanzas hoy.',
     currency,
     availableCurrencies: projection.availableCurrencies,
     asOf: projection.asOf,
-    metrics: buildMetrics(projection, currency),
+    metrics: buildMetrics(projection, currency, multiCurrency),
     attentionItems: projection.attentionItems as DashboardAttentionItem[],
     onboarding: projection.onboarding,
-    recentTransactions: projection.recentTransactions,
+    recentTransactions: projection.recentTransactions.filter(tx => tx.currency === currency),
     cashFlow: projection.cashFlow.status === 'ready' ? projection.cashFlow : projection.cashFlow,
     budget: moduleFromProjection(projection.budget),
     primaryGoal: enhanceGoalModuleSummary(moduleFromProjection(projection.primaryGoal)),
     debtSummary: moduleFromProjection(projection.debtSummary),
     taxSummary: moduleFromProjection(projection.taxSummary),
-    upcoming: projection.upcoming,
+    upcoming: projection.upcoming.filter(item => !item.currency || item.currency === currency),
     financialCommitments: projection.financialCommitments,
     widgetErrors: projection.widgetErrors,
+    multiCurrency,
   }
 }
 

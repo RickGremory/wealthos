@@ -167,11 +167,14 @@ export interface DashboardProjection {
       commitmentId: string
       name: string
       dueInDays: number
+      currency?: string
+      amount?: string | null
     } | null
     attention: Array<{
       commitmentId: string
       code: string
       message: string
+      currency?: string
     }>
     errorCode?: string | null
   } | null
@@ -209,4 +212,5 @@ export interface DashboardViewModel {
   }>
   financialCommitments: DashboardProjection['financialCommitments']
   widgetErrors: DashboardWidgetErrorState[]
+  multiCurrency: boolean
 }

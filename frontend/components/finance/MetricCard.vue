@@ -33,6 +33,11 @@ withDefaults(
       <UiSkeleton height="0.85rem" width="50%" style="margin-top: 0.75rem" />
     </template>
 
+    <template v-else-if="status === 'empty'">
+      <p class="metric-card__placeholder">Sin datos en esta moneda</p>
+      <p v-if="hint" class="metric-card__hint text-muted">{{ hint }}</p>
+    </template>
+
     <template v-else-if="status === 'not_configured'">
       <p class="metric-card__placeholder">Aún no calculado</p>
       <p v-if="hint" class="metric-card__hint text-muted">{{ hint }}</p>

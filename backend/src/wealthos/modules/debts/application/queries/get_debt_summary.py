@@ -54,6 +54,7 @@ class CommitmentAttentionItem:
     code: str
     message: str
     name: str
+    currency: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,6 +64,7 @@ class DebtSummary:
     commitments_needing_attention: int = 0
     next_due: CommitmentUpcomingDue | None = None
     attention: tuple[CommitmentAttentionItem, ...] = ()
+    next_due_by_currency: tuple[CommitmentUpcomingDue, ...] = ()
 
     @property
     def groups(self) -> tuple[DebtSummaryByCurrency, ...]:
@@ -95,6 +97,7 @@ class GetDebtSummaryQuery:
         attention_count = 0
         attention_items: list[CommitmentAttentionItem] = []
         next_due: CommitmentUpcomingDue | None = None
+        next_due_by_currency: dict[str, CommitmentUpcomingDue] = {}
 
         for debt in debts:
             account = self._accounts.get_by_id(organization_id, debt.account_id)
@@ -126,6 +129,7 @@ class GetDebtSummaryQuery:
                         code=code,
                         message=message,
                         name=debt.name.value,
+                        currency=debt.currency,
                     )
                 )
 
@@ -153,6 +157,12 @@ class GetDebtSummaryQuery:
                     candidate.days_until_due,
                 ) < (next_due.due_date, next_due.days_until_due):
                     next_due = candidate
+                current_best = next_due_by_currency.get(debt.currency)
+                if current_best is None or (
+                    candidate.due_date,
+                    candidate.days_until_due,
+                ) < (current_best.due_date, current_best.days_until_due):
+                    next_due_by_currency[debt.currency] = candidate
 
             if not debt.status.is_active:
                 continue
@@ -218,4 +228,5 @@ class GetDebtSummaryQuery:
             commitments_needing_attention=attention_count,
             next_due=next_due,
             attention=tuple(attention_items),
+            next_due_by_currency=tuple(next_due_by_currency.values()),
         )

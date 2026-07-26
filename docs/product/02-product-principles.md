@@ -85,6 +85,19 @@ See [RFC-002](../rfc/RFC-002-financial-commitments.md).
 
 ---
 
+## Principle 09 — Currency Integrity
+
+Amounts in different currencies are never combined without an explicit, traceable exchange-rate policy.
+
+- `Money(A, MXN) + Money(B, USD)` is not allowed.
+- Dashboard, accounts, goals, and commitments are sliced **by currency**.
+- Cross-currency transfers are blocked until FX (rate source, timestamp, rounding, base currency) exists.
+- Prefer labels like “Patrimonio neto (MXN)” over “patrimonio total / global”.
+
+This protects financial truth (P01) and context (P04).
+
+---
+
 ## Supporting heuristics (still true)
 
 These remain useful and align with the principles above:

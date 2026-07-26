@@ -35,6 +35,7 @@ class CommitmentAttentionItemResponse(BaseModel):
     code: str
     message: str
     name: str
+    currency: str
 
 
 class DebtSummaryResponse(BaseModel):
@@ -76,6 +77,7 @@ class DebtSummaryResponse(BaseModel):
                 code=item.code,
                 message=item.message,
                 name=item.name,
+                currency=item.currency,
             )
             for item in summary.attention
         ]
