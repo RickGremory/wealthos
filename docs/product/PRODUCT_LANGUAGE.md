@@ -118,8 +118,28 @@ See [Sprint 6.2 UX](../roadmap/sprint-6.2-commitments-ux.md).
 
 Derived when a due date has passed and the commitment still has a balance. Shown with danger emphasis. Distinct from domain status `defaulted`.
 
+### Needs Attention
+
+Dashboard (and similar surfaces) attention items derived from commitments and other domains — e.g. overdue payment. Never a stored column on Debt.
+
+### Financial Timeline
+
+Unified chronological spine of financial life (transactions, goals, commitments, calendar, taxes, planning). Not a social feed; not a second ledger. Concept reserved — see [decision](../decisions/2026-07-25-financial-timeline.md).
+
 ---
 
+## Module questions (product map)
+
+| Module | Answers |
+|--------|---------|
+| Accounts | ¿Dónde está mi dinero? |
+| Transactions | ¿Qué ocurrió con mi dinero? |
+| Dashboard | ¿Cómo está mi salud financiera? |
+| Goals | ¿Qué estoy construyendo? |
+| Financial Commitments | ¿Qué parte de mi futuro ya está comprometida? |
+| Planning | ¿Qué puedo hacer el próximo mes? |
+| Taxes | ¿Qué debo reservar al gobierno? |
+| Financial Timeline | ¿Qué ha pasado en mi vida financiera, en orden? |
 ## Naming map (product ↔ code)
 
 | Product (ES / EN) | Code / module |
@@ -133,6 +153,7 @@ Derived when a due date has passed and the commitment still has a balance. Shown
 | Patrimonio neto | Net Worth (Dashboard projection) |
 | Verdad financiera | Principle + invariant, not a table |
 | ¿Qué debo hacer ahora? / Next Action | Guidance section — not persisted as tasks |
+| Financial Timeline | Future composition surface — not a module table yet |
 
 ---
 

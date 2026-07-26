@@ -292,10 +292,11 @@ No decorative motion beyond that.
 
 | Slice | Owns |
 |-------|------|
-| 6.3 | API/domain fields the UX needs (creditor, priority, statuses, optional rates…) |
-| 6.4 | Strategy preferences (feeds future next-action copy) |
-| 6.5 | Dashboard three-signal widget |
-| 6.6 | Nuxt routes `/app/commitments`, nav label, cards, flows |
+| 6.3 | Ecosystem integration contract |
+| 6.4 | API/domain fields + projections the UX and Dashboard need |
+| 6.5 | Strategy preferences (feeds future next-action copy) |
+| 6.6 | Dashboard UI block + Needs Attention + Net Worth drill-down |
+| 6.7 | Nuxt routes `/app/commitments`, nav label, cards, flows |
 
 ---
 

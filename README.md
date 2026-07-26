@@ -211,9 +211,10 @@ Still ahead: **debts** (next), taxes, planning UI, recurring transactions, and d
 
 **Sprint 6 — Financial Commitments** — Obligaciones at `/app/commitments`.
 
-- **6.1** Product model — [RFC-002](./docs/rfc/RFC-002-financial-commitments.md) ✓  
-- **6.2** UX & flows — [sprint-6.2](./docs/roadmap/sprint-6.2-commitments-ux.md) ✓ (*What should I do next?*)  
-- **6.3+** API → dashboard widget → Nuxt UI — [sprint brief](./docs/roadmap/sprint-6-financial-commitments.md)
+- **6.1** Domain — [RFC-002](./docs/rfc/RFC-002-financial-commitments.md) ✓  
+- **6.2** UX — [6.2](./docs/roadmap/sprint-6.2-commitments-ux.md) ✓  
+- **6.3** Integration — [6.3](./docs/roadmap/sprint-6.3-commitments-integration.md) ✓ (*Financial Timeline* reserved)  
+- **6.4+** API → dashboard UI → Nuxt — [sprint brief](./docs/roadmap/sprint-6-financial-commitments.md)
 
 Vocabulary: [PRODUCT_LANGUAGE.md](./docs/product/PRODUCT_LANGUAGE.md) · Principles: [P01–P08](./docs/product/02-product-principles.md).
 
