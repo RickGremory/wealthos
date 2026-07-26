@@ -130,6 +130,18 @@ Uncertain income must not inflate spendable cash.
 | `planned` | Dated contribution reduces STS |
 | `protected` | Linked cash treated as reserved |
 
+### Occurrence key (Planning)
+
+Stable identity for an expected movement across modules, e.g. `commitment:{id}:due:2026-08-15`.
+
+Used to dedupe forecasts and to link **Transactions** (settlements) to projected outflows — including partial payments. Preferred over matching by amount/date alone.
+
+See [Sprint 8.3](../roadmap/sprint-8.3-planning-integration.md).
+
+### Planned cash flow (manual)
+
+A user-entered hypothesis in Planning (future inflow/outflow). Persisted; not a ledger transaction. Settled when linked to a real Transaction.
+
 ### Cash Flow
 
 Movement of money over a period (in vs out). Distinct from Net Worth (stock) vs flow.

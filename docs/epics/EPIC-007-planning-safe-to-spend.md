@@ -29,4 +29,5 @@ Users see **Disponible para gastar** as an explained Financial Projection — no
 - UI: Planning surfaces + Dashboard Safe To Spend as star widget  
 - **8.1** Domain model — **Accepted** ([RFC-004](../rfc/RFC-004-planning-projection.md))  
 - **8.2** Calculation model — **Accepted** ([Sprint 8.2](../roadmap/sprint-8.2-safe-to-spend-algorithm.md))  
-- **8.3–8.5** follow in sprint brief  
+- **8.3** Module integration — **Accepted** ([Sprint 8.3](../roadmap/sprint-8.3-planning-integration.md))  
+- **8.4–8.5** follow in sprint brief  
