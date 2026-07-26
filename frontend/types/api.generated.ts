@@ -25,6 +25,30 @@ export interface paths {
     /** List organizations for the current user */
     get: operations["list_my_organizations_api_v1_me_organizations_get"];
   };
+  "/api/v1/legal/registration-requirements": {
+    /** Documents required at registration */
+    get: operations["registration_requirements_api_v1_legal_registration_requirements_get"];
+  };
+  "/api/v1/legal/documents/{document_type}": {
+    /** Active legal document by type */
+    get: operations["get_document_api_v1_legal_documents__document_type__get"];
+  };
+  "/api/v1/legal/me/status": {
+    /** Current user legal compliance status */
+    get: operations["me_status_api_v1_legal_me_status_get"];
+  };
+  "/api/v1/legal/me/acceptances": {
+    /** Record acceptances for pending legal documents */
+    post: operations["me_acceptances_api_v1_legal_me_acceptances_post"];
+  };
+  "/api/v1/legal/me/documents": {
+    /** Accepted documents and marketing consent for settings */
+    get: operations["me_documents_api_v1_legal_me_documents_get"];
+  };
+  "/api/v1/legal/me/marketing-consent": {
+    /** Accept or withdraw marketing consent */
+    post: operations["me_marketing_consent_api_v1_legal_me_marketing_consent_post"];
+  };
   "/api/v1/organizations/{organization_id}/accounts": {
     /** List accounts */
     get: operations["list_accounts_api_v1_organizations__organization_id__accounts_get"];
@@ -99,9 +123,19 @@ export interface paths {
     /** Create debt */
     post: operations["create_debt_api_v1_organizations__organization_id__debts_post"];
   };
+  "/api/v1/organizations/{organization_id}/debts/calendar-events": {
+    /** Commitment calendar events */
+    get: operations["get_commitment_calendar_events_api_v1_organizations__organization_id__debts_calendar_events_get"];
+  };
   "/api/v1/organizations/{organization_id}/debts/summary": {
     /** Debt summary by currency */
     get: operations["get_debt_summary_api_v1_organizations__organization_id__debts_summary_get"];
+  };
+  "/api/v1/organizations/{organization_id}/debts/strategy": {
+    /** Organization payment strategy projection */
+    get: operations["get_debt_strategy_api_v1_organizations__organization_id__debts_strategy_get"];
+    /** Update organization payment strategy */
+    patch: operations["patch_debt_strategy_api_v1_organizations__organization_id__debts_strategy_patch"];
   };
   "/api/v1/organizations/{organization_id}/debts/payoff-plan": {
     /** Debt payoff plan simulation */
@@ -118,6 +152,22 @@ export interface paths {
     get: operations["list_debt_payments_api_v1_organizations__organization_id__debts__debt_id__payments_get"];
     /** Record debt payment */
     post: operations["record_debt_payment_api_v1_organizations__organization_id__debts__debt_id__payments_post"];
+  };
+  "/api/v1/organizations/{organization_id}/debts/{debt_id}/activity": {
+    /** List activity on the linked liability account */
+    get: operations["get_debt_activity_api_v1_organizations__organization_id__debts__debt_id__activity_get"];
+  };
+  "/api/v1/organizations/{organization_id}/debts/{debt_id}/pause": {
+    /** Pause debt */
+    post: operations["pause_debt_api_v1_organizations__organization_id__debts__debt_id__pause_post"];
+  };
+  "/api/v1/organizations/{organization_id}/debts/{debt_id}/resume": {
+    /** Resume paused debt */
+    post: operations["resume_debt_api_v1_organizations__organization_id__debts__debt_id__resume_post"];
+  };
+  "/api/v1/organizations/{organization_id}/debts/{debt_id}/close": {
+    /** Close debt product */
+    post: operations["close_debt_api_v1_organizations__organization_id__debts__debt_id__close_post"];
   };
   "/api/v1/organizations/{organization_id}/debts/{debt_id}/archive": {
     /** Archive debt */
@@ -299,6 +349,10 @@ export interface paths {
      */
     get: operations["get_summary_api_v1_organizations__organization_id__taxes_mx_summary_get"];
   };
+  "/api/v1/organizations/{organization_id}/dashboard": {
+    /** Dashboard aggregate projection */
+    get: operations["get_dashboard_api_v1_organizations__organization_id__dashboard_get"];
+  };
   "/api/v1/organizations/{organization_id}/dashboard/summary": {
     /** Dashboard financial summary */
     get: operations["get_summary_api_v1_organizations__organization_id__dashboard_summary_get"];
@@ -467,6 +521,11 @@ export interface components {
       /** Suggestions */
       suggestions: components["schemas"]["CashPlanSuggestionResponse-Input"][];
     };
+    /** AcceptDocumentsRequest */
+    AcceptDocumentsRequest: {
+      /** Acceptances */
+      acceptances: components["schemas"]["LegalAcceptanceRequestItem"][];
+    };
     /** AccountCountResponse */
     AccountCountResponse: {
       /** Active */
@@ -487,6 +546,8 @@ export interface components {
        * @default 0.00
        */
       opening_balance?: number | string;
+      /** Opening Balance Date */
+      opening_balance_date?: string | null;
       /** Institution Name */
       institution_name?: string | null;
       /** Last Four */
@@ -571,6 +632,57 @@ export interface components {
       /** Last Four */
       last_four?: string | null;
     };
+    /** ActivityItemData */
+    ActivityItemData: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Transaction Type */
+      transaction_type: string;
+      /** Description */
+      description: string;
+      category: components["schemas"]["ActivityNamedRef"] | null;
+      /**
+       * Occurred At
+       * Format: date-time
+       */
+      occurred_at: string;
+      /** Status */
+      status: string;
+      /** Amount */
+      amount: string;
+      /** Currency */
+      currency: string;
+      account?: components["schemas"]["ActivityNamedRef"] | null;
+    };
+    /** ActivityNamedRef */
+    ActivityNamedRef: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Name */
+      name: string;
+    };
+    /** ActivityWidget */
+    ActivityWidget: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ready" | "empty" | "error";
+      data?: components["schemas"]["ActivityWidgetData"] | null;
+      /** Error Code */
+      error_code?: string | null;
+    };
+    /** ActivityWidgetData */
+    ActivityWidgetData: {
+      /** Items */
+      items: components["schemas"]["ActivityItemData"][];
+    };
     /** AddOrganizationMemberRequest */
     AddOrganizationMemberRequest: {
       /**
@@ -629,6 +741,42 @@ export interface components {
       utilization_percentage: string | null;
       /** Status */
       status: string;
+    };
+    /** AttentionItemData */
+    AttentionItemData: {
+      /** Id */
+      id: string;
+      /**
+       * Severity
+       * @enum {string}
+       */
+      severity: "info" | "warning" | "critical";
+      /** Title */
+      title: string;
+      /** Message */
+      message: string;
+      /** Amount */
+      amount?: string | null;
+      /** Currency */
+      currency?: string | null;
+      /** Action Label */
+      action_label: string;
+      /** Action To */
+      action_to: string;
+    };
+    /** AttentionWidget */
+    AttentionWidget: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ready" | "empty";
+      data: components["schemas"]["AttentionWidgetData"];
+    };
+    /** AttentionWidgetData */
+    AttentionWidgetData: {
+      /** Items */
+      items: components["schemas"]["AttentionItemData"][];
     };
     /** Body_login_api_v1_auth_login_post */
     Body_login_api_v1_auth_login_post: {
@@ -969,6 +1117,20 @@ export interface components {
       /** Message */
       message: string;
     };
+    /** CashFlowPointData */
+    CashFlowPointData: {
+      /**
+       * Period Start
+       * Format: date
+       */
+      period_start: string;
+      /** Income */
+      income: string;
+      /** Expenses */
+      expenses: string;
+      /** Net Cash Flow */
+      net_cash_flow: string;
+    };
     /** CashFlowPointResponse */
     CashFlowPointResponse: {
       /**
@@ -1002,6 +1164,32 @@ export interface components {
       currency: string;
       /** Items */
       items: components["schemas"]["CashFlowPointResponse"][];
+    };
+    /** CashFlowWidget */
+    CashFlowWidget: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ready" | "empty" | "error";
+      data?: components["schemas"]["CashFlowWidgetData"] | null;
+      /** Error Code */
+      error_code?: string | null;
+    };
+    /** CashFlowWidgetData */
+    CashFlowWidgetData: {
+      /** Currency */
+      currency: string;
+      /** Granularity */
+      granularity: string;
+      /** Income */
+      income: string;
+      /** Expenses */
+      expenses: string;
+      /** Net Cash Flow */
+      net_cash_flow: string;
+      /** Points */
+      points: components["schemas"]["CashFlowPointData"][];
     };
     /** CashPlanCreate */
     CashPlanCreate: {
@@ -1536,6 +1724,83 @@ export interface components {
       /** Color */
       color?: string | null;
     };
+    /** CommitmentAttentionItemResponse */
+    CommitmentAttentionItemResponse: {
+      /**
+       * Commitment Id
+       * Format: uuid
+       */
+      commitment_id: string;
+      /** Code */
+      code: string;
+      /** Message */
+      message: string;
+      /** Name */
+      name: string;
+    };
+    /** CommitmentCalendarEventResponse */
+    CommitmentCalendarEventResponse: {
+      /** Id */
+      id: string;
+      /**
+       * Commitment Id
+       * Format: uuid
+       */
+      commitment_id: string;
+      /** Name */
+      name: string;
+      /** Event Type */
+      event_type: string;
+      /**
+       * Event Date
+       * Format: date
+       */
+      event_date: string;
+      /** Severity */
+      severity: string;
+      /** Currency */
+      currency: string;
+      /** Amount */
+      amount?: string | null;
+    };
+    /** CommitmentCalendarResponse */
+    CommitmentCalendarResponse: {
+      /** Items */
+      items?: components["schemas"]["CommitmentCalendarEventResponse"][];
+      /**
+       * Total
+       * @default 0
+       */
+      total?: number;
+    };
+    /** CommitmentUpcomingDueResponse */
+    CommitmentUpcomingDueResponse: {
+      /**
+       * Commitment Id
+       * Format: uuid
+       */
+      commitment_id: string;
+      /** Name */
+      name: string;
+      /** Currency */
+      currency: string;
+      /**
+       * Due Date
+       * Format: date
+       */
+      due_date: string;
+      /** Days Until Due */
+      days_until_due: number;
+      /** Amount */
+      amount?: string | null;
+    };
+    /** ComplianceStatusResponse */
+    ComplianceStatusResponse: {
+      /** Is Compliant */
+      is_compliant: boolean;
+      /** Pending Documents */
+      pending_documents: components["schemas"]["PendingDocumentResponse"][];
+    };
     /** CurrencyBalanceResponse */
     CurrencyBalanceResponse: {
       /** Currency */
@@ -1546,6 +1811,11 @@ export interface components {
       total_liabilities: string;
       /** Net Worth */
       net_worth: string;
+      /**
+       * Liquid Balance
+       * @default 0.00
+       */
+      liquid_balance?: string;
     };
     /** CurrencyCashFlowResponse */
     CurrencyCashFlowResponse: {
@@ -1604,6 +1874,75 @@ export interface components {
       /** Is Active */
       is_active: boolean;
     };
+    /** DashboardCurrencyMetrics */
+    DashboardCurrencyMetrics: {
+      /** Currency */
+      currency: string;
+      /** Net Worth */
+      net_worth: string;
+      /** Liquid Balance */
+      liquid_balance: string;
+      /** Total Assets */
+      total_assets: string;
+      /** Total Liabilities */
+      total_liabilities: string;
+      /** Monthly Income */
+      monthly_income: string;
+      /** Monthly Expenses */
+      monthly_expenses: string;
+      /** Monthly Net Flow */
+      monthly_net_flow: string;
+    };
+    /** DashboardOrganizationInfo */
+    DashboardOrganizationInfo: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Name */
+      name: string;
+      /** Timezone */
+      timezone: string;
+      /** Currency */
+      currency: string;
+    };
+    /** DashboardPeriodInfo */
+    DashboardPeriodInfo: {
+      /**
+       * Date From
+       * Format: date
+       */
+      date_from: string;
+      /**
+       * Date To
+       * Format: date
+       */
+      date_to: string;
+      /** Timezone */
+      timezone: string;
+    };
+    /**
+     * DashboardResponse
+     * @description Single dashboard projection for the organization overview.
+     */
+    DashboardResponse: {
+      /**
+       * As Of
+       * Format: date-time
+       */
+      as_of: string;
+      organization: components["schemas"]["DashboardOrganizationInfo"];
+      period: components["schemas"]["DashboardPeriodInfo"];
+      /** Currencies */
+      currencies: components["schemas"]["DashboardCurrencyMetrics"][];
+      /** Selected Currency */
+      selected_currency: string;
+      /** Available Currencies */
+      available_currencies: string[];
+      widgets: components["schemas"]["DashboardWidgets"];
+      financial_commitments?: components["schemas"]["FinancialCommitmentsProjection"] | null;
+    };
     /**
      * DashboardSummaryResponse
      * @description Current balances + period cash flow.
@@ -1629,6 +1968,20 @@ export interface components {
       debts?: components["schemas"]["DebtsSummaryResponse"] | null;
       taxes?: components["schemas"]["TaxesSummaryResponse"] | null;
     };
+    /** DashboardWidgets */
+    DashboardWidgets: {
+      metrics: components["schemas"]["MetricsWidget"];
+      onboarding: components["schemas"]["OnboardingWidget"];
+      attention: components["schemas"]["AttentionWidget"];
+      activity: components["schemas"]["ActivityWidget"];
+      cash_flow: components["schemas"]["CashFlowWidget"];
+      upcoming: components["schemas"]["UpcomingWidget"];
+      safe_to_spend: components["schemas"]["SafeToSpendWidget"];
+      budget: components["schemas"]["ModuleWidget"];
+      goal: components["schemas"]["ModuleWidget"];
+      debts: components["schemas"]["ModuleWidget"];
+      taxes: components["schemas"]["ModuleWidget"];
+    };
     /** DebtCreate */
     DebtCreate: {
       /**
@@ -1642,19 +1995,29 @@ export interface components {
        * Debt Type
        * @enum {string}
        */
-      debt_type: "credit_card" | "personal_loan" | "auto_loan" | "mortgage" | "student_loan" | "tax_debt" | "line_of_credit" | "other";
-      /** Annual Interest Rate */
-      annual_interest_rate: number | string;
+      debt_type: "credit_card" | "mortgage" | "auto_loan" | "personal_loan" | "business_loan" | "student_loan" | "line_of_credit" | "family_loan" | "installment_plan" | "other";
+      /** Creditor */
+      creditor?: string | null;
+      /**
+       * Priority
+       * @default medium
+       * @enum {string}
+       */
+      priority?: "high" | "medium" | "low";
+      /** Interest Rate */
+      interest_rate?: number | string | null;
       /** Minimum Payment */
-      minimum_payment: number | string;
-      /** Original Principal */
-      original_principal?: number | string | null;
-      /** Opened At */
-      opened_at?: string | null;
+      minimum_payment?: number | string | null;
+      /** Scheduled Payment */
+      scheduled_payment?: number | string | null;
+      /** Credit Limit */
+      credit_limit?: number | string | null;
+      /** Original Amount */
+      original_amount?: number | string | null;
       /** Maturity Date */
       maturity_date?: string | null;
-      /** Payment Day */
-      payment_day?: number | null;
+      /** Due Day */
+      due_day?: number | null;
       /** Statement Day */
       statement_day?: number | null;
       /** Notes */
@@ -1666,6 +2029,17 @@ export interface components {
       items: components["schemas"]["DebtResponse"][];
       /** Total */
       total: number;
+    };
+    /** DebtNextActionResponse */
+    DebtNextActionResponse: {
+      /** Type */
+      type: string;
+      /** Reason Code */
+      reason_code: string;
+      /** Amount */
+      amount?: string | null;
+      /** Due Date */
+      due_date?: string | null;
     };
     /** DebtPaymentCreate */
     DebtPaymentCreate: {
@@ -1766,28 +2140,47 @@ export interface components {
       name: string;
       /** Debt Type */
       debt_type: string;
+      /** Creditor */
+      creditor: string | null;
       /** Currency */
       currency: string;
-      /** Annual Interest Rate */
-      annual_interest_rate: string;
+      /** Priority */
+      priority: string;
+      /** Interest Rate */
+      interest_rate: string | null;
       /** Minimum Payment */
-      minimum_payment: string;
-      /** Original Principal */
-      original_principal: string | null;
-      /** Opened At */
-      opened_at: string | null;
+      minimum_payment: string | null;
+      /** Scheduled Payment */
+      scheduled_payment: string | null;
+      /** Credit Limit */
+      credit_limit: string | null;
+      /** Original Amount */
+      original_amount: string | null;
       /** Maturity Date */
       maturity_date: string | null;
-      /** Payment Day */
-      payment_day: number | null;
+      /** Due Day */
+      due_day: number | null;
       /** Statement Day */
       statement_day: number | null;
       /** Status */
       status: string;
+      /** Display Status */
+      display_status?: string | null;
+      /** Behavior */
+      behavior?: string | null;
       /** Notes */
       notes: string | null;
+      /** Version */
+      version: number;
       /** Current Balance */
       current_balance: string;
+      /** Next Due Date */
+      next_due_date?: string | null;
+      /** Days Until Due */
+      days_until_due?: number | null;
+      /** Utilization Percentage */
+      utilization_percentage?: string | null;
+      next_action?: components["schemas"]["DebtNextActionResponse"] | null;
       /** Payoff Date */
       payoff_date: string | null;
       /** Months Remaining */
@@ -1808,10 +2201,41 @@ export interface components {
        * Format: date-time
        */
       updated_at: string;
-      /** Paid Off At */
-      paid_off_at: string | null;
+      /** Closed At */
+      closed_at: string | null;
       /** Archived At */
       archived_at: string | null;
+    };
+    /** DebtStrategyResponse */
+    DebtStrategyResponse: {
+      /** Status */
+      status: string;
+      /** Strategy */
+      strategy: string;
+      /**
+       * Generated At
+       * Format: date-time
+       */
+      generated_at: string;
+      summary?: components["schemas"]["StrategySummaryResponse"] | null;
+      next_action?: components["schemas"]["StrategyNextActionResponse"] | null;
+      /** Ranking */
+      ranking?: components["schemas"]["StrategyRankingItemResponse"][];
+      /** Warnings */
+      warnings?: string[];
+      /**
+       * Excluded Commitments
+       * @default 0
+       */
+      excluded_commitments?: number;
+    };
+    /** DebtStrategyUpdate */
+    DebtStrategyUpdate: {
+      /**
+       * Strategy
+       * @enum {string}
+       */
+      strategy: "avalanche" | "snowball" | "minimum_only" | "manual";
     };
     /** DebtSummaryByCurrencyResponse */
     DebtSummaryByCurrencyResponse: {
@@ -1834,23 +2258,48 @@ export interface components {
     DebtSummaryResponse: {
       /** By Currency */
       by_currency: components["schemas"]["DebtSummaryByCurrencyResponse"][];
+      /** Groups */
+      groups?: components["schemas"]["DebtSummaryByCurrencyResponse"][];
+      /**
+       * Active Commitments
+       * @default 0
+       */
+      active_commitments?: number;
+      /**
+       * Commitments Needing Attention
+       * @default 0
+       */
+      commitments_needing_attention?: number;
+      next_due?: components["schemas"]["CommitmentUpcomingDueResponse"] | null;
+      /** Attention */
+      attention?: components["schemas"]["CommitmentAttentionItemResponse"][];
     };
     /** DebtUpdate */
     DebtUpdate: {
       /** Name */
       name?: string | null;
-      /** Annual Interest Rate */
-      annual_interest_rate?: number | string | null;
+      /** Creditor */
+      creditor?: string | null;
+      /** Priority */
+      priority?: ("high" | "medium" | "low") | null;
+      /** Interest Rate */
+      interest_rate?: number | string | null;
       /** Minimum Payment */
       minimum_payment?: number | string | null;
+      /** Scheduled Payment */
+      scheduled_payment?: number | string | null;
+      /** Credit Limit */
+      credit_limit?: number | string | null;
       /** Maturity Date */
       maturity_date?: string | null;
-      /** Payment Day */
-      payment_day?: number | null;
+      /** Due Day */
+      due_day?: number | null;
       /** Statement Day */
       statement_day?: number | null;
       /** Notes */
       notes?: string | null;
+      /** Version */
+      version?: number | null;
     };
     /** DebtsSummaryResponse */
     DebtsSummaryResponse: {
@@ -1889,6 +2338,65 @@ export interface components {
       category_id: string;
       /** Amount */
       amount: number | string;
+    };
+    /** FinancialCommitmentsAttentionItem */
+    FinancialCommitmentsAttentionItem: {
+      /**
+       * Commitment Id
+       * Format: uuid
+       */
+      commitment_id: string;
+      /** Code */
+      code: string;
+      /** Message */
+      message: string;
+    };
+    /** FinancialCommitmentsNextDue */
+    FinancialCommitmentsNextDue: {
+      /**
+       * Commitment Id
+       * Format: uuid
+       */
+      commitment_id: string;
+      /** Name */
+      name: string;
+      /** Due In Days */
+      due_in_days: number;
+    };
+    /** FinancialCommitmentsProjection */
+    FinancialCommitmentsProjection: {
+      /**
+       * Status
+       * @default ready
+       * @enum {string}
+       */
+      status?: "ready" | "empty" | "error";
+      /**
+       * Active Count
+       * @default 0
+       */
+      active_count?: number;
+      /**
+       * Overdue Count
+       * @default 0
+       */
+      overdue_count?: number;
+      /** Totals By Currency */
+      totals_by_currency?: components["schemas"]["FinancialCommitmentsTotalByCurrency"][];
+      next_due?: components["schemas"]["FinancialCommitmentsNextDue"] | null;
+      /** Attention */
+      attention?: components["schemas"]["FinancialCommitmentsAttentionItem"][];
+      /** Error Code */
+      error_code?: string | null;
+    };
+    /** FinancialCommitmentsTotalByCurrency */
+    FinancialCommitmentsTotalByCurrency: {
+      /** Currency */
+      currency: string;
+      /** Total Obligations */
+      total_obligations: string;
+      /** Monthly Payments */
+      monthly_payments: string;
     };
     /** ForecastAllocationResponse */
     ForecastAllocationResponse: {
@@ -2064,10 +2572,87 @@ export interface components {
       /** Amount */
       amount: number | string;
     };
+    /** LegalAcceptancePayload */
+    LegalAcceptancePayload: {
+      /** Document Type */
+      document_type: string;
+      /** Version */
+      version: string;
+      /** Accepted */
+      accepted?: boolean | null;
+      /** Acknowledged */
+      acknowledged?: boolean | null;
+    };
+    /** LegalAcceptanceRequestItem */
+    LegalAcceptanceRequestItem: {
+      /** Document Type */
+      document_type: string;
+      /** Version */
+      version: string;
+      /** Accepted */
+      accepted?: boolean | null;
+      /** Acknowledged */
+      acknowledged?: boolean | null;
+    };
+    /** LegalDocumentResponse */
+    LegalDocumentResponse: {
+      /** Type */
+      type: string;
+      /** Version */
+      version: string;
+      /** Title */
+      title: string;
+      /** Url */
+      url: string;
+      /** Content Markdown */
+      content_markdown: string;
+      /**
+       * Effective At
+       * Format: date-time
+       */
+      effective_at: string;
+      /**
+       * Published At
+       * Format: date-time
+       */
+      published_at: string;
+      /** Requires Reacceptance */
+      requires_reacceptance: boolean;
+      /** Change Summary */
+      change_summary?: string | null;
+    };
     /** ManualProgressUpdate */
     ManualProgressUpdate: {
       /** Current Amount */
       current_amount: number | string;
+    };
+    /** MarketingConsentAvailability */
+    MarketingConsentAvailability: {
+      /** Available */
+      available: boolean;
+      /** Required */
+      required: boolean;
+    };
+    /** MarketingConsentRequest */
+    MarketingConsentRequest: {
+      /** Accepted */
+      accepted: boolean;
+    };
+    /** MarketingConsentState */
+    MarketingConsentState: {
+      /** Opted In */
+      opted_in: boolean;
+      /** Updated At */
+      updated_at?: string | null;
+    };
+    /** MetricsWidget */
+    MetricsWidget: {
+      /**
+       * Status
+       * @default ready
+       * @constant
+       */
+      status?: "ready";
     };
     /** MexicoCategoryMappingCreate */
     MexicoCategoryMappingCreate: {
@@ -2373,6 +2958,34 @@ export interface components {
       /** Version */
       version?: number | null;
     };
+    /** ModuleLineData */
+    ModuleLineData: {
+      /** Label */
+      label: string;
+      /** Value */
+      value: string;
+    };
+    /** ModuleWidget */
+    ModuleWidget: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "available" | "not_configured" | "empty" | "error";
+      data?: components["schemas"]["ModuleWidgetData"] | null;
+      action?: components["schemas"]["WidgetAction"] | null;
+      /** Error Code */
+      error_code?: string | null;
+    };
+    /** ModuleWidgetData */
+    ModuleWidgetData: {
+      /** Title */
+      title: string;
+      /** Lines */
+      lines?: components["schemas"]["ModuleLineData"][];
+      /** Hint */
+      hint?: string | null;
+    };
     /** NamedRefResponse */
     NamedRefResponse: {
       /**
@@ -2382,6 +2995,41 @@ export interface components {
       id: string;
       /** Name */
       name: string;
+    };
+    /** OnboardingStepData */
+    OnboardingStepData: {
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /** Description */
+      description: string;
+      /** Completed */
+      completed: boolean;
+      /** To */
+      to: string;
+    };
+    /** OnboardingWidget */
+    OnboardingWidget: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ready" | "empty";
+      data: components["schemas"]["OnboardingWidgetData"];
+    };
+    /** OnboardingWidgetData */
+    OnboardingWidgetData: {
+      /** Is Visible */
+      is_visible: boolean;
+      /** Completed */
+      completed: boolean;
+      /** Completed Steps */
+      completed_steps: number;
+      /** Total Steps */
+      total_steps: number;
+      /** Steps */
+      steps: components["schemas"]["OnboardingStepData"][];
     };
     /**
      * OrganizationCreate
@@ -2547,6 +3195,17 @@ export interface components {
       /** Debts */
       debts: components["schemas"]["PayoffPlanDebtResponse"][];
     };
+    /** PendingDocumentResponse */
+    PendingDocumentResponse: {
+      /** Type */
+      type: string;
+      /** Version */
+      version: string;
+      /** Title */
+      title: string;
+      /** Url */
+      url: string;
+    };
     /** PeriodInfo */
     PeriodInfo: {
       /**
@@ -2643,6 +3302,34 @@ export interface components {
        * @default es-MX
        */
       locale?: string;
+      /** Legal Acceptances */
+      legal_acceptances?: components["schemas"]["LegalAcceptancePayload"][];
+      /**
+       * Marketing Consent
+       * @default false
+       */
+      marketing_consent?: boolean;
+    };
+    /** RegistrationDocumentRequirement */
+    RegistrationDocumentRequirement: {
+      /** Type */
+      type: string;
+      /** Version */
+      version: string;
+      /** Title */
+      title: string;
+      /** Url */
+      url: string;
+      /** Acceptance Required */
+      acceptance_required?: boolean | null;
+      /** Acknowledgement Required */
+      acknowledgement_required?: boolean | null;
+    };
+    /** RegistrationRequirementsResponse */
+    RegistrationRequirementsResponse: {
+      /** Documents */
+      documents: components["schemas"]["RegistrationDocumentRequirement"][];
+      marketing_consent: components["schemas"]["MarketingConsentAvailability"];
     };
     /** SafeToSpendResponse */
     SafeToSpendResponse: {
@@ -2658,6 +3345,68 @@ export interface components {
       tax_reserve_shortfall: string;
       /** Minimum Cash Buffer */
       minimum_cash_buffer: string;
+    };
+    /** SafeToSpendWidget */
+    SafeToSpendWidget: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "available" | "not_configured" | "unavailable" | "error";
+      data?: components["schemas"]["SafeToSpendWidgetData"] | null;
+      action?: components["schemas"]["WidgetAction"] | null;
+      /** Error Code */
+      error_code?: string | null;
+    };
+    /** SafeToSpendWidgetData */
+    SafeToSpendWidgetData: {
+      /** Currency */
+      currency: string | null;
+      /** Safe To Spend */
+      safe_to_spend: string | null;
+      /** Funding Gap */
+      funding_gap?: string | null;
+    };
+    /** StrategyNextActionResponse */
+    StrategyNextActionResponse: {
+      /** Type */
+      type: string;
+      /** Commitment Id */
+      commitment_id?: string | null;
+      /** Amount */
+      amount?: string | null;
+      /** Due Date */
+      due_date?: string | null;
+      /** Reason Code */
+      reason_code: string;
+    };
+    /** StrategyRankingItemResponse */
+    StrategyRankingItemResponse: {
+      /** Position */
+      position: number;
+      /**
+       * Commitment Id
+       * Format: uuid
+       */
+      commitment_id: string;
+      /** Name */
+      name: string;
+      /** Reason Code */
+      reason_code: string;
+      /**
+       * Eligible
+       * @default true
+       */
+      eligible?: boolean;
+    };
+    /** StrategySummaryResponse */
+    StrategySummaryResponse: {
+      /** Active Commitments */
+      active_commitments: number;
+      /** Total Balance */
+      total_balance: string;
+      /** Currency */
+      currency: string;
     };
     /** TaxCalculationLineResponse */
     TaxCalculationLineResponse: {
@@ -3385,6 +4134,46 @@ export interface components {
       /** Total */
       total: number;
     };
+    /** UpcomingWidget */
+    UpcomingWidget: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "not_configured" | "empty" | "ready";
+      data: components["schemas"]["UpcomingWidgetData"];
+    };
+    /** UpcomingWidgetData */
+    UpcomingWidgetData: {
+      /** Items */
+      items?: {
+          [key: string]: unknown;
+        }[];
+    };
+    /** UserDocumentItem */
+    UserDocumentItem: {
+      /** Type */
+      type: string;
+      /** Version */
+      version: string;
+      /** Title */
+      title: string;
+      /** Url */
+      url: string;
+      /**
+       * Accepted At
+       * Format: date-time
+       */
+      accepted_at: string;
+      /** Consent Type */
+      consent_type: string;
+    };
+    /** UserDocumentsResponse */
+    UserDocumentsResponse: {
+      /** Documents */
+      documents: components["schemas"]["UserDocumentItem"][];
+      marketing_consent: components["schemas"]["MarketingConsentState"];
+    };
     /** UserOrganizationItem */
     UserOrganizationItem: {
       /**
@@ -3424,6 +4213,13 @@ export interface components {
       input?: unknown;
       /** Context */
       ctx?: Record<string, never>;
+    };
+    /** WidgetAction */
+    WidgetAction: {
+      /** Label */
+      label: string;
+      /** To */
+      to: string;
     };
   };
   responses: never;
@@ -3514,6 +4310,105 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["UserOrganizationListResponse"];
+        };
+      };
+    };
+  };
+  /** Documents required at registration */
+  registration_requirements_api_v1_legal_registration_requirements_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["RegistrationRequirementsResponse"];
+        };
+      };
+    };
+  };
+  /** Active legal document by type */
+  get_document_api_v1_legal_documents__document_type__get: {
+    parameters: {
+      path: {
+        document_type: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["LegalDocumentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Current user legal compliance status */
+  me_status_api_v1_legal_me_status_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ComplianceStatusResponse"];
+        };
+      };
+    };
+  };
+  /** Record acceptances for pending legal documents */
+  me_acceptances_api_v1_legal_me_acceptances_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AcceptDocumentsRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ComplianceStatusResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Accepted documents and marketing consent for settings */
+  me_documents_api_v1_legal_me_documents_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserDocumentsResponse"];
+        };
+      };
+    };
+  };
+  /** Accept or withdraw marketing consent */
+  me_marketing_consent_api_v1_legal_me_marketing_consent_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MarketingConsentRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["MarketingConsentState"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -4117,6 +5012,32 @@ export interface operations {
       };
     };
   };
+  /** Commitment calendar events */
+  get_commitment_calendar_events_api_v1_organizations__organization_id__debts_calendar_events_get: {
+    parameters: {
+      query?: {
+        date_from?: string | null;
+        date_to?: string | null;
+      };
+      path: {
+        organization_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["CommitmentCalendarResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   /** Debt summary by currency */
   get_debt_summary_api_v1_organizations__organization_id__debts_summary_get: {
     parameters: {
@@ -4129,6 +5050,58 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["DebtSummaryResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Organization payment strategy projection */
+  get_debt_strategy_api_v1_organizations__organization_id__debts_strategy_get: {
+    parameters: {
+      query?: {
+        currency?: string | null;
+      };
+      path: {
+        organization_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DebtStrategyResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Update organization payment strategy */
+  patch_debt_strategy_api_v1_organizations__organization_id__debts_strategy_patch: {
+    parameters: {
+      path: {
+        organization_id: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DebtStrategyUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DebtStrategyResponse"];
         };
       };
       /** @description Validation Error */
@@ -4261,6 +5234,102 @@ export interface operations {
       201: {
         content: {
           "application/json": components["schemas"]["DebtPaymentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** List activity on the linked liability account */
+  get_debt_activity_api_v1_organizations__organization_id__debts__debt_id__activity_get: {
+    parameters: {
+      query?: {
+        limit?: number;
+        offset?: number;
+      };
+      path: {
+        organization_id: string;
+        debt_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["TransactionListResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Pause debt */
+  pause_debt_api_v1_organizations__organization_id__debts__debt_id__pause_post: {
+    parameters: {
+      path: {
+        organization_id: string;
+        debt_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DebtResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Resume paused debt */
+  resume_debt_api_v1_organizations__organization_id__debts__debt_id__resume_post: {
+    parameters: {
+      path: {
+        organization_id: string;
+        debt_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DebtResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Close debt product */
+  close_debt_api_v1_organizations__organization_id__debts__debt_id__close_post: {
+    parameters: {
+      path: {
+        organization_id: string;
+        debt_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DebtResponse"];
         };
       };
       /** @description Validation Error */
@@ -5096,6 +6165,34 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["MexicoTaxSummaryResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Dashboard aggregate projection */
+  get_dashboard_api_v1_organizations__organization_id__dashboard_get: {
+    parameters: {
+      query?: {
+        currency?: string | null;
+        period?: "this_month" | "last_month" | "last_30_days" | "this_year" | "custom";
+        date_from?: string | null;
+        date_to?: string | null;
+      };
+      path: {
+        organization_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DashboardResponse"];
         };
       };
       /** @description Validation Error */

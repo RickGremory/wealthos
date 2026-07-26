@@ -315,7 +315,7 @@ Create card → link liability → balance reflected → due date + next action
 - [x] All Phase 1–7 checkboxes complete  
 - [x] Commit plan landed (or equivalent focused commits covering the same surface)  
 - [x] Golden path demoed on local stack with demo seed  
-- [ ] OpenAPI types regenerated for frontend  
+- [x] OpenAPI types regenerated for frontend  
 - [x] SPEC status → **Completed**  
 - [x] Epic/backlog/README updated  
 

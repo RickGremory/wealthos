@@ -164,6 +164,213 @@
         ]
       }
     },
+    "/api/v1/legal/registration-requirements": {
+      "get": {
+        "tags": [
+          "Legal"
+        ],
+        "summary": "Documents required at registration",
+        "operationId": "registration_requirements_api_v1_legal_registration_requirements_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationRequirementsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/legal/documents/{document_type}": {
+      "get": {
+        "tags": [
+          "Legal"
+        ],
+        "summary": "Active legal document by type",
+        "operationId": "get_document_api_v1_legal_documents__document_type__get",
+        "parameters": [
+          {
+            "name": "document_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/legal/me/status": {
+      "get": {
+        "tags": [
+          "Legal"
+        ],
+        "summary": "Current user legal compliance status",
+        "operationId": "me_status_api_v1_legal_me_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceStatusResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/legal/me/acceptances": {
+      "post": {
+        "tags": [
+          "Legal"
+        ],
+        "summary": "Record acceptances for pending legal documents",
+        "operationId": "me_acceptances_api_v1_legal_me_acceptances_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptDocumentsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/legal/me/documents": {
+      "get": {
+        "tags": [
+          "Legal"
+        ],
+        "summary": "Accepted documents and marketing consent for settings",
+        "operationId": "me_documents_api_v1_legal_me_documents_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDocumentsResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/legal/me/marketing-consent": {
+      "post": {
+        "tags": [
+          "Legal"
+        ],
+        "summary": "Accept or withdraw marketing consent",
+        "operationId": "me_marketing_consent_api_v1_legal_me_marketing_consent_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarketingConsentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketingConsentState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/organizations/{organization_id}/accounts": {
       "post": {
         "tags": [
@@ -1732,7 +1939,7 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "pattern": "^(active|paid_off|archived)$"
+                  "pattern": "^(active|paused|defaulted|closed|archived)$"
                 },
                 {
                   "type": "null"
@@ -1808,6 +2015,88 @@
         }
       }
     },
+    "/api/v1/organizations/{organization_id}/debts/calendar-events": {
+      "get": {
+        "tags": [
+          "Debts"
+        ],
+        "summary": "Commitment calendar events",
+        "operationId": "get_commitment_calendar_events_api_v1_organizations__organization_id__debts_calendar_events_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommitmentCalendarResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/organizations/{organization_id}/debts/summary": {
       "get": {
         "tags": [
@@ -1839,6 +2128,128 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DebtSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organization_id}/debts/strategy": {
+      "get": {
+        "tags": [
+          "Debts"
+        ],
+        "summary": "Organization payment strategy projection",
+        "operationId": "get_debt_strategy_api_v1_organizations__organization_id__debts_strategy_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 3
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Currency"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DebtStrategyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Debts"
+        ],
+        "summary": "Update organization payment strategy",
+        "operationId": "patch_debt_strategy_api_v1_organizations__organization_id__debts_strategy_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DebtStrategyUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DebtStrategyResponse"
                 }
               }
             }
@@ -2192,6 +2603,261 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DebtPaymentListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organization_id}/debts/{debt_id}/activity": {
+      "get": {
+        "tags": [
+          "Debts"
+        ],
+        "summary": "List activity on the linked liability account",
+        "operationId": "get_debt_activity_api_v1_organizations__organization_id__debts__debt_id__activity_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "debt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Debt Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organization_id}/debts/{debt_id}/pause": {
+      "post": {
+        "tags": [
+          "Debts"
+        ],
+        "summary": "Pause debt",
+        "operationId": "pause_debt_api_v1_organizations__organization_id__debts__debt_id__pause_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "debt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Debt Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DebtResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organization_id}/debts/{debt_id}/resume": {
+      "post": {
+        "tags": [
+          "Debts"
+        ],
+        "summary": "Resume paused debt",
+        "operationId": "resume_debt_api_v1_organizations__organization_id__debts__debt_id__resume_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "debt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Debt Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DebtResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organization_id}/debts/{debt_id}/close": {
+      "post": {
+        "tags": [
+          "Debts"
+        ],
+        "summary": "Close debt product",
+        "operationId": "close_debt_api_v1_organizations__organization_id__debts__debt_id__close_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "debt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Debt Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DebtResponse"
                 }
               }
             }
@@ -4127,6 +4793,123 @@
         }
       }
     },
+    "/api/v1/organizations/{organization_id}/dashboard": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Dashboard aggregate projection",
+        "operationId": "get_dashboard_api_v1_organizations__organization_id__dashboard_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 3
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Currency"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "this_month",
+                "last_month",
+                "last_30_days",
+                "this_year",
+                "custom"
+              ],
+              "type": "string",
+              "default": "this_month",
+              "title": "Period"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/organizations/{organization_id}/dashboard/summary": {
       "get": {
         "tags": [
@@ -5523,7 +6306,7 @@
           "Planning"
         ],
         "summary": "Planning summary",
-        "description": "Cross-cutting planning snapshot: active/draft budgets and cash plans, plus `safe_to_spend` for the primary active cash plan when available. safe_to_spend is an operational estimate (liquid \u2212 committed \u2212 tax shortfall \u2212 buffer) and is not advice.",
+        "description": "Cross-cutting planning snapshot: active/draft budgets and cash plans, plus `safe_to_spend` for the primary active cash plan when available. safe_to_spend is an operational estimate (liquid − committed − tax shortfall − buffer) and is not advice.",
         "operationId": "get_planning_summary_api_v1_organizations__organization_id__planning_summary_get",
         "security": [
           {
@@ -6651,6 +7434,24 @@
         ],
         "title": "AcceptCashPlanSuggestionsRequest"
       },
+      "AcceptDocumentsRequest": {
+        "properties": {
+          "acceptances": {
+            "items": {
+              "$ref": "#/components/schemas/LegalAcceptanceRequestItem"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Acceptances"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "acceptances"
+        ],
+        "title": "AcceptDocumentsRequest"
+      },
       "AccountCountResponse": {
         "properties": {
           "active": {
@@ -6701,6 +7502,18 @@
             ],
             "title": "Opening Balance",
             "default": "0.00"
+          },
+          "opening_balance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opening Balance Date"
           },
           "institution_name": {
             "anyOf": [
@@ -6951,6 +7764,147 @@
         "type": "object",
         "title": "AccountUpdate"
       },
+      "ActivityItemData": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "transaction_type": {
+            "type": "string",
+            "title": "Transaction Type"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActivityNamedRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "account": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActivityNamedRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "transaction_type",
+          "description",
+          "category",
+          "occurred_at",
+          "status",
+          "amount",
+          "currency"
+        ],
+        "title": "ActivityItemData"
+      },
+      "ActivityNamedRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ActivityNamedRef"
+      },
+      "ActivityWidget": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "empty",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActivityWidgetData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ActivityWidget"
+      },
+      "ActivityWidgetData": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityItemData"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "ActivityWidgetData"
+      },
       "AddOrganizationMemberRequest": {
         "properties": {
           "user_id": {
@@ -7114,6 +8068,109 @@
           "status"
         ],
         "title": "AllocationPerformanceResponse"
+      },
+      "AttentionItemData": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "info",
+              "warning",
+              "critical"
+            ],
+            "title": "Severity"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "action_label": {
+            "type": "string",
+            "title": "Action Label"
+          },
+          "action_to": {
+            "type": "string",
+            "title": "Action To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "severity",
+          "title",
+          "message",
+          "action_label",
+          "action_to"
+        ],
+        "title": "AttentionItemData"
+      },
+      "AttentionWidget": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "empty"
+            ],
+            "title": "Status"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AttentionWidgetData"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "data"
+        ],
+        "title": "AttentionWidget"
+      },
+      "AttentionWidgetData": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AttentionItemData"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "AttentionWidgetData"
       },
       "Body_login_api_v1_auth_login_post": {
         "properties": {
@@ -8108,6 +9165,38 @@
         ],
         "title": "CashAlertResponse"
       },
+      "CashFlowPointData": {
+        "properties": {
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "income": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Income"
+          },
+          "expenses": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Expenses"
+          },
+          "net_cash_flow": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net Cash Flow"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_start",
+          "income",
+          "expenses",
+          "net_cash_flow"
+        ],
+        "title": "CashFlowPointData"
+      },
       "CashFlowPointResponse": {
         "properties": {
           "period_start": {
@@ -8182,6 +9271,89 @@
           "items"
         ],
         "title": "CashFlowSeriesResponse"
+      },
+      "CashFlowWidget": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "empty",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CashFlowWidgetData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "CashFlowWidget"
+      },
+      "CashFlowWidgetData": {
+        "properties": {
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "granularity": {
+            "type": "string",
+            "title": "Granularity"
+          },
+          "income": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Income"
+          },
+          "expenses": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Expenses"
+          },
+          "net_cash_flow": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net Cash Flow"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/CashFlowPointData"
+            },
+            "type": "array",
+            "title": "Points"
+          }
+        },
+        "type": "object",
+        "required": [
+          "currency",
+          "granularity",
+          "income",
+          "expenses",
+          "net_cash_flow",
+          "points"
+        ],
+        "title": "CashFlowWidgetData"
       },
       "CashPlanCreate": {
         "properties": {
@@ -9834,6 +11006,178 @@
         "type": "object",
         "title": "CategoryUpdate"
       },
+      "CommitmentAttentionItemResponse": {
+        "properties": {
+          "commitment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Commitment Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "commitment_id",
+          "code",
+          "message",
+          "name"
+        ],
+        "title": "CommitmentAttentionItemResponse"
+      },
+      "CommitmentCalendarEventResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "commitment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Commitment Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Event Date"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "commitment_id",
+          "name",
+          "event_type",
+          "event_date",
+          "severity",
+          "currency"
+        ],
+        "title": "CommitmentCalendarEventResponse"
+      },
+      "CommitmentCalendarResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CommitmentCalendarEventResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "CommitmentCalendarResponse"
+      },
+      "CommitmentUpcomingDueResponse": {
+        "properties": {
+          "commitment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Commitment Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Due Date"
+          },
+          "days_until_due": {
+            "type": "integer",
+            "title": "Days Until Due"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "commitment_id",
+          "name",
+          "currency",
+          "due_date",
+          "days_until_due"
+        ],
+        "title": "CommitmentUpcomingDueResponse"
+      },
+      "ComplianceStatusResponse": {
+        "properties": {
+          "is_compliant": {
+            "type": "boolean",
+            "title": "Is Compliant"
+          },
+          "pending_documents": {
+            "items": {
+              "$ref": "#/components/schemas/PendingDocumentResponse"
+            },
+            "type": "array",
+            "title": "Pending Documents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_compliant",
+          "pending_documents"
+        ],
+        "title": "ComplianceStatusResponse"
+      },
       "CurrencyBalanceResponse": {
         "properties": {
           "currency": {
@@ -9854,6 +11198,12 @@
             "type": "string",
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Net Worth"
+          },
+          "liquid_balance": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Liquid Balance",
+            "default": "0.00"
           }
         },
         "type": "object",
@@ -9995,6 +11345,173 @@
         ],
         "title": "DashboardAccountResponse"
       },
+      "DashboardCurrencyMetrics": {
+        "properties": {
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "net_worth": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net Worth"
+          },
+          "liquid_balance": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Liquid Balance"
+          },
+          "total_assets": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Assets"
+          },
+          "total_liabilities": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Liabilities"
+          },
+          "monthly_income": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Monthly Income"
+          },
+          "monthly_expenses": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Monthly Expenses"
+          },
+          "monthly_net_flow": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Monthly Net Flow"
+          }
+        },
+        "type": "object",
+        "required": [
+          "currency",
+          "net_worth",
+          "liquid_balance",
+          "total_assets",
+          "total_liabilities",
+          "monthly_income",
+          "monthly_expenses",
+          "monthly_net_flow"
+        ],
+        "title": "DashboardCurrencyMetrics"
+      },
+      "DashboardOrganizationInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "timezone",
+          "currency"
+        ],
+        "title": "DashboardOrganizationInfo"
+      },
+      "DashboardPeriodInfo": {
+        "properties": {
+          "date_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Date From"
+          },
+          "date_to": {
+            "type": "string",
+            "format": "date",
+            "title": "Date To"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date_from",
+          "date_to",
+          "timezone"
+        ],
+        "title": "DashboardPeriodInfo"
+      },
+      "DashboardResponse": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/DashboardOrganizationInfo"
+          },
+          "period": {
+            "$ref": "#/components/schemas/DashboardPeriodInfo"
+          },
+          "currencies": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardCurrencyMetrics"
+            },
+            "type": "array",
+            "title": "Currencies"
+          },
+          "selected_currency": {
+            "type": "string",
+            "title": "Selected Currency"
+          },
+          "available_currencies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Available Currencies"
+          },
+          "widgets": {
+            "$ref": "#/components/schemas/DashboardWidgets"
+          },
+          "financial_commitments": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FinancialCommitmentsProjection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "organization",
+          "period",
+          "currencies",
+          "selected_currency",
+          "available_currencies",
+          "widgets"
+        ],
+        "title": "DashboardResponse",
+        "description": "Single dashboard projection for the organization overview."
+      },
       "DashboardSummaryResponse": {
         "properties": {
           "period": {
@@ -10064,6 +11581,58 @@
         "title": "DashboardSummaryResponse",
         "description": "Current balances + period cash flow.\n\nbalances / net worth reflect the current account state (not historical).\ncash_flow reflects only posted income/expense in the selected period.\nAmounts are grouped by currency; no FX conversion is applied.\nExpenses and liabilities are positive display values."
       },
+      "DashboardWidgets": {
+        "properties": {
+          "metrics": {
+            "$ref": "#/components/schemas/MetricsWidget"
+          },
+          "onboarding": {
+            "$ref": "#/components/schemas/OnboardingWidget"
+          },
+          "attention": {
+            "$ref": "#/components/schemas/AttentionWidget"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityWidget"
+          },
+          "cash_flow": {
+            "$ref": "#/components/schemas/CashFlowWidget"
+          },
+          "upcoming": {
+            "$ref": "#/components/schemas/UpcomingWidget"
+          },
+          "safe_to_spend": {
+            "$ref": "#/components/schemas/SafeToSpendWidget"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/ModuleWidget"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/ModuleWidget"
+          },
+          "debts": {
+            "$ref": "#/components/schemas/ModuleWidget"
+          },
+          "taxes": {
+            "$ref": "#/components/schemas/ModuleWidget"
+          }
+        },
+        "type": "object",
+        "required": [
+          "metrics",
+          "onboarding",
+          "attention",
+          "activity",
+          "cash_flow",
+          "upcoming",
+          "safe_to_spend",
+          "budget",
+          "goal",
+          "debts",
+          "taxes"
+        ],
+        "title": "DashboardWidgets"
+      },
       "DebtCreate": {
         "properties": {
           "account_id": {
@@ -10081,17 +11650,41 @@
             "type": "string",
             "enum": [
               "credit_card",
-              "personal_loan",
-              "auto_loan",
               "mortgage",
+              "auto_loan",
+              "personal_loan",
+              "business_loan",
               "student_loan",
-              "tax_debt",
               "line_of_credit",
+              "family_loan",
+              "installment_plan",
               "other"
             ],
             "title": "Debt Type"
           },
-          "annual_interest_rate": {
+          "creditor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creditor"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Priority",
+            "default": "medium"
+          },
+          "interest_rate": {
             "anyOf": [
               {
                 "type": "number",
@@ -10100,9 +11693,12 @@
               {
                 "type": "string",
                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
               }
             ],
-            "title": "Annual Interest Rate"
+            "title": "Interest Rate"
           },
           "minimum_payment": {
             "anyOf": [
@@ -10113,11 +11709,30 @@
               {
                 "type": "string",
                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
               }
             ],
             "title": "Minimum Payment"
           },
-          "original_principal": {
+          "scheduled_payment": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Payment"
+          },
+          "credit_limit": {
             "anyOf": [
               {
                 "type": "number",
@@ -10131,19 +11746,23 @@
                 "type": "null"
               }
             ],
-            "title": "Original Principal"
+            "title": "Credit Limit"
           },
-          "opened_at": {
+          "original_amount": {
             "anyOf": [
               {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
                 "type": "string",
-                "format": "date"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Opened At"
+            "title": "Original Amount"
           },
           "maturity_date": {
             "anyOf": [
@@ -10157,7 +11776,7 @@
             ],
             "title": "Maturity Date"
           },
-          "payment_day": {
+          "due_day": {
             "anyOf": [
               {
                 "type": "integer",
@@ -10168,7 +11787,7 @@
                 "type": "null"
               }
             ],
-            "title": "Payment Day"
+            "title": "Due Day"
           },
           "statement_day": {
             "anyOf": [
@@ -10201,9 +11820,7 @@
         "required": [
           "account_id",
           "name",
-          "debt_type",
-          "annual_interest_rate",
-          "minimum_payment"
+          "debt_type"
         ],
         "title": "DebtCreate"
       },
@@ -10227,6 +11844,48 @@
           "total"
         ],
         "title": "DebtListResponse"
+      },
+      "DebtNextActionResponse": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "reason_code": {
+            "type": "string",
+            "title": "Reason Code"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "reason_code"
+        ],
+        "title": "DebtNextActionResponse"
       },
       "DebtPaymentCreate": {
         "properties": {
@@ -10450,21 +12109,26 @@
             "type": "string",
             "title": "Debt Type"
           },
+          "creditor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creditor"
+          },
           "currency": {
             "type": "string",
             "title": "Currency"
           },
-          "annual_interest_rate": {
+          "priority": {
             "type": "string",
-            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-            "title": "Annual Interest Rate"
+            "title": "Priority"
           },
-          "minimum_payment": {
-            "type": "string",
-            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-            "title": "Minimum Payment"
-          },
-          "original_principal": {
+          "interest_rate": {
             "anyOf": [
               {
                 "type": "string",
@@ -10474,19 +12138,55 @@
                 "type": "null"
               }
             ],
-            "title": "Original Principal"
+            "title": "Interest Rate"
           },
-          "opened_at": {
+          "minimum_payment": {
             "anyOf": [
               {
                 "type": "string",
-                "format": "date"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Opened At"
+            "title": "Minimum Payment"
+          },
+          "scheduled_payment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Payment"
+          },
+          "credit_limit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Limit"
+          },
+          "original_amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Amount"
           },
           "maturity_date": {
             "anyOf": [
@@ -10500,7 +12200,7 @@
             ],
             "title": "Maturity Date"
           },
-          "payment_day": {
+          "due_day": {
             "anyOf": [
               {
                 "type": "integer"
@@ -10509,7 +12209,7 @@
                 "type": "null"
               }
             ],
-            "title": "Payment Day"
+            "title": "Due Day"
           },
           "statement_day": {
             "anyOf": [
@@ -10526,6 +12226,28 @@
             "type": "string",
             "title": "Status"
           },
+          "display_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Status"
+          },
+          "behavior": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Behavior"
+          },
           "notes": {
             "anyOf": [
               {
@@ -10537,10 +12259,59 @@
             ],
             "title": "Notes"
           },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
           "current_balance": {
             "type": "string",
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Current Balance"
+          },
+          "next_due_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Due Date"
+          },
+          "days_until_due": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Until Due"
+          },
+          "utilization_percentage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utilization Percentage"
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DebtNextActionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "payoff_date": {
             "anyOf": [
@@ -10610,7 +12381,7 @@
             "format": "date-time",
             "title": "Updated At"
           },
-          "paid_off_at": {
+          "closed_at": {
             "anyOf": [
               {
                 "type": "string",
@@ -10620,7 +12391,7 @@
                 "type": "null"
               }
             ],
-            "title": "Paid Off At"
+            "title": "Closed At"
           },
           "archived_at": {
             "anyOf": [
@@ -10642,16 +12413,20 @@
           "account_id",
           "name",
           "debt_type",
+          "creditor",
           "currency",
-          "annual_interest_rate",
+          "priority",
+          "interest_rate",
           "minimum_payment",
-          "original_principal",
-          "opened_at",
+          "scheduled_payment",
+          "credit_limit",
+          "original_amount",
           "maturity_date",
-          "payment_day",
+          "due_day",
           "statement_day",
           "status",
           "notes",
+          "version",
           "current_balance",
           "payoff_date",
           "months_remaining",
@@ -10660,10 +12435,92 @@
           "is_payment_sufficient",
           "created_at",
           "updated_at",
-          "paid_off_at",
+          "closed_at",
           "archived_at"
         ],
         "title": "DebtResponse"
+      },
+      "DebtStrategyResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "strategy": {
+            "type": "string",
+            "title": "Strategy"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StrategySummaryResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StrategyNextActionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ranking": {
+            "items": {
+              "$ref": "#/components/schemas/StrategyRankingItemResponse"
+            },
+            "type": "array",
+            "title": "Ranking"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "excluded_commitments": {
+            "type": "integer",
+            "title": "Excluded Commitments",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "strategy",
+          "generated_at"
+        ],
+        "title": "DebtStrategyResponse"
+      },
+      "DebtStrategyUpdate": {
+        "properties": {
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "avalanche",
+              "snowball",
+              "minimum_only",
+              "manual"
+            ],
+            "title": "Strategy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "strategy"
+        ],
+        "title": "DebtStrategyUpdate"
       },
       "DebtSummaryByCurrencyResponse": {
         "properties": {
@@ -10735,6 +12592,40 @@
             },
             "type": "array",
             "title": "By Currency"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/DebtSummaryByCurrencyResponse"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "active_commitments": {
+            "type": "integer",
+            "title": "Active Commitments",
+            "default": 0
+          },
+          "commitments_needing_attention": {
+            "type": "integer",
+            "title": "Commitments Needing Attention",
+            "default": 0
+          },
+          "next_due": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CommitmentUpcomingDueResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attention": {
+            "items": {
+              "$ref": "#/components/schemas/CommitmentAttentionItemResponse"
+            },
+            "type": "array",
+            "title": "Attention"
           }
         },
         "type": "object",
@@ -10758,7 +12649,35 @@
             ],
             "title": "Name"
           },
-          "annual_interest_rate": {
+          "creditor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creditor"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "interest_rate": {
             "anyOf": [
               {
                 "type": "number",
@@ -10772,7 +12691,7 @@
                 "type": "null"
               }
             ],
-            "title": "Annual Interest Rate"
+            "title": "Interest Rate"
           },
           "minimum_payment": {
             "anyOf": [
@@ -10790,6 +12709,38 @@
             ],
             "title": "Minimum Payment"
           },
+          "scheduled_payment": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Payment"
+          },
+          "credit_limit": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Limit"
+          },
           "maturity_date": {
             "anyOf": [
               {
@@ -10802,7 +12753,7 @@
             ],
             "title": "Maturity Date"
           },
-          "payment_day": {
+          "due_day": {
             "anyOf": [
               {
                 "type": "integer",
@@ -10813,7 +12764,7 @@
                 "type": "null"
               }
             ],
-            "title": "Payment Day"
+            "title": "Due Day"
           },
           "statement_day": {
             "anyOf": [
@@ -10838,6 +12789,18 @@
               }
             ],
             "title": "Notes"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
           }
         },
         "additionalProperties": false,
@@ -10933,6 +12896,140 @@
           "amount"
         ],
         "title": "ExpenseTransactionCreate"
+      },
+      "FinancialCommitmentsAttentionItem": {
+        "properties": {
+          "commitment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Commitment Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "commitment_id",
+          "code",
+          "message"
+        ],
+        "title": "FinancialCommitmentsAttentionItem"
+      },
+      "FinancialCommitmentsNextDue": {
+        "properties": {
+          "commitment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Commitment Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "due_in_days": {
+            "type": "integer",
+            "title": "Due In Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "commitment_id",
+          "name",
+          "due_in_days"
+        ],
+        "title": "FinancialCommitmentsNextDue"
+      },
+      "FinancialCommitmentsProjection": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "empty",
+              "error"
+            ],
+            "title": "Status",
+            "default": "ready"
+          },
+          "active_count": {
+            "type": "integer",
+            "title": "Active Count",
+            "default": 0
+          },
+          "overdue_count": {
+            "type": "integer",
+            "title": "Overdue Count",
+            "default": 0
+          },
+          "totals_by_currency": {
+            "items": {
+              "$ref": "#/components/schemas/FinancialCommitmentsTotalByCurrency"
+            },
+            "type": "array",
+            "title": "Totals By Currency"
+          },
+          "next_due": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FinancialCommitmentsNextDue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attention": {
+            "items": {
+              "$ref": "#/components/schemas/FinancialCommitmentsAttentionItem"
+            },
+            "type": "array",
+            "title": "Attention"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "title": "FinancialCommitmentsProjection"
+      },
+      "FinancialCommitmentsTotalByCurrency": {
+        "properties": {
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "total_obligations": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Obligations"
+          },
+          "monthly_payments": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Monthly Payments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "currency",
+          "total_obligations",
+          "monthly_payments"
+        ],
+        "title": "FinancialCommitmentsTotalByCurrency"
       },
       "ForecastAllocationResponse": {
         "properties": {
@@ -11432,6 +13529,157 @@
         ],
         "title": "IncomeTransactionCreate"
       },
+      "LegalAcceptancePayload": {
+        "properties": {
+          "document_type": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Document Type"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Version"
+          },
+          "accepted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted"
+          },
+          "acknowledged": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "document_type",
+          "version"
+        ],
+        "title": "LegalAcceptancePayload"
+      },
+      "LegalAcceptanceRequestItem": {
+        "properties": {
+          "document_type": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Document Type"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Version"
+          },
+          "accepted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted"
+          },
+          "acknowledged": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "document_type",
+          "version"
+        ],
+        "title": "LegalAcceptanceRequestItem"
+      },
+      "LegalDocumentResponse": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "content_markdown": {
+            "type": "string",
+            "title": "Content Markdown"
+          },
+          "effective_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Effective At"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Published At"
+          },
+          "requires_reacceptance": {
+            "type": "boolean",
+            "title": "Requires Reacceptance"
+          },
+          "change_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "version",
+          "title",
+          "url",
+          "content_markdown",
+          "effective_at",
+          "published_at",
+          "requires_reacceptance"
+        ],
+        "title": "LegalDocumentResponse"
+      },
       "ManualProgressUpdate": {
         "properties": {
           "current_amount": {
@@ -11454,6 +13702,75 @@
           "current_amount"
         ],
         "title": "ManualProgressUpdate"
+      },
+      "MarketingConsentAvailability": {
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          }
+        },
+        "type": "object",
+        "required": [
+          "available",
+          "required"
+        ],
+        "title": "MarketingConsentAvailability"
+      },
+      "MarketingConsentRequest": {
+        "properties": {
+          "accepted": {
+            "type": "boolean",
+            "title": "Accepted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "accepted"
+        ],
+        "title": "MarketingConsentRequest"
+      },
+      "MarketingConsentState": {
+        "properties": {
+          "opted_in": {
+            "type": "boolean",
+            "title": "Opted In"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "opted_in"
+        ],
+        "title": "MarketingConsentState"
+      },
+      "MetricsWidget": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ready",
+            "title": "Status",
+            "default": "ready"
+          }
+        },
+        "type": "object",
+        "title": "MetricsWidget"
       },
       "MexicoCategoryMappingCreate": {
         "properties": {
@@ -12198,6 +14515,105 @@
         ],
         "title": "MexicoWorkpaperResponse"
       },
+      "ModuleLineData": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "ModuleLineData"
+      },
+      "ModuleWidget": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "not_configured",
+              "empty",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModuleWidgetData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ModuleWidget"
+      },
+      "ModuleWidgetData": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ModuleLineData"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "ModuleWidgetData"
+      },
       "NamedRefResponse": {
         "properties": {
           "id": {
@@ -12216,6 +14632,96 @@
           "name"
         ],
         "title": "NamedRefResponse"
+      },
+      "OnboardingStepData": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed"
+          },
+          "to": {
+            "type": "string",
+            "title": "To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "description",
+          "completed",
+          "to"
+        ],
+        "title": "OnboardingStepData"
+      },
+      "OnboardingWidget": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "empty"
+            ],
+            "title": "Status"
+          },
+          "data": {
+            "$ref": "#/components/schemas/OnboardingWidgetData"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "data"
+        ],
+        "title": "OnboardingWidget"
+      },
+      "OnboardingWidgetData": {
+        "properties": {
+          "is_visible": {
+            "type": "boolean",
+            "title": "Is Visible"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed"
+          },
+          "completed_steps": {
+            "type": "integer",
+            "title": "Completed Steps"
+          },
+          "total_steps": {
+            "type": "integer",
+            "title": "Total Steps"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/OnboardingStepData"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_visible",
+          "completed",
+          "completed_steps",
+          "total_steps",
+          "steps"
+        ],
+        "title": "OnboardingWidgetData"
       },
       "OrganizationCreate": {
         "properties": {
@@ -12607,6 +15113,34 @@
         ],
         "title": "PayoffPlanResponse"
       },
+      "PendingDocumentResponse": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "version",
+          "title",
+          "url"
+        ],
+        "title": "PendingDocumentResponse"
+      },
       "PeriodInfo": {
         "properties": {
           "date_from": {
@@ -12863,6 +15397,18 @@
             "minLength": 5,
             "title": "Locale",
             "default": "es-MX"
+          },
+          "legal_acceptances": {
+            "items": {
+              "$ref": "#/components/schemas/LegalAcceptancePayload"
+            },
+            "type": "array",
+            "title": "Legal Acceptances"
+          },
+          "marketing_consent": {
+            "type": "boolean",
+            "title": "Marketing Consent",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -12874,6 +15420,76 @@
           "organization_name"
         ],
         "title": "RegisterRequest"
+      },
+      "RegistrationDocumentRequirement": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "acceptance_required": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acceptance Required"
+          },
+          "acknowledgement_required": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledgement Required"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "version",
+          "title",
+          "url"
+        ],
+        "title": "RegistrationDocumentRequirement"
+      },
+      "RegistrationRequirementsResponse": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/RegistrationDocumentRequirement"
+            },
+            "type": "array",
+            "title": "Documents"
+          },
+          "marketing_consent": {
+            "$ref": "#/components/schemas/MarketingConsentAvailability"
+          }
+        },
+        "type": "object",
+        "required": [
+          "documents",
+          "marketing_consent"
+        ],
+        "title": "RegistrationRequirementsResponse"
       },
       "SafeToSpendResponse": {
         "properties": {
@@ -12912,6 +15528,213 @@
           "minimum_cash_buffer"
         ],
         "title": "SafeToSpendResponse"
+      },
+      "SafeToSpendWidget": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "not_configured",
+              "unavailable",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SafeToSpendWidgetData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "SafeToSpendWidget"
+      },
+      "SafeToSpendWidgetData": {
+        "properties": {
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "safe_to_spend": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safe To Spend"
+          },
+          "funding_gap": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Funding Gap"
+          }
+        },
+        "type": "object",
+        "required": [
+          "currency",
+          "safe_to_spend"
+        ],
+        "title": "SafeToSpendWidgetData"
+      },
+      "StrategyNextActionResponse": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "commitment_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commitment Id"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "reason_code": {
+            "type": "string",
+            "title": "Reason Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "reason_code"
+        ],
+        "title": "StrategyNextActionResponse"
+      },
+      "StrategyRankingItemResponse": {
+        "properties": {
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "commitment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Commitment Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "reason_code": {
+            "type": "string",
+            "title": "Reason Code"
+          },
+          "eligible": {
+            "type": "boolean",
+            "title": "Eligible",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "position",
+          "commitment_id",
+          "name",
+          "reason_code"
+        ],
+        "title": "StrategyRankingItemResponse"
+      },
+      "StrategySummaryResponse": {
+        "properties": {
+          "active_commitments": {
+            "type": "integer",
+            "title": "Active Commitments"
+          },
+          "total_balance": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Balance"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "active_commitments",
+          "total_balance",
+          "currency"
+        ],
+        "title": "StrategySummaryResponse"
       },
       "TaxCalculationLineResponse": {
         "properties": {
@@ -14224,7 +17047,7 @@
           "by_currency"
         ],
         "title": "TaxSummaryResponse",
-        "description": "Operational tax estimates \u2014 not formal tax advice."
+        "description": "Operational tax estimates — not formal tax advice."
       },
       "TaxTransactionOverrideCreate": {
         "properties": {
@@ -14795,6 +17618,101 @@
         ],
         "title": "UnclassifiedTransactionListResponse"
       },
+      "UpcomingWidget": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_configured",
+              "empty",
+              "ready"
+            ],
+            "title": "Status"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UpcomingWidgetData"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "data"
+        ],
+        "title": "UpcomingWidget"
+      },
+      "UpcomingWidgetData": {
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "title": "UpcomingWidgetData"
+      },
+      "UserDocumentItem": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "accepted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Accepted At"
+          },
+          "consent_type": {
+            "type": "string",
+            "title": "Consent Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "version",
+          "title",
+          "url",
+          "accepted_at",
+          "consent_type"
+        ],
+        "title": "UserDocumentItem"
+      },
+      "UserDocumentsResponse": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/UserDocumentItem"
+            },
+            "type": "array",
+            "title": "Documents"
+          },
+          "marketing_consent": {
+            "$ref": "#/components/schemas/MarketingConsentState"
+          }
+        },
+        "type": "object",
+        "required": [
+          "documents",
+          "marketing_consent"
+        ],
+        "title": "UserDocumentsResponse"
+      },
       "UserOrganizationItem": {
         "properties": {
           "id": {
@@ -14899,6 +17817,24 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WidgetAction": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "to": {
+            "type": "string",
+            "title": "To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "to"
+        ],
+        "title": "WidgetAction"
       }
     },
     "securitySchemes": {
