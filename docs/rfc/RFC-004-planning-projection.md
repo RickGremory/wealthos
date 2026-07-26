@@ -240,9 +240,11 @@ User opens Dashboard and sees spendable + committed with an explanation chain fe
 
 ---
 
-## Open points deferred to 8.2+
+## Open points deferred
 
-- Exact policy math and ordering edge cases  
-- How cash-plan occurrences map into forecast lines  
-- What-if scenario engine shape  
-- Timeline events when Safe To Spend changes materially  
+| Slice | Topic | Status |
+|-------|--------|--------|
+| **8.2** | Policy math, chronological trough, certainty, dedupe | **Accepted** — [Sprint 8.2](../roadmap/sprint-8.2-safe-to-spend-algorithm.md) |
+| **8.3** | How cash-plan / module adapters produce `PlanningContext` | Planned |
+| **8.4** | What-if scenario engine + UX | Planned |
+| **8.5** | SPEC + implementation; Timeline events on material STS changes | Planned |  

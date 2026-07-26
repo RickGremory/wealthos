@@ -117,9 +117,8 @@ See [RFC-004](../rfc/RFC-004-planning-projection.md) and [Sprint 8.1](../roadmap
 
 These remain useful and align with the principles above:
 
-- **Clarity over complexity** — if finances are not clear in minutes, we failed (P01, P04).  
-- **Goals before reports** — destinations beat vanity dashboards (P04, P07).  
-- **Education through the product** — teach healthy habits in context (P05, P07).  
+- **Planning Before Automation** — explainable rules before AI (P05).  
+- **Spendable from trough, not ending balance** — chronological minimum ([Sprint 8.2](../roadmap/sprint-8.2-safe-to-spend-algorithm.md)).  
 - **Orient before overwhelm** — lead with *What should I do next?* before raw metrics (P04, P08). Debts create stress; the UI must not. See [Sprint 6.2](../roadmap/sprint-6.2-commitments-ux.md).  
 - **Integrate, don’t isolate** — commitments enrich Dashboard, Calendar, Goals, and Planning without a second ledger ([Sprint 6.3](../roadmap/sprint-6.3-commitments-integration.md)).
 

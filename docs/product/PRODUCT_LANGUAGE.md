@@ -112,6 +112,24 @@ Computed photograph of the future for one org, currency, and horizon (today / 7d
 
 Projections must expose the mix for trust and future AI confidence.
 
+### Cash flow certainty (Planning)
+
+| Level | Meaning | Safe To Spend (V1) |
+|-------|---------|-------------------|
+| `confirmed` | Strong evidence | Include |
+| `expected` | Reasonably likely | Income if settings allow (default on); outflows include |
+| `estimated` | Weak forecast | Income **excluded**; outflows may include conservatively |
+
+Uncertain income must not inflate spendable cash.
+
+### Goal funding mode (Planning)
+
+| Mode | Effect |
+|------|--------|
+| `informational` | Progress only — no STS reduction |
+| `planned` | Dated contribution reduces STS |
+| `protected` | Linked cash treated as reserved |
+
 ### Cash Flow
 
 Movement of money over a period (in vs out). Distinct from Net Worth (stock) vs flow.

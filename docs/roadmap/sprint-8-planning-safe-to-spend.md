@@ -1,9 +1,9 @@
 # Sprint 8 — Planning & Safe To Spend
 
-**Status:** Design in progress — **8.1 Accepted**  
+**Status:** Design in progress — **8.1–8.2 Accepted**  
 **Epic:** [EPIC-007](../epics/EPIC-007-planning-safe-to-spend.md)  
 **RFC:** [RFC-004](../rfc/RFC-004-planning-projection.md)  
-**Decision:** [2026-07-25 Safe To Spend projection](../decisions/2026-07-25-safe-to-spend-projection.md)
+**Decision:** [Safe To Spend as Financial Projection](../decisions/2026-07-25-safe-to-spend-projection.md) · [Chronological trough](../decisions/2026-07-25-safe-to-spend-chronological.md)
 
 ---
 
@@ -20,7 +20,7 @@ Safe To Spend is a **consequence of Financial Projection**, not a stored balance
 | Slice | Focus | Status |
 |-------|--------|--------|
 | **8.1** | Domain / product model | **Accepted** — [8.1](./sprint-8.1-planning-domain-model.md) · [RFC-004](../rfc/RFC-004-planning-projection.md) |
-| **8.2** | Safe To Spend algorithm (policies) | Planned |
+| **8.2** | Safe To Spend algorithm (policies) | **Accepted** — [8.2](./sprint-8.2-safe-to-spend-algorithm.md) |
 | **8.3** | Integration with Goals, Commitments, Taxes | Planned |
 | **8.4** | UX + “¿Qué pasa si…?” scenarios | Planned |
 | **8.5** | Technical SPEC + implementation | Planned |
