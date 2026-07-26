@@ -130,10 +130,7 @@ class RecordDebtPaymentCommand:
         )
         stored_payment = self._payments.add(payment)
 
-        # Re-read liability balance after transfer posting.
-        refreshed = self._accounts.get_by_id(data.organization_id, debt.account_id)
-        if refreshed is not None and refreshed.current_balance.amount >= Decimal("0.00"):
-            debt.mark_paid_off()
-            debt = self._debts.save(debt)
+        # Balance changes live on the liability account; display status is derived.
+        # Do not persist paid_off on zero balance (revolving cards settle, not close).
 
         return RecordDebtPaymentResult(debt=debt, payment=stored_payment)

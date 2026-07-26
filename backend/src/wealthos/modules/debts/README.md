@@ -12,24 +12,29 @@ Debt → Liability Account → Transactions
 
 Product UI: **Obligaciones**. Domain module: `debts/`.
 
-Contract: [RFC-002](../../../../../docs/rfc/RFC-002-financial-commitments.md) · [6.2–6.5](../../../../../docs/roadmap/sprint-6-financial-commitments.md) · **Build:** [SPEC-002](../../../../../specs/backend/debts/SPEC-002-financial-commitments.md).
+Contract: [RFC-002](../../../../../docs/rfc/RFC-002-financial-commitments.md) · [SPEC-002](../../../../../specs/backend/debts/SPEC-002-financial-commitments.md).
+
+## Phase 1 (done)
+
+- Persisted status: `active` | `paused` | `defaulted` | `closed` | `archived` (no stored `paid_off`)
+- Derived display status via `DebtStateService` (`settled`, `overdue`, `paid_off`, …)
+- `UNIQUE(account_id)` · interest as percent `Numeric(9,6)` (`42.5` → `42.500000`)
+- Optional rate / minimum / scheduled payment · creditor · priority · `version`
+- Due day 31 → last day of month
 
 ## Responsibilities
 
-- Debt aggregate (org-scoped): type, creditor, priority, optional rate/minimums, status
-- **Never** store `current_balance` on Debt — derive from liability Account
-- Payments only via Transactions
-- Archive keeps history; strategies recommend only
+- Debt aggregate (org-scoped): metadata only — **never** store `current_balance`
+- Payments via transactions / transfers (Phase 5+); archive keeps history
+- Strategies recommend only (Phase 3+)
 
-## Public API
+## Public API (current + evolving)
 
-Under `/api/v1/organizations/{organization_id}` (evolve toward RFC-002):
+Under `/api/v1/organizations/{organization_id}`:
 
-- `GET/POST /debts`
-- `GET/PATCH /debts/{debt_id}`
-- Archive / payment endpoints as specified in Sprint 6.2+
+- `GET/POST /debts` (canonical path becomes `/commitments` in later phases)
+- Lifecycle: archive; pause/resume/close land in Phase 2
 
 ## Notes
 
-Sprint: [Financial Commitments](../../../../../docs/roadmap/sprint-6-financial-commitments.md).  
-Language: [PRODUCT_LANGUAGE.md](../../../../../docs/product/PRODUCT_LANGUAGE.md).
+Interest rate convention: **percent**, six decimal places — never store `0.425` for 42.5%.

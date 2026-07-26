@@ -99,7 +99,8 @@ def test_concurrent_debt_payments_one_succeeds_one_fails(client: TestClient) -> 
             "account_id": card["id"],
             "name": "Tarjeta concurrente",
             "debt_type": "credit_card",
-            "annual_interest_rate": "36.00",
+            "creditor": "Banco",
+            "interest_rate": "36.00",
             "minimum_payment": "500.00",
         },
     ).json()

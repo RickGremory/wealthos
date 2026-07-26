@@ -28,12 +28,15 @@ class CreateDebtInput:
     account_id: UUID
     name: str
     debt_type: str
-    annual_interest_rate: Decimal
-    minimum_payment: Decimal
-    original_principal: Decimal | None = None
-    opened_at: date | None = None
+    creditor: str | None = None
+    priority: str = "medium"
+    interest_rate: Decimal | None = None
+    minimum_payment: Decimal | None = None
+    scheduled_payment: Decimal | None = None
+    credit_limit: Decimal | None = None
+    original_amount: Decimal | None = None
     maturity_date: date | None = None
-    payment_day: int | None = None
+    due_day: int | None = None
     statement_day: int | None = None
     notes: str | None = None
 
@@ -56,27 +59,35 @@ class CreateDebtCommand:
             data.account_id,
         )
         if existing is not None:
-            raise DebtAlreadyExistsForAccount("An active debt already exists for this account.")
+            raise DebtAlreadyExistsForAccount(
+                "A commitment already exists for this account."
+            )
 
         currency = account.currency.value
-        original = None
-        if data.original_principal is not None:
-            original = Money(data.original_principal, currency)
+
+        def _money(amount: Decimal | None) -> Money | None:
+            if amount is None:
+                return None
+            return Money(amount, currency)
 
         debt = Debt.create(
             organization_id=data.organization_id,
             account_id=data.account_id,
             name=data.name,
             debt_type=data.debt_type,
-            annual_interest_rate=data.annual_interest_rate,
-            minimum_payment=Money(data.minimum_payment, currency),
-            original_principal=original,
-            opened_at=data.opened_at,
+            currency=currency,
+            creditor=data.creditor,
+            priority=data.priority,
+            interest_rate=data.interest_rate,
+            minimum_payment=_money(data.minimum_payment),
+            scheduled_payment=_money(data.scheduled_payment),
+            credit_limit=_money(data.credit_limit),
+            original_amount=_money(data.original_amount),
             maturity_date=data.maturity_date,
-            payment_day=data.payment_day,
+            due_day=data.due_day,
             statement_day=data.statement_day,
             notes=data.notes,
         )
-        if debt.minimum_payment.currency.value != currency:
+        if debt.currency != currency:
             raise DebtCurrencyMismatch("Debt currency must match the account currency.")
         return self._debts.add(debt)

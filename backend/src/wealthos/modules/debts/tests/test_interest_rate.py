@@ -8,14 +8,14 @@ from wealthos.modules.debts.domain.exceptions import InvalidInterestRate
 from wealthos.modules.debts.domain.value_objects.interest_rate import InterestRate
 
 
-def test_stores_annual_percentage_rounded_to_four_places() -> None:
-    rate = InterestRate("42.12345")
-    assert rate.annual_percentage == Decimal("42.1235")
+def test_stores_annual_percentage_rounded_to_six_places() -> None:
+    rate = InterestRate("42.1234567")
+    assert rate.annual_percentage == Decimal("42.123457")
 
 
 def test_accepts_int_and_decimal() -> None:
-    assert InterestRate(0).annual_percentage == Decimal("0.0000")
-    assert InterestRate(Decimal("18.5")).annual_percentage == Decimal("18.5000")
+    assert InterestRate(0).annual_percentage == Decimal("0.000000")
+    assert InterestRate(Decimal("18.5")).annual_percentage == Decimal("18.500000")
 
 
 def test_rejects_float() -> None:
@@ -40,4 +40,4 @@ def test_equality_and_repr() -> None:
     assert a == b
     assert a != c
     assert "InterestRate" in repr(a)
-    assert str(a) == "10.0000%"
+    assert str(a) == "10.000000%"

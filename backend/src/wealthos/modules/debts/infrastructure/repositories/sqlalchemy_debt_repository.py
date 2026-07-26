@@ -38,11 +38,10 @@ class SqlAlchemyDebtRepository(BaseRepository[DebtModel]):
         organization_id: UUID,
         account_id: UUID,
     ) -> Debt | None:
+        """Return any commitment linked to the account (1:1 UNIQUE)."""
         stmt = select(DebtModel).where(
             DebtModel.organization_id == organization_id,
             DebtModel.account_id == account_id,
-            DebtModel.status.in_(("active", "paid_off")),
-            DebtModel.archived_at.is_(None),
         )
         model = self.session.scalars(stmt).first()
         return self._mapper.to_entity(model) if model else None

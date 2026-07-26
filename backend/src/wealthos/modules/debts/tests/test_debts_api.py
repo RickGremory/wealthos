@@ -121,7 +121,7 @@ def _create_debt(
     account_id: str,
     name: str = "Tarjeta Nu",
     debt_type: str = "credit_card",
-    annual_interest_rate: str = "42.00",
+    interest_rate: str = "42.00",
     minimum_payment: str = "2000.00",
 ) -> dict:
     return client.post(
@@ -131,7 +131,8 @@ def _create_debt(
             "account_id": account_id,
             "name": name,
             "debt_type": debt_type,
-            "annual_interest_rate": annual_interest_rate,
+            "creditor": "Nu",
+            "interest_rate": interest_rate,
             "minimum_payment": minimum_payment,
         },
     )
@@ -221,7 +222,8 @@ def test_full_debt_payoff_flow(client: TestClient) -> None:
     assert second_payment.status_code == 201, second_payment.text
 
     debt_after_second = client.get(f"{ORG}/{org_id}/debts/{debt['id']}", headers=headers).json()
-    assert debt_after_second["status"] == "paid_off"
+    assert debt_after_second["status"] == "active"
+    assert debt_after_second["display_status"] == "settled"
     assert Decimal(str(debt_after_second["current_balance"])) == Decimal("0.00")
 
     payments = client.get(

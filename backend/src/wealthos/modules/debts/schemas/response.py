@@ -18,16 +18,22 @@ class DebtResponse(BaseModel):
     account_id: UUID
     name: str
     debt_type: str
+    creditor: str | None
     currency: str
-    annual_interest_rate: Decimal
-    minimum_payment: Decimal
-    original_principal: Decimal | None
-    opened_at: date | None
+    priority: str
+    interest_rate: Decimal | None
+    minimum_payment: Decimal | None
+    scheduled_payment: Decimal | None
+    credit_limit: Decimal | None
+    original_amount: Decimal | None
     maturity_date: date | None
-    payment_day: int | None
+    due_day: int | None
     statement_day: int | None
     status: str
+    display_status: str | None = None
+    behavior: str | None = None
     notes: str | None
+    version: int
     current_balance: Decimal
     payoff_date: date | None
     months_remaining: int | None
@@ -36,7 +42,7 @@ class DebtResponse(BaseModel):
     is_payment_sufficient: bool | None
     created_at: datetime
     updated_at: datetime
-    paid_off_at: datetime | None
+    closed_at: datetime | None
     archived_at: datetime | None
 
     @classmethod
@@ -49,18 +55,30 @@ class DebtResponse(BaseModel):
             account_id=debt.account_id,
             name=debt.name.value,
             debt_type=debt.debt_type.value,
-            currency=debt.minimum_payment.currency.value,
-            annual_interest_rate=debt.annual_interest_rate.annual_percentage,
-            minimum_payment=debt.minimum_payment.amount,
-            original_principal=(
-                debt.original_principal.amount if debt.original_principal else None
+            creditor=debt.creditor,
+            currency=debt.currency,
+            priority=debt.priority.value,
+            interest_rate=(
+                debt.interest_rate.annual_percentage if debt.interest_rate else None
             ),
-            opened_at=debt.opened_at,
+            minimum_payment=(
+                debt.minimum_payment.amount if debt.minimum_payment else None
+            ),
+            scheduled_payment=(
+                debt.scheduled_payment.amount if debt.scheduled_payment else None
+            ),
+            credit_limit=debt.credit_limit.amount if debt.credit_limit else None,
+            original_amount=(
+                debt.original_amount.amount if debt.original_amount else None
+            ),
             maturity_date=debt.maturity_date,
-            payment_day=debt.payment_day,
+            due_day=debt.due_day,
             statement_day=debt.statement_day,
             status=debt.status.value,
+            display_status=item.display_status,
+            behavior=debt.debt_type.behavior,
             notes=debt.notes,
+            version=debt.version,
             current_balance=item.current_balance.amount,
             payoff_date=payoff.payoff_date if payoff else None,
             months_remaining=payoff.months_remaining if payoff else None,
@@ -69,7 +87,7 @@ class DebtResponse(BaseModel):
             is_payment_sufficient=payoff.is_payment_sufficient if payoff else None,
             created_at=debt.created_at,
             updated_at=debt.updated_at,
-            paid_off_at=debt.paid_off_at,
+            closed_at=debt.closed_at,
             archived_at=debt.archived_at,
         )
 
@@ -104,7 +122,9 @@ class DebtPaymentResponse(BaseModel):
             principal_amount=(
                 payment.principal_amount.amount if payment.principal_amount else None
             ),
-            interest_amount=(payment.interest_amount.amount if payment.interest_amount else None),
+            interest_amount=(
+                payment.interest_amount.amount if payment.interest_amount else None
+            ),
             paid_at=payment.paid_at,
             created_by_user_id=payment.created_by_user_id,
             created_at=payment.created_at,

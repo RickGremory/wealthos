@@ -255,14 +255,16 @@ class SqlAlchemyPlanningReadRepository:
             DebtModel.currency == currency,
             DebtModel.status == "active",
             DebtModel.archived_at.is_(None),
-            DebtModel.minimum_payment > 0,
         )
         results: list[PlanningCommitmentView] = []
         for debt in self._session.scalars(stmt):
+            amount = debt.scheduled_payment or debt.minimum_payment
+            if amount is None or Decimal(str(amount)) <= 0:
+                continue
             for expected in _payment_dates_in_range(
                 date_from,
                 date_to,
-                debt.payment_day,
+                debt.due_day,
             ):
                 results.append(
                     PlanningCommitmentView(
@@ -270,7 +272,7 @@ class SqlAlchemyPlanningReadRepository:
                         source_id=debt.id,
                         description=f"Minimum payment — {debt.name}",
                         expected_date=expected,
-                        amount=Decimal(str(debt.minimum_payment)),
+                        amount=Decimal(str(amount)),
                         currency=debt.currency,
                         linked_entity_type="debt",
                         linked_entity_id=debt.id,

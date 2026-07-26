@@ -7,15 +7,19 @@ from wealthos.modules.debts.domain.exceptions import InvalidDebtType
 ALLOWED = frozenset(
     {
         "credit_card",
-        "personal_loan",
-        "auto_loan",
         "mortgage",
+        "auto_loan",
+        "personal_loan",
+        "business_loan",
         "student_loan",
-        "tax_debt",
         "line_of_credit",
+        "family_loan",
+        "installment_plan",
         "other",
     }
 )
+
+REVOLVING_TYPES = frozenset({"credit_card", "line_of_credit"})
 
 
 class DebtType:
@@ -31,6 +35,19 @@ class DebtType:
     @property
     def value(self) -> str:
         return self._value
+
+    @property
+    def is_revolving(self) -> bool:
+        return self._value in REVOLVING_TYPES
+
+    @property
+    def is_installment(self) -> bool:
+        return not self.is_revolving
+
+    @property
+    def behavior(self) -> str:
+        """DebtBehavior: revolving | installment (derived, not persisted)."""
+        return "revolving" if self.is_revolving else "installment"
 
     def __str__(self) -> str:
         return self._value

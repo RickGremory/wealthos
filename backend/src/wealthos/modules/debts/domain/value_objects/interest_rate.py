@@ -1,4 +1,8 @@
-"""Annual interest rate as a percentage Decimal (never float)."""
+"""Annual interest rate as a percentage Decimal (never float).
+
+Convention (SPEC-002): 42.5% is stored as 42.500000 — never 0.425.
+Precision: Numeric(9, 6) / six decimal places.
+"""
 
 from __future__ import annotations
 
@@ -6,11 +10,11 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from wealthos.modules.debts.domain.exceptions import InvalidInterestRate
 
-_FOUR_PLACES = Decimal("0.0001")
+_SIX_PLACES = Decimal("0.000001")
 
 
 class InterestRate:
-    """Stored as annual percentage, e.g. 42.50 means 42.50% APR."""
+    """Stored as annual percentage, e.g. 42.500000 means 42.5% APR."""
 
     __slots__ = ("_annual_percentage",)
 
@@ -24,7 +28,7 @@ class InterestRate:
         )
         if value < 0:
             raise InvalidInterestRate("Interest rate cannot be negative.")
-        self._annual_percentage = value.quantize(_FOUR_PLACES, rounding=ROUND_HALF_UP)
+        self._annual_percentage = value.quantize(_SIX_PLACES, rounding=ROUND_HALF_UP)
 
     @property
     def annual_percentage(self) -> Decimal:

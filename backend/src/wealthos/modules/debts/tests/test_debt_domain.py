@@ -1,6 +1,5 @@
-"""Debt aggregate domain tests."""
+"""Debt aggregate domain tests (SPEC-002 Phase 1)."""
 
-from datetime import date
 from decimal import Decimal
 from uuid import uuid4
 
@@ -9,9 +8,11 @@ import pytest
 from wealthos.modules.debts.domain.entities.debt import Debt
 from wealthos.modules.debts.domain.exceptions import (
     DebtAlreadyArchived,
-    DebtAlreadyPaidOff,
-    InvalidMinimumPayment,
-    InvalidPaymentDay,
+    DebtAlreadyClosed,
+    DebtAlreadyPaused,
+    DebtNotPaused,
+    InvalidCalendarDay,
+    InvalidPaymentAmount,
 )
 from wealthos.shared.domain.value_objects.money import Money
 
@@ -22,131 +23,125 @@ def _make_debt(**overrides) -> Debt:
         "account_id": uuid4(),
         "name": "Tarjeta Nu",
         "debt_type": "credit_card",
-        "annual_interest_rate": Decimal("42.5"),
+        "currency": "MXN",
+        "creditor": "Nu",
+        "priority": "high",
+        "interest_rate": Decimal("42.5"),
         "minimum_payment": Money(Decimal("500.00"), "MXN"),
     }
     defaults.update(overrides)
     return Debt.create(**defaults)
 
 
-def test_create_valid_debt() -> None:
+def test_create_valid_debt_with_optional_enrichment() -> None:
     debt = _make_debt()
     assert debt.status.is_active
-    assert debt.name.value == "Tarjeta Nu"
-    assert debt.debt_type.value == "credit_card"
-    assert debt.paid_off_at is None
-    assert debt.archived_at is None
+    assert debt.priority.value == "high"
+    assert debt.creditor == "Nu"
+    assert debt.currency == "MXN"
+    assert debt.interest_rate is not None
+    assert debt.interest_rate.annual_percentage == Decimal("42.500000")
+    assert debt.version == 1
+    assert debt.closed_at is None
+    assert debt.debt_type.behavior == "revolving"
 
 
-def test_rejects_non_positive_minimum_payment() -> None:
-    with pytest.raises(InvalidMinimumPayment):
+def test_create_minimal_debt_without_rate_or_payments() -> None:
+    debt = Debt.create(
+        organization_id=uuid4(),
+        account_id=uuid4(),
+        name="Préstamo familiar",
+        debt_type="family_loan",
+        currency="MXN",
+        creditor="Papá",
+    )
+    assert debt.interest_rate is None
+    assert debt.minimum_payment is None
+    assert debt.scheduled_payment is None
+    assert debt.debt_type.behavior == "installment"
+
+
+def test_rejects_zero_minimum_when_set() -> None:
+    with pytest.raises(InvalidPaymentAmount):
         _make_debt(minimum_payment=Money(Decimal("0.00"), "MXN"))
 
 
-def test_rejects_original_principal_currency_mismatch() -> None:
-    with pytest.raises(InvalidMinimumPayment):
-        _make_debt(original_principal=Money(Decimal("1000.00"), "USD"))
+def test_rejects_currency_mismatch_on_optional_money() -> None:
+    with pytest.raises(InvalidPaymentAmount):
+        _make_debt(original_amount=Money(Decimal("1000.00"), "USD"))
 
 
-def test_rejects_negative_original_principal() -> None:
-    with pytest.raises(InvalidMinimumPayment):
-        Debt.create(
-            organization_id=uuid4(),
-            account_id=uuid4(),
-            name="Tarjeta",
-            debt_type="credit_card",
-            annual_interest_rate=Decimal("10"),
-            minimum_payment=Money(Decimal("100.00"), "MXN"),
-            original_principal=Money(Decimal("-1.00"), "MXN"),
-        )
-
-
-def test_rejects_invalid_payment_day() -> None:
-    with pytest.raises(InvalidPaymentDay):
-        _make_debt(payment_day=32)
-    with pytest.raises(InvalidPaymentDay):
+def test_rejects_invalid_due_day() -> None:
+    with pytest.raises(InvalidCalendarDay):
+        _make_debt(due_day=32)
+    with pytest.raises(InvalidCalendarDay):
         _make_debt(statement_day=0)
 
 
-def test_rename_and_change_terms() -> None:
+def test_rename_and_change_terms_bumps_version() -> None:
     debt = _make_debt()
+    assert debt.version == 1
     debt.rename("Tarjeta Nu Platino")
     assert debt.name.value == "Tarjeta Nu Platino"
+    assert debt.version == 2
 
     debt.change_interest_rate("39.9")
-    assert debt.annual_interest_rate.annual_percentage == Decimal("39.9000")
+    assert debt.interest_rate is not None
+    assert debt.interest_rate.annual_percentage == Decimal("39.900000")
 
     debt.change_minimum_payment(Money(Decimal("650.00"), "MXN"))
-    assert debt.minimum_payment.amount == Decimal("650.00")
-
-    debt.change_maturity_date(date(2030, 1, 1))
-    assert debt.maturity_date == date(2030, 1, 1)
-
-    debt.change_payment_day(15)
-    assert debt.payment_day == 15
-
-    debt.change_statement_day(1)
-    assert debt.statement_day == 1
-
-    debt.change_notes("  Renegociada  ")
-    assert debt.notes == "Renegociada"
-    debt.change_notes(None)
-    assert debt.notes is None
+    debt.change_due_day(15)
+    assert debt.due_day == 15
+    debt.change_interest_rate(None)
+    assert debt.interest_rate is None
 
 
-def test_change_minimum_payment_rejects_currency_change() -> None:
+def test_pause_resume_close_archive_lifecycle() -> None:
     debt = _make_debt()
-    with pytest.raises(InvalidMinimumPayment):
-        debt.change_minimum_payment(Money(Decimal("100.00"), "USD"))
+    debt.pause()
+    assert debt.status.is_paused
+    with pytest.raises(DebtAlreadyPaused):
+        debt.pause()
 
+    debt.resume()
+    assert debt.status.is_active
+    with pytest.raises(DebtNotPaused):
+        debt.resume()
 
-def test_change_minimum_payment_rejects_non_positive() -> None:
-    debt = _make_debt()
-    with pytest.raises(InvalidMinimumPayment):
-        debt.change_minimum_payment(Money(Decimal("0.00"), "MXN"))
-
-
-def test_mark_paid_off_and_archive_lifecycle() -> None:
-    debt = _make_debt()
-    debt.mark_paid_off()
-    assert debt.status.is_paid_off
-    assert debt.paid_off_at is not None
-
-    with pytest.raises(DebtAlreadyPaidOff):
-        debt.mark_paid_off()
+    debt.close()
+    assert debt.status.is_closed
+    assert debt.closed_at is not None
+    with pytest.raises(DebtAlreadyClosed):
+        debt.close()
 
     debt.archive()
     assert debt.status.is_archived
-    assert debt.archived_at is not None
-
     with pytest.raises(DebtAlreadyArchived):
         debt.archive()
 
 
-def test_cannot_mark_archived_debt_paid_off() -> None:
-    debt = _make_debt()
-    debt.archive()
-    with pytest.raises(DebtAlreadyArchived):
-        debt.mark_paid_off()
-
-
-def test_cannot_mutate_archived_debt() -> None:
-    debt = _make_debt()
-    debt.archive()
-    with pytest.raises(DebtAlreadyArchived):
-        debt.rename("Otro nombre")
-
-
-def test_ensure_accepts_payment() -> None:
-    debt = _make_debt()
-    debt.ensure_accepts_payment()  # no raise
-
-    paid_off = _make_debt()
-    paid_off.mark_paid_off()
-    with pytest.raises(DebtAlreadyPaidOff):
-        paid_off.ensure_accepts_payment()
+def test_cannot_mutate_closed_or_archived() -> None:
+    closed = _make_debt()
+    closed.close()
+    with pytest.raises(DebtAlreadyClosed):
+        closed.rename("x")
 
     archived = _make_debt()
     archived.archive()
     with pytest.raises(DebtAlreadyArchived):
-        archived.ensure_accepts_payment()
+        archived.rename("x")
+
+
+def test_ensure_accepts_payment() -> None:
+    debt = _make_debt()
+    debt.ensure_accepts_payment()
+
+    paused = _make_debt()
+    paused.pause()
+    with pytest.raises(DebtAlreadyPaused):
+        paused.ensure_accepts_payment()
+
+    closed = _make_debt()
+    closed.close()
+    with pytest.raises(DebtAlreadyClosed):
+        closed.ensure_accepts_payment()

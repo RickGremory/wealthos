@@ -12,7 +12,7 @@ from wealthos.modules.accounts.domain.repositories.account_repository import (
 from wealthos.modules.debts.domain.repositories.debt_repository import DebtRepository
 
 _ZERO = Decimal("0.00")
-_RATE_PLACES = Decimal("0.0001")
+_RATE_PLACES = Decimal("0.000001")
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,9 +44,18 @@ class GetDebtSummaryQuery:
             account = self._accounts.get_by_id(organization_id, debt.account_id)
             if account is None:
                 continue
-            currency = debt.minimum_payment.currency.value
+            currency = debt.currency
             balance = abs(account.current_balance.amount)
-            rate = debt.annual_interest_rate.annual_percentage
+            rate = (
+                debt.interest_rate.annual_percentage
+                if debt.interest_rate is not None
+                else _ZERO
+            )
+            required = _ZERO
+            if debt.scheduled_payment is not None:
+                required = debt.scheduled_payment.amount
+            elif debt.minimum_payment is not None:
+                required = debt.minimum_payment.amount
 
             bucket = buckets.setdefault(
                 currency,
@@ -54,16 +63,21 @@ class GetDebtSummaryQuery:
                     "total_debt": _ZERO,
                     "total_minimum_payments": _ZERO,
                     "weighted_rate_sum": _ZERO,
+                    "rate_weight": _ZERO,
                     "count": 0,
                     "highest_rate": None,
                     "highest_rate_debt_id": None,
                 },
             )
             bucket["total_debt"] += balance
-            bucket["total_minimum_payments"] += debt.minimum_payment.amount
-            bucket["weighted_rate_sum"] += balance * rate
+            bucket["total_minimum_payments"] += required
+            if debt.interest_rate is not None:
+                bucket["weighted_rate_sum"] += balance * rate
+                bucket["rate_weight"] += balance
             bucket["count"] += 1
-            if bucket["highest_rate"] is None or rate > bucket["highest_rate"]:
+            if debt.interest_rate is not None and (
+                bucket["highest_rate"] is None or rate > bucket["highest_rate"]
+            ):
                 bucket["highest_rate"] = rate
                 bucket["highest_rate_debt_id"] = debt.id
 
@@ -73,9 +87,11 @@ class GetDebtSummaryQuery:
                 total_debt=bucket["total_debt"],
                 total_minimum_payments=bucket["total_minimum_payments"],
                 weighted_average_rate=(
-                    (bucket["weighted_rate_sum"] / bucket["total_debt"]).quantize(_RATE_PLACES)
-                    if bucket["total_debt"] > _ZERO
-                    else Decimal("0.0000")
+                    (bucket["weighted_rate_sum"] / bucket["rate_weight"]).quantize(
+                        _RATE_PLACES
+                    )
+                    if bucket["rate_weight"] > _ZERO
+                    else Decimal("0.000000")
                 ),
                 active_debt_count=bucket["count"],
                 highest_interest_debt_id=bucket["highest_rate_debt_id"],

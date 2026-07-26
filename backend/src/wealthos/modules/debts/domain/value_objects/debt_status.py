@@ -1,10 +1,10 @@
-"""Debt lifecycle status value object."""
+"""Debt lifecycle status value object (persisted)."""
 
 from __future__ import annotations
 
 from wealthos.modules.debts.domain.exceptions import InvalidDebtStatus
 
-ALLOWED = frozenset({"active", "paid_off", "archived"})
+ALLOWED = frozenset({"active", "paused", "defaulted", "closed", "archived"})
 
 
 class DebtStatus:
@@ -26,8 +26,16 @@ class DebtStatus:
         return self._value == "active"
 
     @property
-    def is_paid_off(self) -> bool:
-        return self._value == "paid_off"
+    def is_paused(self) -> bool:
+        return self._value == "paused"
+
+    @property
+    def is_defaulted(self) -> bool:
+        return self._value == "defaulted"
+
+    @property
+    def is_closed(self) -> bool:
+        return self._value == "closed"
 
     @property
     def is_archived(self) -> bool:

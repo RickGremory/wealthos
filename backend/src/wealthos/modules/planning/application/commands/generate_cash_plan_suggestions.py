@@ -61,20 +61,27 @@ class GenerateCashPlanSuggestionsCommand:
             include_archived=False,
         )
         for debt in debts:
-            if debt.payment_day is None:
+            if debt.due_day is None:
                 continue
-            for due in _payment_dates_in_horizon(plan.date_from, plan.date_to, debt.payment_day):
+            required = None
+            if debt.scheduled_payment is not None:
+                required = debt.scheduled_payment.amount
+            elif debt.minimum_payment is not None:
+                required = debt.minimum_payment.amount
+            if required is None:
+                continue
+            for due in _payment_dates_in_horizon(plan.date_from, plan.date_to, debt.due_day):
                 suggestions.append(
                     CashPlanSuggestion(
                         item_type="outflow",
                         description=f"Pago mínimo — {debt.name.value}",
                         expected_date=due,
-                        amount=debt.minimum_payment.amount,
+                        amount=required,
                         probability=Decimal("100"),
                         linked_entity_type="debt",
                         linked_entity_id=debt.id,
                         source="debt",
-                        notes=f"Sugerido desde deuda activa (payment_day={debt.payment_day}).",
+                        notes=f"Sugerido desde deuda activa (due_day={debt.due_day}).",
                     )
                 )
 

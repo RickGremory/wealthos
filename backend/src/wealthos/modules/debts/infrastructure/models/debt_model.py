@@ -11,12 +11,13 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     SmallInteger,
     String,
     Text,
+    UniqueConstraint,
     Uuid,
-    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -26,15 +27,12 @@ from wealthos.core.database import Base
 class DebtModel(Base):
     __tablename__ = "debts"
     __table_args__ = (
-        Index("ix_debts_organization_id_status", "organization_id", "status"),
+        UniqueConstraint("account_id", name="debts_account_unique_idx"),
+        Index("debts_organization_status_idx", "organization_id", "status"),
+        Index("debts_organization_currency_idx", "organization_id", "currency"),
+        Index("debts_organization_due_day_idx", "organization_id", "due_day"),
+        Index("debts_organization_priority_idx", "organization_id", "priority"),
         Index("ix_debts_organization_id_debt_type", "organization_id", "debt_type"),
-        Index("ix_debts_account_id", "account_id"),
-        Index(
-            "uq_active_debt_account",
-            "account_id",
-            unique=True,
-            postgresql_where=text("status IN ('active', 'paid_off') AND archived_at IS NULL"),
-        ),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
@@ -50,22 +48,23 @@ class DebtModel(Base):
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     debt_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    creditor: Mapped[str | None] = mapped_column(String(120), nullable=True)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
-    annual_interest_rate: Mapped[Decimal] = mapped_column(
-        Numeric(9, 4),
-        nullable=False,
-    )
-    minimum_payment: Mapped[Decimal] = mapped_column(Numeric(19, 4), nullable=False)
-    original_principal: Mapped[Decimal | None] = mapped_column(
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    priority: Mapped[str] = mapped_column(String(10), nullable=False, default="medium")
+    interest_rate: Mapped[Decimal | None] = mapped_column(Numeric(9, 6), nullable=True)
+    minimum_payment: Mapped[Decimal | None] = mapped_column(Numeric(19, 4), nullable=True)
+    scheduled_payment: Mapped[Decimal | None] = mapped_column(
         Numeric(19, 4),
         nullable=True,
     )
-    opened_at: Mapped[date | None] = mapped_column(Date, nullable=True)
-    maturity_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    payment_day: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    credit_limit: Mapped[Decimal | None] = mapped_column(Numeric(19, 4), nullable=True)
+    original_amount: Mapped[Decimal | None] = mapped_column(Numeric(19, 4), nullable=True)
     statement_day: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
-    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    due_day: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    maturity_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -77,7 +76,7 @@ class DebtModel(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    paid_off_at: Mapped[datetime | None] = mapped_column(
+    closed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )

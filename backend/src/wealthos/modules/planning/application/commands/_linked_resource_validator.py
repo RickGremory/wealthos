@@ -94,7 +94,7 @@ class LinkedResourceValidator:
             raise LinkedResourceNotFound("Linked debt not found.")
         if debt.status.is_archived:
             raise LinkedResourceNotFound("Linked debt is archived.")
-        if debt.minimum_payment.currency.value != currency:
+        if debt.currency != currency:
             raise LinkedResourceCurrencyMismatch(
                 "Linked debt currency must match the planning currency."
             )

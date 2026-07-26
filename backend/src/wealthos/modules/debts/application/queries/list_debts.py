@@ -15,6 +15,7 @@ from wealthos.modules.debts.application.views.debt_view import (
     build_debt_with_balance,
 )
 from wealthos.modules.debts.domain.repositories.debt_repository import DebtRepository
+from wealthos.modules.debts.domain.services.debt_state_service import DebtStateService
 
 
 class ListDebtsQuery:
@@ -23,10 +24,12 @@ class ListDebtsQuery:
         debts: DebtRepository,
         accounts: AccountRepository,
         calculator: DebtPayoffCalculator | None = None,
+        state_service: DebtStateService | None = None,
     ) -> None:
         self._debts = debts
         self._accounts = accounts
         self._calculator = calculator or DebtPayoffCalculator()
+        self._state_service = state_service or DebtStateService()
 
     def execute(
         self,
@@ -47,5 +50,12 @@ class ListDebtsQuery:
         items: list[DebtWithBalance] = []
         for debt in debts:
             account = self._accounts.get_by_id(organization_id, debt.account_id)
-            items.append(build_debt_with_balance(debt, account, self._calculator))
+            items.append(
+                build_debt_with_balance(
+                    debt,
+                    account,
+                    self._calculator,
+                    state_service=self._state_service,
+                )
+            )
         return items

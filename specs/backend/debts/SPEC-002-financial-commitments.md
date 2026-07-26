@@ -170,10 +170,10 @@ Nav label: **Obligaciones** / Financial Commitments — top-level, not under Acc
 
 ### Phase 1 — Persistence & domain
 
-- [ ] Migration `debts` columns per schema below  
-- [ ] `UNIQUE(account_id)` · indexes (org+status, org+currency, org+due_day, org+priority)  
-- [ ] Entity + enums + derived display status + due-day month-end rule (31→last day)  
-- [ ] Domain tests  
+- [x] Migration `debts` columns per schema below  
+- [x] `UNIQUE(account_id)` · indexes (org+status, org+currency, org+due_day, org+priority)  
+- [x] Entity + enums + derived display status + due-day month-end rule (31→last day)  
+- [x] Domain tests  
 
 **Table `debts` (core columns):**  
 `id`, `organization_id`, `account_id`, `name`, `debt_type`, `creditor`, `currency`, `status`, `priority`, `interest_rate`, `minimum_payment`, `scheduled_payment`, `credit_limit`, `original_amount`, `statement_day`, `due_day`, `maturity_date`, `notes`, `closed_at`, `archived_at`, `created_at`, `updated_at`, `version`

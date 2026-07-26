@@ -21,16 +21,20 @@ class InvalidDebtStatus(DebtError):
     """Raised when a debt status is not supported."""
 
 
+class InvalidDebtPriority(DebtError):
+    """Raised when a debt priority is not supported."""
+
+
 class InvalidInterestRate(DebtError):
     """Raised when an interest rate is invalid."""
 
 
-class InvalidMinimumPayment(DebtError):
-    """Raised when minimum payment is not positive."""
+class InvalidPaymentAmount(DebtError):
+    """Raised when a payment amount field is invalid (negative, currency, etc.)."""
 
 
-class InvalidPaymentDay(DebtError):
-    """Raised when payment_day or statement_day is out of range."""
+class InvalidCalendarDay(DebtError):
+    """Raised when due_day or statement_day is out of range."""
 
 
 class DebtNotFoundError(DebtError):
@@ -41,8 +45,16 @@ class DebtAlreadyArchived(DebtError):
     """Raised when operating on an archived debt."""
 
 
-class DebtAlreadyPaidOff(DebtError):
-    """Raised when a debt is already paid off."""
+class DebtAlreadyClosed(DebtError):
+    """Raised when a debt product is already closed."""
+
+
+class DebtAlreadyPaused(DebtError):
+    """Raised when pausing an already paused debt."""
+
+
+class DebtNotPaused(DebtError):
+    """Raised when resuming a debt that is not paused."""
 
 
 class DebtAccountNotFound(DebtError):
@@ -62,7 +74,7 @@ class DebtCurrencyMismatch(DebtError):
 
 
 class DebtAlreadyExistsForAccount(DebtError):
-    """Raised when an active/paid_off debt already exists for the account."""
+    """Raised when a debt already exists for the account (1:1)."""
 
 
 class DebtPaymentExceedsBalance(DebtError):
@@ -87,3 +99,9 @@ class CannotUpdateDebtField(DebtError):
 
 class InvalidPayoffStrategy(DebtError):
     """Raised when payoff strategy is not supported."""
+
+
+# Backward-compatible aliases during SPEC-002 convergence
+InvalidMinimumPayment = InvalidPaymentAmount
+InvalidPaymentDay = InvalidCalendarDay
+DebtAlreadyPaidOff = DebtAlreadyClosed

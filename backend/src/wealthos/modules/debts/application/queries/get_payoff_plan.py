@@ -15,6 +15,8 @@ from wealthos.modules.debts.application.services.debt_strategy_simulator import 
 )
 from wealthos.modules.debts.domain.repositories.debt_repository import DebtRepository
 
+_ZERO = Decimal("0.00")
+
 
 class GetPayoffPlanQuery:
     def __init__(
@@ -41,14 +43,26 @@ class GetPayoffPlanQuery:
             account = self._accounts.get_by_id(organization_id, debt.account_id)
             if account is None:
                 continue
-            currency = debt.minimum_payment.currency.value
+            monthly = _ZERO
+            if debt.scheduled_payment is not None:
+                monthly = debt.scheduled_payment.amount
+            elif debt.minimum_payment is not None:
+                monthly = debt.minimum_payment.amount
+            if monthly <= _ZERO:
+                continue
+            rate = (
+                debt.interest_rate.annual_percentage
+                if debt.interest_rate is not None
+                else _ZERO
+            )
+            currency = debt.currency
             by_currency.setdefault(currency, []).append(
                 StrategyDebtState(
                     debt_id=debt.id,
                     name=debt.name.value,
                     balance=abs(account.current_balance.amount),
-                    annual_interest_rate=debt.annual_interest_rate.annual_percentage,
-                    minimum_payment=debt.minimum_payment.amount,
+                    annual_interest_rate=rate,
+                    minimum_payment=monthly,
                 )
             )
 

@@ -5,12 +5,10 @@ Living list of upcoming work. Not a substitute for SPECs — items become Epics/
 ## Now
 
 - [ ] **Sprint 6 — Financial Commitments** ([brief](../docs/roadmap/sprint-6-financial-commitments.md), [SPEC-002](../specs/backend/debts/SPEC-002-financial-commitments.md))
-  - [x] 6.1 Product model
-  - [x] 6.2 UX & user flows
-  - [x] 6.3 Ecosystem integration
-  - [x] 6.4 Payment strategies
-  - [x] 6.5 Implementation specification ([detail](../docs/roadmap/sprint-6.5-implementation-spec.md))
-  - [ ] SPEC-002 Phase 1–7 (persistence → E2E)
+  - [x] 6.1–6.5 Design
+  - [x] SPEC-002 Phase 1 — persistence & domain
+  - [ ] SPEC-002 Phase 2–7
+
 
 ## Next
 
