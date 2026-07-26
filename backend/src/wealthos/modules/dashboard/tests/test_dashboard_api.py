@@ -314,3 +314,68 @@ def test_dashboard_isolation_and_validation(client: TestClient) -> None:
         params={"period": "custom"},
     )
     assert custom_missing.status_code == 422
+
+
+def test_dashboard_attention_does_not_relabel_mxn_debts_as_usd(client: TestClient) -> None:
+    """P09: USD view must not show MXN obligation totals labeled as USD."""
+    user = _register(client)
+    org_id = user["org_id"]
+    headers = user["headers"]
+
+    client.post(
+        f"{ORG}/{org_id}/accounts",
+        headers=headers,
+        json={
+            "name": "USD Cash",
+            "account_type": "checking",
+            "currency": "USD",
+            "opening_balance": "2000.00",
+        },
+    ).raise_for_status()
+
+    card = client.post(
+        f"{ORG}/{org_id}/accounts",
+        headers=headers,
+        json={
+            "name": "Tarjeta MXN",
+            "account_type": "credit_card",
+            "currency": "MXN",
+            "opening_balance": "-18500.00",
+        },
+    )
+    card.raise_for_status()
+    debt = client.post(
+        f"{ORG}/{org_id}/debts",
+        headers=headers,
+        json={
+            "account_id": card.json()["id"],
+            "name": "Tarjeta Nu",
+            "debt_type": "credit_card",
+            "minimum_payment": "1500.00",
+            "interest_rate": "42.00",
+            "due_day": 20,
+        },
+    )
+    assert debt.status_code == 201, debt.text
+
+    usd_dash = client.get(
+        f"{ORG}/{org_id}/dashboard",
+        headers=headers,
+        params={"currency": "USD", "period": "this_month"},
+    )
+    assert usd_dash.status_code == 200, usd_dash.text
+    body = usd_dash.json()
+    assert body["selected_currency"] == "USD"
+
+    fc = body.get("financial_commitments") or {}
+    assert fc.get("active_count", 0) == 0
+    assert fc.get("status") in {"empty", "ready"}
+
+    attention_items = body["widgets"]["attention"]["data"]["items"]
+    debt_cards = [item for item in attention_items if item["id"] == "active_debts"]
+    assert debt_cards == []
+
+    for item in attention_items:
+        if item.get("amount") is not None and item.get("currency") == "USD":
+            assert Decimal(str(item["amount"])) != Decimal("1500.00")
+            assert Decimal(str(item["amount"])) != Decimal("18500.00")

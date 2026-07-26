@@ -342,9 +342,35 @@ class GetDashboardQuery:
                         action_to=f"/app/commitments/{item.commitment_id}",
                     )
                 )
+        elif financial_commitments and financial_commitments.active_count > 0:
+            group = next(
+                (
+                    item
+                    for item in financial_commitments.totals_by_currency
+                    if item.currency == currency
+                ),
+                financial_commitments.totals_by_currency[0]
+                if financial_commitments.totals_by_currency
+                else None,
+            )
+            items.append(
+                AttentionItemData(
+                    id="active_debts",
+                    severity="info",
+                    title="Obligaciones activas",
+                    message=(
+                        f"Tienes {financial_commitments.active_count} "
+                        f"obligación(es) con seguimiento activo."
+                    ),
+                    amount=group.total_obligations if group else None,
+                    currency=currency if group is not None else None,
+                    action_label="Ver obligaciones",
+                    action_to="/app/commitments",
+                )
+            )
         else:
             active_debts = debts.get("active_count", 0) if debts else 0
-            debt_minimum = debts.get("minimum_payments") if debts else None
+            debt_total = debts.get("total_debt") if debts else None
             if active_debts > 0:
                 items.append(
                     AttentionItemData(
@@ -352,8 +378,8 @@ class GetDashboardQuery:
                         severity="info",
                         title="Obligaciones activas",
                         message=f"Tienes {active_debts} obligación(es) con seguimiento activo.",
-                        amount=debt_minimum,
-                        currency=currency if debt_minimum is not None else None,
+                        amount=debt_total,
+                        currency=currency if debt_total is not None else None,
                         action_label="Ver obligaciones",
                         action_to="/app/commitments",
                     )
@@ -530,8 +556,7 @@ class GetDashboardQuery:
                 (item for item in summary.by_currency if item.currency == currency),
                 None,
             )
-            if primary is None and summary.by_currency:
-                primary = summary.by_currency[0]
+            # Never fall back to another currency — that mislabels MXN as USD (P09).
             if primary is None:
                 return {
                     "active_count": 0,
@@ -650,8 +675,7 @@ class GetDashboardQuery:
                 (item for item in summary.by_currency if item.currency == currency),
                 None,
             )
-            if primary is None and summary.by_currency:
-                primary = summary.by_currency[0]
+            # Never fall back to another currency — that mislabels amounts (P09).
             if primary is None:
                 return {"configured": True, "empty": True}
             return {
