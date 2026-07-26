@@ -35,6 +35,8 @@ from wealthos.modules.planning.infrastructure.models import (  # noqa: F401
     CashPlanItemMatchModel,
     CashPlanItemModel,
     CashPlanModel,
+    PlannedCashFlowModel,
+    PlanningSettingsModel,
 )
 from wealthos.modules.tax_mx.infrastructure.models import (  # noqa: F401
     MexicoTaxCalculationSnapshotModel,

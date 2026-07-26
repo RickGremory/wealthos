@@ -167,3 +167,78 @@ class CashPlanItemNotMatchable(PlanningError):
 
 class ConcurrentMatchConflict(PlanningError):
     """Raised when concurrent matches conflict on remaining amount."""
+
+
+# --- Planning projection / Safe To Spend (SPEC-004) ---------------------------
+
+
+class InvalidPlanningHorizon(PlanningError):
+    """Raised when a planning horizon is not supported."""
+
+
+class InvalidCashFlowDirection(PlanningError):
+    """Raised when a cash flow direction is not inflow/outflow."""
+
+
+class InvalidCashFlowCertainty(PlanningError):
+    """Raised when a cash flow certainty is not supported."""
+
+
+class InvalidCashFlowStatus(PlanningError):
+    """Raised when a cash flow status is not supported."""
+
+
+class InvalidSafetyReserveStrategy(PlanningError):
+    """Raised when a safety reserve strategy is not supported."""
+
+
+class InvalidSafetyReserveAmount(PlanningError):
+    """Raised when a safety reserve amount is missing or negative."""
+
+
+class LinkedEmergencyGoalRequired(PlanningError):
+    """Raised when the linked_goal strategy has no emergency goal."""
+
+
+class InvalidPlannedCashFlowAmount(PlanningError):
+    """Raised when a planned cash flow amount is not positive."""
+
+
+class PlannedCashFlowNameEmpty(PlanningError):
+    """Raised when a planned cash flow name is blank."""
+
+
+class PlannedCashFlowNameTooLong(PlanningError):
+    """Raised when a planned cash flow name exceeds the allowed length."""
+
+
+class PlannedCashFlowNotFoundError(PlanningError):
+    """Raised when a planned cash flow cannot be found in the organization."""
+
+
+class PlannedCashFlowNotEditable(PlanningError):
+    """Raised when a planned cash flow is settled or cancelled."""
+
+
+class PlanningSettingsNotFoundError(PlanningError):
+    """Raised when planning settings cannot be found in the organization."""
+
+
+class PlanningVersionConflict(PlanningError):
+    """Raised when an optimistic-concurrency version does not match."""
+
+
+class PlanningSourceUnavailable(PlanningError):
+    """Raised by an adapter when its source cannot be read at all."""
+
+    def __init__(self, source_name: str, message: str | None = None) -> None:
+        self.source_name = source_name
+        super().__init__(message or f"Planning source '{source_name}' is unavailable.")
+
+
+class PlanningOrganizationMismatch(PlanningError):
+    """Raised when a collected item does not belong to the requested organization."""
+
+
+class PlanningCurrencyMismatch(PlanningError):
+    """Raised when a collected item does not match the requested currency."""

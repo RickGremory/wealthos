@@ -9,6 +9,7 @@ from .planning_models import (
     CashPlanItemModel,
     CashPlanModel,
 )
+from .planning_projection_models import PlannedCashFlowModel, PlanningSettingsModel
 
 __all__ = [
     "BudgetAllocationMatchModel",
@@ -18,4 +19,6 @@ __all__ = [
     "CashPlanItemMatchModel",
     "CashPlanItemModel",
     "CashPlanModel",
+    "PlannedCashFlowModel",
+    "PlanningSettingsModel",
 ]
