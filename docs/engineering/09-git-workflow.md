@@ -55,6 +55,7 @@ PR expectations:
 ## Releases (later)
 
 - Tag semantic versions when we ship hosted builds
+- **Milestone tags** (e.g. `v0.5.0-foundation`) mark product reference points before launch — see [RELEASES.md](../../planning/RELEASES.md)
 - Open-core vs commercial packaging noted per [ADR-003](../adr/ADR-003-open-core.md)
 
 ## Status

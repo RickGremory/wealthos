@@ -12,6 +12,12 @@ Newest first.
 
 ---
 
+## 2026-07-25
+
+| Decision | Kind |
+|----------|------|
+| [Foundation complete; Debt next (skip polish sprint)](./2026-07-25-foundation-complete-debt-next.md) | Product + process · tag `v0.5.0-foundation` |
+
 ## 2026-07-23
 
 | Decision | Kind |

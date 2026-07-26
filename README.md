@@ -105,7 +105,8 @@ WealthOS exists to solve that problem.
 | ✓ Accounts & categories | Product principles and delivery docs in `docs/` |
 | ✓ Transactions & dashboard | OpenAPI-typed frontend |
 | ✓ Goals & legal consent | Modular monolith · DDD |
-| ✓ Responsive UI | 100% TypeScript frontend · Python backend |
+| ✓ Responsive UI · demo seed | Tag `v0.5.0-foundation` |
+| 🟡 Debts (Sprint 6) | 100% TypeScript frontend · Python backend |
 
 ---
 
@@ -199,16 +200,17 @@ See [ADR-003](./docs/adr/ADR-003-open-core.md).
 
 WealthOS is currently in **active development**.
 
-The first usable financial workflow is live: **accounts → transactions → dashboard → goals**, with legal consent and a responsive UI.
+**Foundation milestone:** git tag [`v0.5.0-foundation`](https://github.com/RickGremory/wealthos/releases/tag/v0.5.0-foundation) — navigable core loop live: **accounts → transactions → dashboard → goals**, with legal consent, responsive UI, and a stable demo account.
 
-Still ahead: debts, taxes, planning UI, recurring transactions, and deeper privacy tooling (ARCO workflows, account deletion).
+Still ahead: **debts** (next), taxes, planning UI, recurring transactions, and deeper privacy tooling (ARCO workflows, account deletion).
 
 ---
 
 ## Current Milestone
 
-Product review and polish — responsive behavior, accessibility, privacy policies,
-legal consent, and stabilization of the first usable financial workflow.
+**Sprint 6 — Debt Management** — make liabilities first-class so net worth is Assets − Liabilities, and unlock richer Dashboard / Goals / Planning later.
+
+See [sprint brief](./docs/roadmap/sprint-6-debt-management.md) and [decision](./docs/decisions/2026-07-25-foundation-complete-debt-next.md). A separate polish-only sprint was skipped; polish continues in-place while shipping Debt.
 
 ---
 

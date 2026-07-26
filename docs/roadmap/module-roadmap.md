@@ -98,6 +98,21 @@ This roadmap governs **feature order after the foundation** (and may overlap ear
 
 ---
 
+## Delivery status (2026-07-25)
+
+| Step | Status |
+|------|--------|
+| Identity → Organizations → Accounts → Transactions → Categories | Done (foundation) |
+| Dashboard | Done (foundation) |
+| Goals | Done (foundation) |
+| Legal consent (cross-cutting) | Done (foundation) |
+| **Debts** | **Next — [Sprint 6](./sprint-6-debt-management.md)** |
+| Taxes → AI | Later |
+
+Foundation closed at git tag **`v0.5.0-foundation`**. No dedicated polish sprint before Debts — see [decision](../decisions/2026-07-25-foundation-complete-debt-next.md).
+
+---
+
 ## Status
 
 Accepted as the product/module delivery order for WealthOS core.

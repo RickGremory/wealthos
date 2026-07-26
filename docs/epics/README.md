@@ -19,3 +19,4 @@ See [Delivery Workflow](../engineering/11-delivery-workflow.md).
 | [EPIC-002](./EPIC-002-identity.md) | Identity & Organizations | Module roadmap | Planned |
 | [EPIC-003](./EPIC-003-transactions.md) | Accounts & Transactions | Module roadmap | Planned |
 | [EPIC-004](./EPIC-004-dashboard.md) | Dashboard | Module roadmap | Planned |
+| [EPIC-005](./EPIC-005-debts.md) | Debt Management | Module roadmap · `v0.5.0-foundation` | In progress |

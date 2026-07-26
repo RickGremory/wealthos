@@ -31,3 +31,5 @@ Frontend / SaaS hardening
 | H6 | AI-ready coaching seams |
 
 Update this file when a milestone ships or priorities shift. Do not use it as a commit checklist — that is the SPEC.
+
+**Current:** Foundation closed (`v0.5.0-foundation`). Next module: **Debts** ([Sprint 6](../docs/roadmap/sprint-6-debt-management.md)).

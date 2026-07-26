@@ -4,23 +4,31 @@ Living list of upcoming work. Not a substitute for SPECs — items become Epics/
 
 ## Now
 
-- [ ] Accept and execute [SPEC-001 Backend Bootstrap](../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md)
+- [ ] **Sprint 6 — Debt Management** ([brief](../docs/roadmap/sprint-6-debt-management.md), [EPIC-005](../docs/epics/EPIC-005-debts.md))
+  - Domain + migration
+  - API (CRUD + archive)
+  - Dashboard Assets / Liabilities / Net Worth
+  - Nuxt UI
+  - Demo seed sample debt
 
 ## Next
 
-- [ ] SPEC(s) for Identity & Organizations ([EPIC-002](../docs/epics/EPIC-002-identity.md))
-- [ ] Accounts → Transactions → Categories ([EPIC-003](../docs/epics/EPIC-003-transactions.md))
-- [ ] Dashboard ([EPIC-004](../docs/epics/EPIC-004-dashboard.md))
+- [ ] Taxes (after Debts)
+- [ ] Budgets & cash-flow planning
+- [ ] Recurring transactions
+- [ ] Deeper privacy (ARCO, account deletion)
 
 ## Later
 
-- [ ] Goals
-- [ ] Debts
-- [ ] Taxes
-- [ ] AI context seams
-- [ ] Frontend (Nuxt) foundation SPEC
+- [ ] AI context seams / payoff coaching (consumes Debt)
+- [ ] Advisor / collaboration mode
 
 ## Icebox
 
 - Native mobile clients
 - Microservices extraction (only if justified)
+- Dedicated polish-only sprint (deferred — polish in-place)
+
+## Done (foundation)
+
+Closed at tag **`v0.5.0-foundation`**: auth, orgs, accounts, categories, transactions, dashboard, goals, legal consent, demo seed.
