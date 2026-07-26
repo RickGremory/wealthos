@@ -64,7 +64,7 @@ const horizons: PlanningHorizon[] = ['today', '7_days', '30_days', '90_days']
       </p>
     </header>
 
-    <p v-if="error" class="error">
+    <p v-if="error" class="error" role="alert">
       {{ error }}
     </p>
     <div v-if="loading">

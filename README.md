@@ -122,8 +122,8 @@ WealthOS exists to solve that problem.
 ✅ Legal consent & privacy pages
 ✅ Debts / Obligaciones (Financial Commitments)
 ✅ Financial Timeline / Historia (`/app/timeline`)
+✅ Planning & Safe To Spend / Planeación (`/app/planning`)
 🟡 Taxes
-🟡 Budgets & cash-flow planning
 🟡 Recurring transactions
 ⬜ AI insights
 ⬜ Advisor / collaboration mode
@@ -204,7 +204,7 @@ WealthOS is currently in **active development**.
 
 **Foundation milestone:** git tag [`v0.5.0-foundation`](https://github.com/RickGremory/wealthos/releases/tag/v0.5.0-foundation) — navigable core loop live: **accounts → transactions → dashboard → goals**, with legal consent, responsive UI, and a stable demo account.
 
-Still ahead: taxes, planning UI, recurring transactions, and deeper privacy tooling (ARCO workflows, account deletion).
+Still ahead: taxes depth, recurring engine, and deeper privacy tooling (ARCO workflows, account deletion).
 
 ---
 

@@ -53,9 +53,12 @@ export function usePlanningProjection() {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  async function refresh() {
+    async function refresh() {
     const orgId = organization.currentOrganizationId
-    if (!orgId) return
+    if (!orgId) {
+      error.value = 'Selecciona una organización para ver la proyección.'
+      return
+    }
     loading.value = true
     error.value = null
     try {
@@ -129,7 +132,10 @@ export function usePlanningSettings() {
 
   async function load() {
     const orgId = organization.currentOrganizationId
-    if (!orgId) return
+    if (!orgId) {
+      error.value = 'Selecciona una organización para configurar planeación.'
+      return
+    }
     loading.value = true
     error.value = null
     try {

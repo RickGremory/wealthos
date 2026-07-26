@@ -64,7 +64,7 @@ export function createTimelineRepository(api: ApiClient) {
       if (query.dateTo) params.set('date_to', query.dateTo)
       const qs = params.toString()
       const dto = await api.get<TimelineListDto>(
-        `/api/v1/organizations/${organizationId}/timeline${qs ? `?${qs}` : ''}`,
+        `/organizations/${organizationId}/timeline${qs ? `?${qs}` : ''}`,
       )
       return {
         items: (dto.items ?? []).map(mapEvent),

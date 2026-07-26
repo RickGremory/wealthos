@@ -282,6 +282,67 @@ def _ensure_sample_data(client: TestClient, token: str, org_id: str) -> None:
         print("· Demo goals already present")
 
     _ensure_sample_commitments(client, token, org_id)
+    _ensure_sample_planning(client, token, org_id)
+
+
+def _ensure_sample_planning(client: TestClient, token: str, org_id: str) -> None:
+    """Persist Planning settings + a sample planned inflow for Safe To Spend demos."""
+    headers = _headers(token)
+    settings = client.get(f"{ORG}/{org_id}/planning/settings", headers=headers)
+    if settings.status_code != 200:
+        print(f"· Skipping planning seed ({settings.status_code}): {settings.text[:120]}")
+        return
+
+    body = settings.json()
+    put = client.put(
+        f"{ORG}/{org_id}/planning/settings",
+        headers=headers,
+        json={
+            "version": body.get("version"),
+            "default_horizon": "30_days",
+            "safety_reserve_strategy": "fixed_amount",
+            "safety_reserve_amount": "10000.00",
+            "linked_emergency_goal_id": None,
+            "include_expected_income": True,
+            "include_estimated_expenses": True,
+        },
+    )
+    if put.status_code == 200:
+        print("✓ Planning settings (reserva 10,000 MXN)")
+    else:
+        print(f"· Skipping planning settings ({put.status_code}): {put.text[:120]}")
+
+    flows = client.get(
+        f"{ORG}/{org_id}/planning/cash-flows",
+        headers=headers,
+        params={"status": "active", "currency": "MXN"},
+    )
+    if flows.status_code != 200:
+        print(f"· Skipping planned cash flows ({flows.status_code})")
+        return
+    existing = flows.json() or []
+    if any(item.get("name") == "Nómina — demo" for item in existing):
+        print("· Demo planned cash flow already present")
+        return
+
+    expected = datetime.now(UTC) + timedelta(days=15)
+    created = client.post(
+        f"{ORG}/{org_id}/planning/cash-flows",
+        headers=headers,
+        json={
+            "name": "Nómina — demo",
+            "direction": "inflow",
+            "amount": "30000.00",
+            "currency": "MXN",
+            "expected_at": expected.isoformat(),
+            "certainty": "expected",
+            "notes": "Ingreso esperado para proyección Safe To Spend",
+        },
+    )
+    if created.status_code in (200, 201):
+        print("✓ Demo planned inflow created")
+    else:
+        print(f"· Skipping planned inflow ({created.status_code}): {created.text[:120]}")
 
 
 def _ensure_sample_commitments(client: TestClient, token: str, org_id: str) -> None:

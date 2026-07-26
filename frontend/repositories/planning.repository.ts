@@ -108,7 +108,7 @@ function mapSettings(dto: Record<string, any>): PlanningSettings {
 
 export function createPlanningRepository(api: ApiClient) {
   const base = (organizationId: string) =>
-    `/api/v1/organizations/${organizationId}/planning`
+    `/organizations/${organizationId}/planning`
 
   return {
     async getProjection(

@@ -33,7 +33,7 @@ Day-to-day coding follows **SPEC-004**. Do not reopen 8.1–8.4 for implementati
 
 - [x] Design pillars 8.1–8.5 Accepted  
 - [x] SPEC-004 Completed (golden path live)  
-- [ ] Demo seed + E2E green  
+- [x] Demo seed + critical unit coverage  
 - [x] README / epic marked Done for Planning MVP  
 
 ---

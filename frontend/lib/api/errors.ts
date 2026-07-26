@@ -61,6 +61,10 @@ const USER_MESSAGES: Record<string, string> = {
   LEGAL_ACCEPTANCE_REQUIRED:
     'Debes aceptar los términos y el aviso de privacidad para crear tu cuenta.',
 
+  // Planning
+  PLANNING_NOT_FOUND: 'No se encontró la configuración de planeación.',
+  PLANNED_CASH_FLOW_NOT_FOUND: 'No se encontró el movimiento planeado.',
+
   // Transactions
   TRANSACTION_NOT_FOUND: 'No se encontró la transacción.',
   TRANSACTION_ALREADY_VOIDED: 'Esta transacción ya está anulada.',
