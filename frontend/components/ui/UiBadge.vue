@@ -2,15 +2,24 @@
 withDefaults(
   defineProps<{
     tone?: 'neutral' | 'success' | 'warning' | 'danger' | 'teal'
+    ariaLabel?: string
+    title?: string
   }>(),
   {
     tone: 'neutral',
+    ariaLabel: undefined,
+    title: undefined,
   },
 )
 </script>
 
 <template>
-  <span class="ui-badge" :class="`ui-badge--${tone}`">
+  <span
+    class="ui-badge"
+    :class="`ui-badge--${tone}`"
+    :aria-label="ariaLabel"
+    :title="title"
+  >
     <slot />
   </span>
 </template>

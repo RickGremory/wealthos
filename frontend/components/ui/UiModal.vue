@@ -5,13 +5,67 @@ defineProps<{
   title?: string
 }>()
 
+const panelRef = ref<HTMLElement | null>(null)
+let previouslyFocused: HTMLElement | null = null
+
 function close() {
   open.value = false
 }
 
-watch(open, (isOpen) => {
+function focusableElements(root: HTMLElement): HTMLElement[] {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter(el => !el.hasAttribute('disabled') && el.tabIndex !== -1)
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (!open.value || !panelRef.value) return
+
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    close()
+    return
+  }
+
+  if (event.key !== 'Tab') return
+
+  const nodes = focusableElements(panelRef.value)
+  if (!nodes.length) {
+    event.preventDefault()
+    panelRef.value.focus()
+    return
+  }
+
+  const first = nodes[0]!
+  const last = nodes[nodes.length - 1]!
+  const active = document.activeElement as HTMLElement | null
+
+  if (event.shiftKey && (active === first || active === panelRef.value)) {
+    event.preventDefault()
+    last.focus()
+  }
+  else if (!event.shiftKey && active === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+watch(open, async (isOpen) => {
   if (!import.meta.client) return
   document.body.style.overflow = isOpen ? 'hidden' : ''
+
+  if (isOpen) {
+    previouslyFocused = document.activeElement as HTMLElement | null
+    await nextTick()
+    const nodes = panelRef.value ? focusableElements(panelRef.value) : []
+    ;(nodes[0] || panelRef.value)?.focus()
+  }
+  else if (previouslyFocused) {
+    previouslyFocused.focus()
+    previouslyFocused = null
+  }
 }, { immediate: true })
 
 onBeforeUnmount(() => {
@@ -27,9 +81,15 @@ onBeforeUnmount(() => {
       class="ui-modal"
       role="dialog"
       aria-modal="true"
+      :aria-label="title || 'Diálogo'"
       @click.self="close"
+      @keydown="onKeydown"
     >
-      <div class="ui-modal__panel">
+      <div
+        ref="panelRef"
+        class="ui-modal__panel"
+        tabindex="-1"
+      >
         <header class="ui-modal__header">
           <h2 v-if="title" class="ui-modal__title">{{ title }}</h2>
           <UiButton variant="ghost" size="sm" type="button" @click="close">
@@ -74,6 +134,7 @@ onBeforeUnmount(() => {
   box-shadow: var(--shadow-lg);
   padding: var(--space-5);
   overflow: hidden;
+  outline: none;
 }
 
 .ui-modal__header {

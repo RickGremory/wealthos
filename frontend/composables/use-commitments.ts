@@ -28,6 +28,7 @@ export function useCommitments() {
   const summaryLoading = ref(false)
   const strategyLoading = ref(false)
   const listError = ref<string | null>(null)
+  const summaryError = ref<string | null>(null)
   const strategyError = ref<string | null>(null)
   const statusFilter = ref<CommitmentStatusFilter>('all')
   const includeArchived = ref(false)
@@ -87,15 +88,18 @@ export function useCommitments() {
     const orgId = organization.currentOrganizationId
     if (!orgId) {
       summary.value = emptySummary()
+      summaryError.value = null
       return
     }
     summaryLoading.value = true
+    summaryError.value = null
     try {
       const repo = createCommitmentsRepository($api)
       summary.value = await repo.summary(orgId)
     }
-    catch {
+    catch (e) {
       summary.value = emptySummary()
+      summaryError.value = toUserMessage(e)
     }
     finally {
       summaryLoading.value = false
@@ -145,6 +149,7 @@ export function useCommitments() {
     summaryLoading,
     strategyLoading,
     listError,
+    summaryError,
     strategyError,
     statusFilter,
     includeArchived,

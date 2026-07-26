@@ -4,6 +4,7 @@ import type { CommitmentSummaryView } from '~/types/commitments'
 defineProps<{
   summary: CommitmentSummaryView
   loading?: boolean
+  error?: string | null
 }>()
 </script>
 
@@ -19,6 +20,14 @@ defineProps<{
       <UiSkeleton height="5.5rem" />
       <UiSkeleton height="5.5rem" />
     </div>
+    <UiAlert
+      v-else-if="error"
+      tone="warning"
+      title="Resumen parcial no disponible"
+      data-testid="commitment-summary-error"
+    >
+      {{ error }}
+    </UiAlert>
     <div v-else class="commitment-summary__grid">
       <div class="commitment-summary__metric">
         <span class="commitment-summary__label">Activas</span>

@@ -120,7 +120,7 @@ WealthOS exists to solve that problem.
 ✅ Dashboard
 ✅ Goals
 ✅ Legal consent & privacy pages
-🟡 Debts / Obligaciones (Financial Commitments)
+✅ Debts / Obligaciones (Financial Commitments)
 🟡 Taxes
 🟡 Budgets & cash-flow planning
 🟡 Recurring transactions
@@ -203,13 +203,13 @@ WealthOS is currently in **active development**.
 
 **Foundation milestone:** git tag [`v0.5.0-foundation`](https://github.com/RickGremory/wealthos/releases/tag/v0.5.0-foundation) — navigable core loop live: **accounts → transactions → dashboard → goals**, with legal consent, responsive UI, and a stable demo account.
 
-Still ahead: **debts** (next), taxes, planning UI, recurring transactions, and deeper privacy tooling (ARCO workflows, account deletion).
+Still ahead: taxes, planning UI, recurring transactions, and deeper privacy tooling (ARCO workflows, account deletion).
 
 ---
 
 ## Current Milestone
 
-**Sprint 6 — Financial Commitments** — design complete; building via [SPEC-002](./specs/backend/debts/SPEC-002-financial-commitments.md).
+**Sprint 6 — Financial Commitments** — **shipped** via [SPEC-002](./specs/backend/debts/SPEC-002-financial-commitments.md) (phases 1–7).
 
 | Slice | Doc |
 |-------|-----|
@@ -218,7 +218,7 @@ Still ahead: **debts** (next), taxes, planning UI, recurring transactions, and d
 | 6.3 Integration ✓ | [6.3](./docs/roadmap/sprint-6.3-commitments-integration.md) |
 | 6.4 Strategies ✓ | [6.4](./docs/roadmap/sprint-6.4-payment-strategies.md) |
 | 6.5 Impl spec ✓ | [6.5](./docs/roadmap/sprint-6.5-implementation-spec.md) |
-| **Build** | [SPEC-002](./specs/backend/debts/SPEC-002-financial-commitments.md) phases 1–7 |
+| **Build** ✓ | [SPEC-002](./specs/backend/debts/SPEC-002-financial-commitments.md) Completed |
 
 Vocabulary: [PRODUCT_LANGUAGE.md](./docs/product/PRODUCT_LANGUAGE.md) · Principles: [P01–P08](./docs/product/02-product-principles.md).
 

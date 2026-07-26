@@ -17,6 +17,7 @@ const meta = computed(() =>
     :tone="meta.tone"
     data-testid="commitment-status-badge"
     :title="meta.hint"
+    :aria-label="meta.hint ? `${meta.label}. ${meta.hint}` : meta.label"
   >
     {{ meta.label }}
   </UiBadge>

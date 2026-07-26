@@ -19,6 +19,7 @@ const {
   summaryLoading,
   strategyLoading,
   listError,
+  summaryError,
   strategyError,
   statusFilter,
   includeArchived,
@@ -124,7 +125,23 @@ async function onStrategyChange(next: PaymentStrategy) {
       class="commitments-summary"
       :summary="summary"
       :loading="summaryLoading"
+      :error="summaryError"
     />
+
+    <div
+      v-if="!listError && strategyError"
+      class="commitments-partial"
+      role="status"
+      aria-live="polite"
+      data-testid="commitment-partial-errors"
+    >
+      <UiAlert
+        tone="warning"
+        title="La estrategia no está disponible ahora"
+      >
+        El listado sigue usable. {{ strategyError }}
+      </UiAlert>
+    </div>
 
     <div class="commitments-layout">
       <div class="commitments-main">
@@ -240,6 +257,12 @@ async function onStrategyChange(next: PaymentStrategy) {
   margin-bottom: var(--space-5);
 }
 
+.commitments-partial {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
 .commitments-layout {
   display: grid;
   gap: var(--space-5);
@@ -273,11 +296,17 @@ async function onStrategyChange(next: PaymentStrategy) {
   background: var(--color-surface);
   color: var(--color-slate-700);
   border-radius: var(--radius-md);
-  padding: 0.4rem 0.75rem;
+  padding: 0.5rem 0.85rem;
+  min-height: 2.5rem;
   font: inherit;
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--color-teal-700);
+  outline-offset: 2px;
 }
 
 .chip[data-active='true'] {

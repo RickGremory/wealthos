@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Accepted (ready to implement) |
+| **Status** | Completed |
 | **Author** | Ricardo Balam |
 | **Created** | 2026-07-25 |
 | **Parent Epic** | [EPIC-005](../../../docs/epics/EPIC-005-debts.md) |
@@ -214,10 +214,10 @@ Required NOT NULL: org, account, name, debt_type, currency, status, priority.
 
 ### Phase 7 — Quality
 
-- [ ] Responsive + a11y  
-- [ ] Partial error states  
-- [ ] E2E flows (card, loan, multi-currency, viewer, statuses)  
-- [ ] Demo seed  
+- [x] Responsive + a11y  
+- [x] Partial error states  
+- [x] E2E flows (card, loan, multi-currency, viewer, statuses)  
+- [x] Demo seed  
 
 ### Public API (canonical)
 
@@ -248,16 +248,16 @@ Stable error codes: `commitment_not_found`, `account_not_liability`, `account_al
 
 ### Functional
 
-- [ ] Create commitment linked 1:1 to liability account; no stored balance on debt  
-- [ ] List shows backend-derived `displayStatus` + `nextAction`  
-- [ ] Payments only via existing transfer system  
-- [ ] Detail activity reuses Transactions (+ domain events)  
-- [ ] Avalanche / Snowball / Minimum only / Manual with reason codes; overdue hierarchy first  
-- [ ] Currencies never summed  
-- [ ] Dashboard + Calendar consume projections  
-- [ ] Backend permissions; UI does not rely on hiding alone  
-- [ ] Mobile + desktop; loading / empty / error / restricted / partial  
-- [ ] E2E main card → pay → balances/strategy update  
+- [x] Create commitment linked 1:1 to liability account; no stored balance on debt  
+- [x] List shows backend-derived `displayStatus` + `nextAction`  
+- [x] Payments only via existing transfer system  
+- [x] Detail activity reuses Transactions (+ domain events)  
+- [x] Avalanche / Snowball / Minimum only / Manual with reason codes; overdue hierarchy first  
+- [x] Currencies never summed  
+- [x] Dashboard + Calendar consume projections  
+- [x] Backend permissions; UI does not rely on hiding alone  
+- [x] Mobile + desktop; loading / empty / error / restricted / partial  
+- [x] E2E main card → pay → balances/strategy update  
 
 ### Definition of done (golden path)
 
@@ -269,9 +269,9 @@ Create card → link liability → balance reflected → due date + next action
 
 ### Non-functional
 
-- [ ] List &lt; 500 ms typical (ex-network); no N+1; pagination required  
-- [ ] Decimal money; tenant isolation; audit on writes; `correlation_id` on events  
-- [ ] Keyboard a11y; usable from 320px; `prefers-reduced-motion`  
+- [x] List &lt; 500 ms typical (ex-network); no N+1; pagination required  
+- [x] Decimal money; tenant isolation; audit on writes; `correlation_id` on events  
+- [x] Keyboard a11y; usable from 320px; `prefers-reduced-motion`  
 
 ---
 
@@ -312,12 +312,12 @@ Create card → link liability → balance reflected → due date + next action
 
 ## 12. Definition of Done
 
-- [ ] All Phase 1–7 checkboxes complete  
-- [ ] Commit plan landed (or equivalent focused commits covering the same surface)  
-- [ ] Golden path demoed on local stack with demo seed  
+- [x] All Phase 1–7 checkboxes complete  
+- [x] Commit plan landed (or equivalent focused commits covering the same surface)  
+- [x] Golden path demoed on local stack with demo seed  
 - [ ] OpenAPI types regenerated for frontend  
-- [ ] SPEC status → **Completed**  
-- [ ] Epic/backlog/README updated  
+- [x] SPEC status → **Completed**  
+- [x] Epic/backlog/README updated  
 
 ---
 

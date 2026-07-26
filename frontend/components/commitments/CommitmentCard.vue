@@ -14,6 +14,13 @@ const emit = defineEmits<{
   archive: []
   pay: []
 }>()
+
+function onCardKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    emit('view')
+  }
+}
 </script>
 
 <template>
@@ -21,7 +28,11 @@ const emit = defineEmits<{
     class="commitment-card"
     :class="{ 'commitment-card--archived': commitment.status === 'archived' }"
     data-testid="commitment-card"
+    role="link"
+    tabindex="0"
+    :aria-label="`Ver obligación ${commitment.name}`"
     @click="emit('view')"
+    @keydown="onCardKeydown"
   >
     <div class="commitment-card__top">
       <div class="stack-sm">
@@ -76,6 +87,7 @@ const emit = defineEmits<{
           v-if="canWrite && commitment.status === 'active' && Number(commitment.currentBalance) > 0"
           type="button"
           size="sm"
+          data-testid="commitment-card-pay"
           @click="emit('pay')"
         >
           Pagar
@@ -119,6 +131,11 @@ const emit = defineEmits<{
 .commitment-card:hover {
   border-color: var(--color-teal-600);
   box-shadow: var(--shadow-sm);
+}
+
+.commitment-card:focus-visible {
+  outline: 2px solid var(--color-teal-700);
+  outline-offset: 2px;
 }
 
 .commitment-card--archived {
@@ -186,6 +203,33 @@ const emit = defineEmits<{
 
 .commitment-card__actions {
   display: flex;
-  gap: var(--space-1);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.commitment-card__actions :deep(button) {
+  min-height: 2.5rem;
+  min-width: 2.75rem;
+}
+
+@media (max-width: 640px) {
+  .commitment-card__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .commitment-card__actions {
+    width: 100%;
+  }
+
+  .commitment-card__actions :deep(button) {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .commitment-card {
+    transition: none;
+  }
 }
 </style>

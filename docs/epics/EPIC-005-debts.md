@@ -2,7 +2,7 @@
 
 # Financial Commitments — Debt
 
-**Status:** In progress  
+**Status:** Done  
 **Parent:** [Module roadmap](../roadmap/module-roadmap.md), [RFC-002](../rfc/RFC-002-financial-commitments.md)  
 **Depends on:** Accounts, Transactions, Dashboard, Goals (`v0.5.0-foundation`)  
 **Sprint:** [Sprint 6 — Financial Commitments](../roadmap/sprint-6-financial-commitments.md)  

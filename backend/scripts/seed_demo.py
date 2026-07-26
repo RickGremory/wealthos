@@ -57,7 +57,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--with-sample-data",
         action="store_true",
-        help="Ensure a checking account, sample income/expense, and a goal exist",
+        help="Ensure a checking account, sample income/expense, a goal, and commitments exist",
     )
     return parser.parse_args()
 
@@ -280,6 +280,139 @@ def _ensure_sample_data(client: TestClient, token: str, org_id: str) -> None:
             print(f"· Skipping demo goal ({goal.status_code})")
     else:
         print("· Demo goals already present")
+
+    _ensure_sample_commitments(client, token, org_id)
+
+
+def _ensure_sample_commitments(client: TestClient, token: str, org_id: str) -> None:
+    headers = _headers(token)
+    debts = client.get(f"{ORG}/{org_id}/debts", headers=headers)
+    if debts.status_code != 200:
+        print(f"· Skipping demo commitments ({debts.status_code})")
+        return
+
+    existing = debts.json().get("items") or []
+    if existing:
+        print("· Demo commitments already present")
+        return
+
+    accounts = client.get(f"{ORG}/{org_id}/accounts", headers=headers)
+    accounts.raise_for_status()
+    account_items = accounts.json().get("items") or []
+
+    def _find_or_create_liability(
+        *,
+        name: str,
+        account_type: str,
+        opening: str,
+        institution: str,
+        last_four: str,
+    ) -> str | None:
+        match = next(
+            (
+                a
+                for a in account_items
+                if a.get("account_type") == account_type and a.get("name") == name
+            ),
+            None,
+        )
+        if match:
+            return match["id"]
+
+        created = client.post(
+            f"{ORG}/{org_id}/accounts",
+            headers=headers,
+            json={
+                "name": name,
+                "account_type": account_type,
+                "currency": "MXN",
+                "opening_balance": opening,
+                "opening_balance_date": "2026-07-01",
+                "institution_name": institution,
+                "last_four": last_four,
+            },
+        )
+        if created.status_code not in (200, 201):
+            print(f"· Skipping liability {name} ({created.status_code}): {created.text[:120]}")
+            return None
+        account_items.append(created.json())
+        print(f"✓ Created demo liability account {name}")
+        return created.json()["id"]
+
+    card_id = _find_or_create_liability(
+        name="Tarjeta Nu — demo",
+        account_type="credit_card",
+        opening="-18500.00",
+        institution="Nu",
+        last_four="4821",
+    )
+    loan_id = _find_or_create_liability(
+        name="Préstamo auto — demo",
+        account_type="loan",
+        opening="-96000.00",
+        institution="BBVA",
+        last_four="1190",
+    )
+
+    created_any = False
+    if card_id:
+        card_debt = client.post(
+            f"{ORG}/{org_id}/debts",
+            headers=headers,
+            json={
+                "account_id": card_id,
+                "name": "Tarjeta Nu",
+                "debt_type": "credit_card",
+                "creditor": "Nu",
+                "priority": "high",
+                "interest_rate": "42.00",
+                "minimum_payment": "1500.00",
+                "credit_limit": "50000.00",
+                "due_day": 20,
+                "statement_day": 5,
+            },
+        )
+        if card_debt.status_code in (200, 201):
+            print("✓ Demo credit card commitment created")
+            created_any = True
+        else:
+            print(f"· Skipping card commitment ({card_debt.status_code}): {card_debt.text[:120]}")
+
+    if loan_id:
+        loan_debt = client.post(
+            f"{ORG}/{org_id}/debts",
+            headers=headers,
+            json={
+                "account_id": loan_id,
+                "name": "Préstamo auto",
+                "debt_type": "auto_loan",
+                "creditor": "BBVA",
+                "priority": "medium",
+                "interest_rate": "14.90",
+                "minimum_payment": "4800.00",
+                "scheduled_payment": "4800.00",
+                "original_amount": "120000.00",
+                "due_day": 15,
+            },
+        )
+        if loan_debt.status_code in (200, 201):
+            print("✓ Demo loan commitment created")
+            created_any = True
+        else:
+            print(f"· Skipping loan commitment ({loan_debt.status_code}): {loan_debt.text[:120]}")
+
+    if created_any:
+        strategy = client.patch(
+            f"{ORG}/{org_id}/debts/strategy",
+            headers=headers,
+            json={"strategy": "avalanche"},
+        )
+        if strategy.status_code in (200, 201):
+            print("✓ Demo payment strategy set to avalanche")
+        else:
+            print(f"· Skipping strategy seed ({strategy.status_code})")
+    else:
+        print("· No demo commitments created")
 
 
 def main() -> None:

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const model = defineModel<string>({ default: '' })
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     id?: string
     label?: string
@@ -25,13 +25,17 @@ withDefaults(
     error: undefined,
   },
 )
+
+const autoId = useId()
+const inputId = computed(() => props.id || `ui-input-${autoId}`)
+const errorId = computed(() => `${inputId.value}-error`)
 </script>
 
 <template>
-  <label class="ui-input stack-sm">
+  <label class="ui-input stack-sm" :for="inputId">
     <span v-if="label" class="ui-input__label">{{ label }}</span>
     <input
-      :id="id"
+      :id="inputId"
       v-model="model"
       class="ui-input__control"
       :type="type"
@@ -41,8 +45,9 @@ withDefaults(
       :disabled="disabled"
       :required="required"
       :aria-invalid="Boolean(error) || undefined"
+      :aria-describedby="error ? errorId : undefined"
     >
-    <span v-if="error" class="ui-input__error">{{ error }}</span>
+    <span v-if="error" :id="errorId" class="ui-input__error" role="alert">{{ error }}</span>
   </label>
 </template>
 
