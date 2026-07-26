@@ -250,6 +250,23 @@ npm run dev -- --host 127.0.0.1 --port 3000
 
 App: [http://127.0.0.1:3000](http://127.0.0.1:3000)
 
+### Demo account
+
+After migrations (or any DB reset), seed the fixed local demo user:
+
+```bash
+cd backend
+uv run python scripts/seed_demo.py --with-sample-data
+# or: make seed-demo
+```
+
+| Field | Value |
+| --- | --- |
+| Email | `demo@wealthos.test` |
+| Password | `WealthOS-2026-Segura` |
+
+This command is idempotent: it recreates or restores the password if the user is missing, and optionally ensures a checking account, sample movements, and a goal.
+
 ### Useful checks
 
 ```bash

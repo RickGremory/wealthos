@@ -1,5 +1,5 @@
 .PHONY: help sync dev infra-up infra-down migrate migration test lint format check \
-	perf-seed perf-explain perf-bench
+	seed-demo perf-seed perf-explain perf-bench
 
 help:
 	@echo "WealthOS backend targets:"
@@ -13,6 +13,7 @@ help:
 	@echo "  make lint         Ruff check"
 	@echo "  make format       Ruff format"
 	@echo "  make check        lint + test"
+	@echo "  make seed-demo    Ensure fixed demo@wealthos.test account"
 	@echo "  make perf-seed    Seed load-test org (50k txs, --reset)"
 	@echo "  make perf-explain EXPLAIN ANALYZE → perf/explain/latest"
 	@echo "  make perf-bench   HTTP p50/p95 for dashboard + goals"
@@ -45,6 +46,9 @@ format:
 	uv run ruff format .
 
 check: lint test
+
+seed-demo:
+	uv run python scripts/seed_demo.py --with-sample-data
 
 perf-seed:
 	uv run python scripts/perf/seed_load.py --reset --transactions 50000
