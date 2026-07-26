@@ -246,5 +246,5 @@ User opens Dashboard and sees spendable + committed with an explanation chain fe
 |-------|--------|--------|
 | **8.2** | Policy math, chronological trough, certainty, dedupe | **Accepted** — [Sprint 8.2](../roadmap/sprint-8.2-safe-to-spend-algorithm.md) |
 | **8.3** | Adapters → PlanningContext; occurrence_key; no foreign ORM | **Accepted** — [Sprint 8.3](../roadmap/sprint-8.3-planning-integration.md) |
-| **8.4** | What-if scenario engine + UX | Planned |
+| **8.4** | UX Planeación + scenarios; three-number distinction | **Accepted** — [Sprint 8.4](../roadmap/sprint-8.4-planning-ux-scenarios.md) |
 | **8.5** | SPEC + implementation; Timeline events on material STS changes | Planned |  

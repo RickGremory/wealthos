@@ -80,15 +80,25 @@ Always explainable back to accounts (and thus transactions). No silent FX across
 Every displayed amount can be explained from the source of truth (usually transactions → accounts).  
 Never invent a convenient number.
 
-### Safe to Spend (*Disponible para gastar*)
+### Safe to Spend (*Disponible para usar*)
 
 Cash that can be used in a horizon without breaking commitments, goals, tax set-asides, or the safety reserve.
 
-**Not a balance.** Consequence of a **Financial Projection** (`PlanningProjection`). Always shown with **Comprometido** and an explanation chain.
+**Not a balance.** Consequence of a **Financial Projection**. Always shown with currency, horizon, status, confidence, and — on Planning — contrasted with **Saldo actual** and **Saldo proyectado**.
 
-Answers: *¿Cuánto puedo gastar con tranquilidad?*
+Product module surface: **Planeación** (`/app/planning`). Safe To Spend is a capability, not the nav name.
 
-See [RFC-004](../rfc/RFC-004-planning-projection.md) · [Principle 10](./02-product-principles.md).
+Answers: *¿Cuánto puedo usar sin comprometer mis próximos pagos?*
+
+See [RFC-004](../rfc/RFC-004-planning-projection.md) · [Sprint 8.4](../roadmap/sprint-8.4-planning-ux-scenarios.md) · [Principle 10](./02-product-principles.md).
+
+### Fondos protegidos
+
+Product term for money that should not be spent (goals, taxes, safety). Domain may say *reservation*; UI prefers **protegidos**.
+
+### Planeación (module)
+
+UI route `/app/planning` · settings `/app/planning/settings`. Hosts projection, upcoming flows, breakdown, alerts, and **¿Qué pasa si…?** simulations.
 
 ### Financial Projection
 
