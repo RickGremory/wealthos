@@ -31,4 +31,4 @@ Users see **Disponible para gastar** as an explained Financial Projection — no
 - **8.2** Calculation model — **Accepted** ([Sprint 8.2](../roadmap/sprint-8.2-safe-to-spend-algorithm.md))  
 - **8.3** Module integration — **Accepted** ([Sprint 8.3](../roadmap/sprint-8.3-planning-integration.md))  
 - **8.4** UX & scenarios — **Accepted** ([Sprint 8.4](../roadmap/sprint-8.4-planning-ux-scenarios.md))  
-- **8.5** SPEC + implementation — Planned  
+- **8.5** SPEC + implementation plan — **Accepted** ([Sprint 8.5](../roadmap/sprint-8.5-implementation-spec.md)) · **Build:** [SPEC-004](../../specs/backend/planning/SPEC-004-planning-safe-to-spend.md) Ready  

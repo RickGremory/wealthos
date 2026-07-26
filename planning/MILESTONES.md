@@ -7,7 +7,7 @@
 | M4.5 Goals + legal UX | Goals engine, consent, responsive shell | Done (`v0.5.0-foundation`) |
 | M5 Clarity loop | **Financial Commitments** shipped — [SPEC-002](../specs/backend/debts/SPEC-002-financial-commitments.md) Completed | Done |
 | M6 Financial Timeline | Narrative spine — [SPEC-003](../specs/backend/timeline/SPEC-003-financial-timeline.md) Completed | Done |
-| M7 Planning & Safe To Spend | Explained spendable cash — [RFC-004](../docs/rfc/RFC-004-planning-projection.md) · Sprint 8 | In progress (8.1 Accepted) |
+| M7 Planning & Safe To Spend | Explained spendable cash — [SPEC-004](../specs/backend/planning/SPEC-004-planning-safe-to-spend.md) Ready · Sprint 8 design Done | In progress (build) |
 | M8 AI-ready | Structured context for coaching (consumes Timeline + Projection) | Planned |
 
 Link completing SPECs here when a milestone closes.
