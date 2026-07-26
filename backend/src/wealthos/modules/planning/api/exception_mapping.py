@@ -40,12 +40,20 @@ from wealthos.modules.planning.domain.exceptions import (
     InvalidPercentage,
     InvalidProbability,
     InvalidRolloverPolicy,
+    InvalidSafetyReserveAmount,
+    LinkedEmergencyGoalRequired,
     LinkedResourceCurrencyMismatch,
     LinkedResourceNotFound,
     MatchAmountExceedsRemaining,
     MatchTransactionInvalid,
     OpeningBalanceInvalid,
+    PlannedCashFlowNameEmpty,
+    PlannedCashFlowNameTooLong,
+    PlannedCashFlowNotEditable,
+    PlannedCashFlowNotFoundError,
     PlanningError,
+    PlanningSettingsNotFoundError,
+    PlanningVersionConflict,
     SelectedAccountsRequired,
 )
 from wealthos.shared.domain.exceptions import InvalidCurrency
@@ -60,6 +68,8 @@ def http_map_planning_errors(exc: Exception) -> HTTPException:
             BudgetAllocationNotFoundError,
             CashPlanItemNotFoundError,
             LinkedResourceNotFound,
+            PlannedCashFlowNotFoundError,
+            PlanningSettingsNotFoundError,
         ),
     ):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
@@ -71,6 +81,8 @@ def http_map_planning_errors(exc: Exception) -> HTTPException:
             BudgetNameTooLong,
             CashPlanNameEmpty,
             CashPlanNameTooLong,
+            PlannedCashFlowNameEmpty,
+            PlannedCashFlowNameTooLong,
             InvalidBudgetPeriodType,
             InvalidBudgetStatus,
             InvalidRolloverPolicy,
@@ -89,6 +101,8 @@ def http_map_planning_errors(exc: Exception) -> HTTPException:
             InvalidCashPlanDateRange,
             InvalidAllocationAmount,
             InvalidCashPlanItemAmount,
+            InvalidSafetyReserveAmount,
+            LinkedEmergencyGoalRequired,
             InvalidCurrency,
         ),
     ):
@@ -104,6 +118,8 @@ def http_map_planning_errors(exc: Exception) -> HTTPException:
             CashPlanAlreadyArchived,
             DuplicateAllocationError,
             ConcurrentMatchConflict,
+            PlanningVersionConflict,
+            PlannedCashFlowNotEditable,
         ),
     ):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))

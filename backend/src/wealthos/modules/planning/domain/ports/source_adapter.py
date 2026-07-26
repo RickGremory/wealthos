@@ -28,6 +28,7 @@ class PlanningCollectionRequest:
     period_start: datetime
     period_end: datetime
     settings: PlanningSettings
+    timezone: str = "UTC"
 
 
 @dataclass(frozen=True, slots=True)

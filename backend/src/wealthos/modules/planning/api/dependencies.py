@@ -501,3 +501,156 @@ def get_planning_summary_query(
     projection_query: Annotated[GetCashProjectionQuery, Depends(get_cash_projection_query)],
 ) -> GetPlanningSummaryQuery:
     return GetPlanningSummaryQuery(budgets, cash_plans, projection_query)
+
+
+# --- SPEC-004 projection spine -------------------------------------------------
+
+from wealthos.modules.organizations.api.dependencies import get_organization_repository
+from wealthos.modules.organizations.domain.repositories.organization_repository import (
+    OrganizationRepository,
+)
+from wealthos.modules.planning.application.commands.cancel_planned_cash_flow import (
+    CancelPlannedCashFlowCommand,
+)
+from wealthos.modules.planning.application.commands.create_planned_cash_flow import (
+    CreatePlannedCashFlowCommand,
+)
+from wealthos.modules.planning.application.commands.update_planned_cash_flow import (
+    UpdatePlannedCashFlowCommand,
+)
+from wealthos.modules.planning.application.commands.update_planning_settings import (
+    UpdatePlanningSettingsCommand,
+)
+from wealthos.modules.planning.application.queries.get_planning_projection import (
+    GetPlanningProjectionQuery,
+    GetSafeToSpendSummaryQuery,
+)
+from wealthos.modules.planning.application.queries.get_planning_settings import (
+    GetPlanningSettingsQuery,
+)
+from wealthos.modules.planning.application.queries.get_planning_sources import (
+    GetPlanningSourcesQuery,
+)
+from wealthos.modules.planning.application.queries.list_planned_cash_flows import (
+    ListPlannedCashFlowsQuery,
+)
+from wealthos.modules.planning.application.queries.simulate_planning_scenario import (
+    SimulatePlanningScenarioQuery,
+)
+from wealthos.modules.planning.domain.ports.repositories import (
+    PlannedCashFlowRepository,
+    PlanningSettingsRepository,
+)
+from wealthos.modules.planning.domain.services.context_builder import PlanningContextBuilder
+from wealthos.modules.planning.infrastructure.adapters import (
+    AccountsPlanningAdapter,
+    CommitmentsPlanningAdapter,
+    GoalsPlanningAdapter,
+    ManualPlanningAdapter,
+    RecurringPlanningAdapter,
+    TaxesPlanningAdapter,
+    TransactionsPlanningAdapter,
+)
+from wealthos.modules.planning.infrastructure.repositories import (
+    SqlAlchemyPlannedCashFlowRepository,
+    SqlAlchemyPlanningSettingsRepository,
+)
+
+
+def get_planning_settings_repository(
+    session: Annotated[Session, Depends(get_db)],
+) -> PlanningSettingsRepository:
+    return SqlAlchemyPlanningSettingsRepository(session)
+
+
+def get_planned_cash_flow_repository(
+    session: Annotated[Session, Depends(get_db)],
+) -> PlannedCashFlowRepository:
+    return SqlAlchemyPlannedCashFlowRepository(session)
+
+
+def get_planning_context_builder(
+    accounts: Annotated[AccountRepository, Depends(get_account_repository)],
+    debts: Annotated[DebtRepository, Depends(get_debt_repository)],
+    goals: Annotated[GoalRepository, Depends(get_goal_repository)],
+    planned: Annotated[PlannedCashFlowRepository, Depends(get_planned_cash_flow_repository)],
+    transactions: Annotated[TransactionRepository, Depends(get_transaction_repository)],
+) -> PlanningContextBuilder:
+    return PlanningContextBuilder(
+        [
+            AccountsPlanningAdapter(accounts),
+            TransactionsPlanningAdapter(transactions),
+            CommitmentsPlanningAdapter(debts, accounts),
+            GoalsPlanningAdapter(goals),
+            TaxesPlanningAdapter(),
+            RecurringPlanningAdapter(),
+            ManualPlanningAdapter(planned),
+        ]
+    )
+
+
+def get_get_planning_projection_query(
+    organizations: Annotated[OrganizationRepository, Depends(get_organization_repository)],
+    settings: Annotated[PlanningSettingsRepository, Depends(get_planning_settings_repository)],
+    context_builder: Annotated[PlanningContextBuilder, Depends(get_planning_context_builder)],
+) -> GetPlanningProjectionQuery:
+    return GetPlanningProjectionQuery(organizations, settings, context_builder)
+
+
+def get_get_safe_to_spend_summary_query(
+    projection: Annotated[GetPlanningProjectionQuery, Depends(get_get_planning_projection_query)],
+) -> GetSafeToSpendSummaryQuery:
+    return GetSafeToSpendSummaryQuery(projection)
+
+
+def get_get_planning_sources_query(
+    projection: Annotated[GetPlanningProjectionQuery, Depends(get_get_planning_projection_query)],
+) -> GetPlanningSourcesQuery:
+    return GetPlanningSourcesQuery(projection)
+
+
+def get_get_planning_settings_query(
+    settings: Annotated[PlanningSettingsRepository, Depends(get_planning_settings_repository)],
+) -> GetPlanningSettingsQuery:
+    return GetPlanningSettingsQuery(settings)
+
+
+def get_list_planned_cash_flows_query(
+    planned: Annotated[PlannedCashFlowRepository, Depends(get_planned_cash_flow_repository)],
+) -> ListPlannedCashFlowsQuery:
+    return ListPlannedCashFlowsQuery(planned)
+
+
+def get_simulate_planning_scenario_query(
+    projection: Annotated[GetPlanningProjectionQuery, Depends(get_get_planning_projection_query)],
+) -> SimulatePlanningScenarioQuery:
+    return SimulatePlanningScenarioQuery(projection)
+
+
+def get_create_planned_cash_flow_command(
+    planned: Annotated[PlannedCashFlowRepository, Depends(get_planned_cash_flow_repository)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> CreatePlannedCashFlowCommand:
+    return CreatePlannedCashFlowCommand(planned, uow)
+
+
+def get_update_planned_cash_flow_command(
+    planned: Annotated[PlannedCashFlowRepository, Depends(get_planned_cash_flow_repository)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> UpdatePlannedCashFlowCommand:
+    return UpdatePlannedCashFlowCommand(planned, uow)
+
+
+def get_cancel_planned_cash_flow_command(
+    planned: Annotated[PlannedCashFlowRepository, Depends(get_planned_cash_flow_repository)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> CancelPlannedCashFlowCommand:
+    return CancelPlannedCashFlowCommand(planned, uow)
+
+
+def get_update_planning_settings_command(
+    settings: Annotated[PlanningSettingsRepository, Depends(get_planning_settings_repository)],
+    goals: Annotated[GoalRepository, Depends(get_goal_repository)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> UpdatePlanningSettingsCommand:
+    return UpdatePlanningSettingsCommand(settings, goals, uow)
