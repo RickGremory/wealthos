@@ -234,7 +234,9 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Verdad financiera | Principle + invariant, not a table |
 | ¿Qué debo hacer ahora? / Next Action | Guidance section — not persisted as tasks |
 | Historia / Financial Timeline | UI `/app/timeline`; module `modules/timeline/`; contract `shared/events/` |
-| Disponible para gastar / Safe To Spend | Consequence of `PlanningProjection`; module `modules/planning/` |
+| Disponible para usar / Safe To Spend | Consequence of `PlanningProjection`; UI under **Planeación** |
+| Planeación | UI `/app/planning`; module `modules/planning/` |
+| Fondos protegidos | Product label for reservations |
 | Financial Projection | Computed view — not a table; see RFC-004 |
 
 ---
@@ -246,8 +248,11 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Obligaciones / Financial Commitments | “Debts” as the only nav label |
 | `/app/commitments` | `/app/debts` in new UI |
 | El saldo viene de la cuenta | “Balance de la deuda” as stored field |
-| Disponible para gastar + por qué | Solo un número sin explicación |
-| Disponible / Comprometido / Reservado | “Saldo” como si fuera gastable |
+| Disponible para usar + por qué | Solo un número sin explicación |
+| Saldo actual ≠ Disponible ≠ Proyectado | Un solo “saldo” ambiguo |
+| Fondos protegidos | “Reservado” genérico en UI |
+| Modo simulación / Descartar | Guardar implícito de un what-if |
+| Disponible / Comprometido / Protegido | “Saldo” como si fuera gastable |
 | What should I do next? | Solo métricas sin orientación |
 | Compromiso financiero | “Pasivo genérico” in user-facing copy when we mean a managed obligation |
 
