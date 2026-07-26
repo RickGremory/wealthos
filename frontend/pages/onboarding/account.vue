@@ -6,6 +6,7 @@ import {
 } from '~/utils/account-type-mapper'
 import { createAccountsRepository } from '~/repositories/accounts.repository'
 import { toUserMessage } from '~/lib/api/errors'
+import { todayLocalIsoDate } from '~/composables/use-date'
 
 definePageMeta({
   layout: 'auth',
@@ -19,7 +20,7 @@ const { resolveDestination } = useSessionEntry()
 const accountType = ref<SimplifiedAccountType>('checking')
 const accountName = ref('')
 const openingBalance = ref('0.00')
-const openingBalanceDate = ref(new Date().toISOString().slice(0, 10))
+const openingBalanceDate = ref(todayLocalIsoDate())
 const institutionName = ref('')
 const error = ref('')
 const submitting = ref(false)

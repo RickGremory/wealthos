@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { createCommitmentsRepository } from '~/repositories/commitments.repository'
+import { todayLocalIsoDate } from '~/composables/use-date'
 
 definePageMeta({
   layout: 'app',
@@ -40,11 +41,10 @@ async function load() {
   loading.value = true
   error.value = null
   try {
-    const today = new Date()
-    const from = today.toISOString().slice(0, 10)
-    const toDate = new Date(today)
-    toDate.setDate(toDate.getDate() + 60)
-    const to = toDate.toISOString().slice(0, 10)
+    const from = todayLocalIsoDate()
+    const toAnchor = new Date()
+    toAnchor.setDate(toAnchor.getDate() + 60)
+    const to = todayLocalIsoDate(toAnchor)
     const repo = createCommitmentsRepository($api)
     const result = await repo.calendarEvents(orgId, { dateFrom: from, dateTo: to })
     events.value = result

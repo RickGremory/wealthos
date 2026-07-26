@@ -1,7 +1,4 @@
-/**
- * Pure mapper from form model → API create body.
- */
-
+import { todayLocalIsoDate } from '~/composables/use-date'
 import type {
   CreateTransactionInput,
   TransactionFormModel,
@@ -39,10 +36,7 @@ export function buildOccurredAtIso(options: BuildOccurredAtOptions): string {
 }
 
 export function todayDateInputValue(now = new Date()): string {
-  const y = now.getFullYear()
-  const m = String(now.getMonth() + 1).padStart(2, '0')
-  const d = String(now.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
+  return todayLocalIsoDate(now)
 }
 
 export function normalizeUnsignedAmount(value: string): string {

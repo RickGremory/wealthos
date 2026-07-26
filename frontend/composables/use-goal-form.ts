@@ -11,16 +11,13 @@ import type {
 import { getGoalTemplate } from '~/utils/goal-templates'
 import { toUserMessage } from '~/lib/api/errors'
 import { compareDecimalStrings } from '~/utils/decimal-string'
+import { todayLocalIsoDate } from '~/composables/use-date'
 
 const CURRENCY_OPTIONS = [
   { label: 'MXN — Peso mexicano', value: 'MXN' },
   { label: 'USD — Dólar estadounidense', value: 'USD' },
   { label: 'EUR — Euro', value: 'EUR' },
 ]
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10)
-}
 
 function normalizeAmount(raw: string): string {
   const trimmed = raw.trim().replace(/,/g, '')
@@ -143,7 +140,7 @@ export function useGoalForm(mode: 'create' | 'edit' = 'create') {
     }
 
     if (form.targetDate) {
-      if (form.targetDate < todayIsoDate()) {
+      if (form.targetDate < todayLocalIsoDate()) {
         next.targetDate = 'La fecha objetivo debe ser hoy o en el futuro.'
       }
     }
@@ -169,7 +166,7 @@ export function useGoalForm(mode: 'create' | 'edit' = 'create') {
       next.targetAmount = 'Ingresa un monto objetivo mayor a cero.'
     }
 
-    if (editForm.targetDate && editForm.targetDate < todayIsoDate()) {
+    if (editForm.targetDate && editForm.targetDate < todayLocalIsoDate()) {
       next.targetDate = 'La fecha objetivo debe ser hoy o en el futuro.'
     }
 

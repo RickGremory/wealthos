@@ -9,16 +9,13 @@ import {
   type BackendAccountType,
 } from '~/utils/account-type-mapper'
 import { toUserMessage } from '~/lib/api/errors'
+import { todayLocalIsoDate } from '~/composables/use-date'
 
 const CURRENCY_OPTIONS = [
   { label: 'MXN — Peso mexicano', value: 'MXN' },
   { label: 'USD — Dólar estadounidense', value: 'USD' },
   { label: 'EUR — Euro', value: 'EUR' },
 ]
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10)
-}
 
 export function useAccountForm(mode: 'create' | 'edit' = 'create') {
   const organization = useOrganizationStore()
@@ -31,7 +28,7 @@ export function useAccountForm(mode: 'create' | 'edit' = 'create') {
     accountType: 'checking',
     currency: organization.currentOrganization?.currency || 'MXN',
     openingBalance: '0.00',
-    openingBalanceDate: todayIsoDate(),
+    openingBalanceDate: todayLocalIsoDate(),
     institutionName: '',
     lastFour: '',
   })
@@ -65,7 +62,7 @@ export function useAccountForm(mode: 'create' | 'edit' = 'create') {
       ?? organization.currentOrganization?.currency
       ?? 'MXN'
     form.openingBalance = defaults?.openingBalance ?? '0.00'
-    form.openingBalanceDate = defaults?.openingBalanceDate ?? todayIsoDate()
+    form.openingBalanceDate = defaults?.openingBalanceDate ?? todayLocalIsoDate()
     form.institutionName = defaults?.institutionName ?? ''
     form.lastFour = defaults?.lastFour ?? ''
     error.value = null
