@@ -314,11 +314,16 @@ def test_update_and_archive_debt(client: TestClient) -> None:
     updated = client.patch(
         f"{ORG}/{org_id}/debts/{debt['id']}",
         headers=headers,
-        json={"minimum_payment": "750.00", "notes": "Renegociada"},
+        json={
+            "minimum_payment": "750.00",
+            "notes": "Renegociada",
+            "version": debt["version"],
+        },
     )
     assert updated.status_code == 200, updated.text
     assert Decimal(str(updated.json()["minimum_payment"])) == Decimal("750.00")
     assert updated.json()["notes"] == "Renegociada"
+    assert updated.json()["version"] == debt["version"] + 1
 
     archived = client.post(f"{ORG}/{org_id}/debts/{debt['id']}/archive", headers=headers)
     assert archived.status_code == 200, archived.text
@@ -332,6 +337,65 @@ def test_update_and_archive_debt(client: TestClient) -> None:
         params={"include_archived": True},
     ).json()
     assert with_archived["total"] == 1
+
+
+def test_pause_resume_and_close_lifecycle(client: TestClient) -> None:
+    user = _register(client)
+    headers = user["headers"]
+    org_id = user["org_id"]
+    card = _create_account(
+        client,
+        user,
+        name="Tarjeta",
+        opening="-2000.00",
+        account_type="credit_card",
+    )
+    debt = _create_debt(client, user, account_id=card["id"]).json()
+
+    paused = client.post(f"{ORG}/{org_id}/debts/{debt['id']}/pause", headers=headers)
+    assert paused.status_code == 200, paused.text
+    assert paused.json()["status"] == "paused"
+    assert paused.json()["display_status"] == "paused"
+
+    again = client.post(f"{ORG}/{org_id}/debts/{debt['id']}/pause", headers=headers)
+    assert again.status_code == 409
+
+    resumed = client.post(f"{ORG}/{org_id}/debts/{debt['id']}/resume", headers=headers)
+    assert resumed.status_code == 200, resumed.text
+    assert resumed.json()["status"] == "active"
+
+    closed = client.post(f"{ORG}/{org_id}/debts/{debt['id']}/close", headers=headers)
+    assert closed.status_code == 200, closed.text
+    assert closed.json()["status"] == "closed"
+    assert closed.json()["closed_at"] is not None
+
+
+def test_patch_rejects_stale_version(client: TestClient) -> None:
+    user = _register(client)
+    headers = user["headers"]
+    org_id = user["org_id"]
+    card = _create_account(
+        client,
+        user,
+        name="Tarjeta",
+        opening="-2000.00",
+        account_type="credit_card",
+    )
+    debt = _create_debt(client, user, account_id=card["id"]).json()
+
+    first = client.patch(
+        f"{ORG}/{org_id}/debts/{debt['id']}",
+        headers=headers,
+        json={"notes": "uno", "version": debt["version"]},
+    )
+    assert first.status_code == 200, first.text
+
+    stale = client.patch(
+        f"{ORG}/{org_id}/debts/{debt['id']}",
+        headers=headers,
+        json={"notes": "dos", "version": debt["version"]},
+    )
+    assert stale.status_code == 409, stale.text
 
 
 def test_list_debts_filters_by_debt_type(client: TestClient) -> None:

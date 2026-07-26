@@ -21,10 +21,13 @@ from wealthos.modules.categories.infrastructure.repositories import (
     SqlAlchemyCategoryRepository,
 )
 from wealthos.modules.debts.application.commands.archive_debt import ArchiveDebtCommand
+from wealthos.modules.debts.application.commands.close_debt import CloseDebtCommand
 from wealthos.modules.debts.application.commands.create_debt import CreateDebtCommand
+from wealthos.modules.debts.application.commands.pause_debt import PauseDebtCommand
 from wealthos.modules.debts.application.commands.record_debt_payment import (
     RecordDebtPaymentCommand,
 )
+from wealthos.modules.debts.application.commands.resume_debt import ResumeDebtCommand
 from wealthos.modules.debts.application.commands.update_debt import UpdateDebtCommand
 from wealthos.modules.debts.application.queries.get_debt import GetDebtQuery
 from wealthos.modules.debts.application.queries.get_debt_summary import (
@@ -154,6 +157,24 @@ def get_archive_debt_command(
     debts: Annotated[DebtRepository, Depends(get_debt_repository)],
 ) -> ArchiveDebtCommand:
     return ArchiveDebtCommand(debts)
+
+
+def get_pause_debt_command(
+    debts: Annotated[DebtRepository, Depends(get_debt_repository)],
+) -> PauseDebtCommand:
+    return PauseDebtCommand(debts)
+
+
+def get_resume_debt_command(
+    debts: Annotated[DebtRepository, Depends(get_debt_repository)],
+) -> ResumeDebtCommand:
+    return ResumeDebtCommand(debts)
+
+
+def get_close_debt_command(
+    debts: Annotated[DebtRepository, Depends(get_debt_repository)],
+) -> CloseDebtCommand:
+    return CloseDebtCommand(debts)
 
 
 def get_record_debt_payment_command(

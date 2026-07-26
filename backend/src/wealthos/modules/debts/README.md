@@ -28,12 +28,15 @@ Contract: [RFC-002](../../../../../docs/rfc/RFC-002-financial-commitments.md) ·
 - Payments via transactions / transfers (Phase 5+); archive keeps history
 - Strategies recommend only (Phase 3+)
 
-## Public API (current + evolving)
+## Public API (current)
 
-Under `/api/v1/organizations/{organization_id}`:
+Under `/api/v1/organizations/{organization_id}/debts`:
 
-- `GET/POST /debts` (canonical path becomes `/commitments` in later phases)
-- Lifecycle: archive; pause/resume/close land in Phase 2
+- `GET/POST /debts` · `GET/PATCH /debts/{id}`
+- `POST .../pause` · `.../resume` · `.../close` · `.../archive`
+- Optimistic concurrency: PATCH with `version` → `409` on stale writes
+
+Canonical `/commitments` path lands in a later phase.
 
 ## Notes
 

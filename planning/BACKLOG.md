@@ -7,7 +7,8 @@ Living list of upcoming work. Not a substitute for SPECs — items become Epics/
 - [ ] **Sprint 6 — Financial Commitments** ([brief](../docs/roadmap/sprint-6-financial-commitments.md), [SPEC-002](../specs/backend/debts/SPEC-002-financial-commitments.md))
   - [x] 6.1–6.5 Design
   - [x] SPEC-002 Phase 1 — persistence & domain
-  - [ ] SPEC-002 Phase 2–7
+  - [x] SPEC-002 Phase 2 — CRUD lifecycle (pause/resume/close + version)
+  - [ ] SPEC-002 Phase 3–7
 
 
 ## Next

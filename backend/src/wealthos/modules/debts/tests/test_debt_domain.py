@@ -78,12 +78,12 @@ def test_rejects_invalid_due_day() -> None:
         _make_debt(statement_day=0)
 
 
-def test_rename_and_change_terms_bumps_version() -> None:
+def test_rename_and_change_terms_then_bump_version() -> None:
     debt = _make_debt()
     assert debt.version == 1
     debt.rename("Tarjeta Nu Platino")
     assert debt.name.value == "Tarjeta Nu Platino"
-    assert debt.version == 2
+    assert debt.version == 1
 
     debt.change_interest_rate("39.9")
     assert debt.interest_rate is not None
@@ -94,6 +94,9 @@ def test_rename_and_change_terms_bumps_version() -> None:
     assert debt.due_day == 15
     debt.change_interest_rate(None)
     assert debt.interest_rate is None
+
+    debt.bump_version()
+    assert debt.version == 2
 
 
 def test_pause_resume_close_archive_lifecycle() -> None:

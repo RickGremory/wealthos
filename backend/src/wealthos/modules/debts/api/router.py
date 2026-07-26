@@ -13,13 +13,16 @@ from wealthos.core.security.organization_access import OrganizationMember
 from wealthos.core.security.organization_permissions import require_organization_role
 from wealthos.modules.debts.api.dependencies import (
     get_archive_debt_command,
+    get_close_debt_command,
     get_create_debt_command,
     get_debt_summary_query,
     get_get_debt_query,
     get_list_debt_payments_query,
     get_list_debts_query,
+    get_pause_debt_command,
     get_payoff_plan_query,
     get_record_debt_payment_command,
+    get_resume_debt_command,
     get_unit_of_work,
     get_update_debt_command,
 )
@@ -27,13 +30,25 @@ from wealthos.modules.debts.application.commands.archive_debt import (
     ArchiveDebtCommand,
     ArchiveDebtInput,
 )
+from wealthos.modules.debts.application.commands.close_debt import (
+    CloseDebtCommand,
+    CloseDebtInput,
+)
 from wealthos.modules.debts.application.commands.create_debt import (
     CreateDebtCommand,
     CreateDebtInput,
 )
+from wealthos.modules.debts.application.commands.pause_debt import (
+    PauseDebtCommand,
+    PauseDebtInput,
+)
 from wealthos.modules.debts.application.commands.record_debt_payment import (
     RecordDebtPaymentCommand,
     RecordDebtPaymentInput,
+)
+from wealthos.modules.debts.application.commands.resume_debt import (
+    ResumeDebtCommand,
+    ResumeDebtInput,
 )
 from wealthos.modules.debts.application.commands.update_debt import (
     UpdateDebtCommand,
@@ -54,13 +69,16 @@ from wealthos.modules.debts.domain.exceptions import (
     DebtAccountMustBeLiability,
     DebtAccountNotFound,
     DebtAlreadyArchived,
+    DebtAlreadyClosed,
     DebtAlreadyExistsForAccount,
-    DebtAlreadyPaidOff,
+    DebtAlreadyPaused,
+    DebtConcurrentUpdate,
     DebtCurrencyMismatch,
     DebtError,
     DebtNameEmpty,
     DebtNameTooLong,
     DebtNotFoundError,
+    DebtNotPaused,
     DebtPaymentAmountInvalid,
     DebtPaymentBreakdownInvalid,
     DebtPaymentExceedsBalance,
@@ -120,14 +138,21 @@ def _http_map_debt_errors(exc: Exception) -> HTTPException:
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
         )
-    if isinstance(exc, (DebtAlreadyArchived, DebtAlreadyExistsForAccount)):
+    if isinstance(
+        exc,
+        DebtAlreadyArchived
+        | DebtAlreadyExistsForAccount
+        | DebtAlreadyPaused
+        | DebtAlreadyClosed
+        | DebtNotPaused
+        | DebtConcurrentUpdate,
+    ):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     if isinstance(
         exc,
         DebtAccountMustBeLiability
         | DebtAccountInactive
         | DebtCurrencyMismatch
-        | DebtAlreadyPaidOff
         | DebtPaymentExceedsBalance
         | DebtPaymentSourceInvalid
         | CannotUpdateDebtField,
@@ -303,6 +328,7 @@ def update_debt(
                     due_day=payload.due_day,
                     statement_day=payload.statement_day,
                     notes=payload.notes,
+                    expected_version=payload.version,
                     fields_set=frozenset(payload.model_fields_set),
                 )
             )
@@ -374,6 +400,78 @@ def list_debt_payments(
         limit=limit,
         offset=offset,
     )
+
+
+@router.post(
+    "/{organization_id}/debts/{debt_id}/pause",
+    response_model=DebtResponse,
+    summary="Pause debt",
+)
+def pause_debt(
+    organization_id: UUID,
+    debt_id: UUID,
+    _membership: RequireWriter,
+    command: Annotated[PauseDebtCommand, Depends(get_pause_debt_command)],
+    query: Annotated[GetDebtQuery, Depends(get_get_debt_query)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> DebtResponse:
+    try:
+        with uow:
+            command.execute(PauseDebtInput(organization_id=organization_id, debt_id=debt_id))
+            uow.commit()
+    except DebtError as exc:
+        raise _http_map_debt_errors(exc) from exc
+
+    item = query.execute(organization_id, debt_id)
+    return DebtResponse.from_debt_with_balance(item)
+
+
+@router.post(
+    "/{organization_id}/debts/{debt_id}/resume",
+    response_model=DebtResponse,
+    summary="Resume paused debt",
+)
+def resume_debt(
+    organization_id: UUID,
+    debt_id: UUID,
+    _membership: RequireWriter,
+    command: Annotated[ResumeDebtCommand, Depends(get_resume_debt_command)],
+    query: Annotated[GetDebtQuery, Depends(get_get_debt_query)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> DebtResponse:
+    try:
+        with uow:
+            command.execute(ResumeDebtInput(organization_id=organization_id, debt_id=debt_id))
+            uow.commit()
+    except DebtError as exc:
+        raise _http_map_debt_errors(exc) from exc
+
+    item = query.execute(organization_id, debt_id)
+    return DebtResponse.from_debt_with_balance(item)
+
+
+@router.post(
+    "/{organization_id}/debts/{debt_id}/close",
+    response_model=DebtResponse,
+    summary="Close debt product",
+)
+def close_debt(
+    organization_id: UUID,
+    debt_id: UUID,
+    _membership: RequireManager,
+    command: Annotated[CloseDebtCommand, Depends(get_close_debt_command)],
+    query: Annotated[GetDebtQuery, Depends(get_get_debt_query)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> DebtResponse:
+    try:
+        with uow:
+            command.execute(CloseDebtInput(organization_id=organization_id, debt_id=debt_id))
+            uow.commit()
+    except DebtError as exc:
+        raise _http_map_debt_errors(exc) from exc
+
+    item = query.execute(organization_id, debt_id)
+    return DebtResponse.from_debt_with_balance(item)
 
 
 @router.post(

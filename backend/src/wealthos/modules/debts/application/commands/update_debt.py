@@ -8,7 +8,10 @@ from decimal import Decimal
 from uuid import UUID
 
 from wealthos.modules.debts.domain.entities.debt import Debt
-from wealthos.modules.debts.domain.exceptions import DebtNotFoundError
+from wealthos.modules.debts.domain.exceptions import (
+    DebtConcurrentUpdate,
+    DebtNotFoundError,
+)
 from wealthos.modules.debts.domain.repositories.debt_repository import DebtRepository
 from wealthos.shared.domain.value_objects.money import Money
 
@@ -28,6 +31,7 @@ class UpdateDebtInput:
     due_day: int | None = None
     statement_day: int | None = None
     notes: str | None = None
+    expected_version: int | None = None
     fields_set: frozenset[str] = field(default_factory=frozenset)
 
 
@@ -39,6 +43,11 @@ class UpdateDebtCommand:
         debt = self._debts.get_by_id(data.organization_id, data.debt_id)
         if debt is None:
             raise DebtNotFoundError("Debt not found.")
+
+        if data.expected_version is not None and data.expected_version != debt.version:
+            raise DebtConcurrentUpdate(
+                "The commitment was modified by another request. Refresh and try again."
+            )
 
         if "name" in data.fields_set and data.name is not None:
             debt.rename(data.name)
@@ -78,4 +87,5 @@ class UpdateDebtCommand:
         if "notes" in data.fields_set:
             debt.change_notes(data.notes)
 
+        debt.bump_version()
         return self._debts.save(debt)

@@ -71,6 +71,13 @@ class SqlAlchemyDebtRepository(BaseRepository[DebtModel]):
         model = self.session.get(DebtModel, debt.id)
         if model is None or model.organization_id != debt.organization_id:
             raise LookupError("Debt not found for save.")
+        # Domain mutations always bump version by 1 from the loaded row.
+        if model.version != debt.version - 1:
+            from wealthos.modules.debts.domain.exceptions import DebtConcurrentUpdate
+
+            raise DebtConcurrentUpdate(
+                "The commitment was modified by another request. Refresh and try again."
+            )
         self._mapper.apply_to_model(debt, model)
         self.flush()
         self.refresh(model)

@@ -77,6 +77,10 @@ class DebtAlreadyExistsForAccount(DebtError):
     """Raised when a debt already exists for the account (1:1)."""
 
 
+class DebtConcurrentUpdate(DebtError):
+    """Raised when optimistic version check fails on update."""
+
+
 class DebtPaymentExceedsBalance(DebtError):
     """Raised when a payment would make the liability balance positive."""
 

@@ -182,9 +182,9 @@ Required NOT NULL: org, account, name, debt_type, currency, status, priority.
 
 ### Phase 2 — CRUD lifecycle
 
-- [ ] Create / list / get / patch (optimistic `version` → 409 `concurrent_update`)  
-- [ ] Pause / resume / close / archive  
-- [ ] Validations: liability account, same org, currency match, not already linked, day ranges, non-negative amounts/rates  
+- [x] Create / list / get / patch (optimistic `version` → 409 `concurrent_update`)  
+- [x] Pause / resume / close / archive  
+- [x] Validations: liability account, same org, currency match, not already linked, day ranges, non-negative amounts/rates  
 
 ### Phase 3 — Projections
 

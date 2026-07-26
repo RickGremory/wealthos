@@ -218,14 +218,14 @@ class Debt:
         if self.status.is_paused:
             raise DebtAlreadyPaused("Debt is already paused.")
         self.status = DebtStatus("paused")
-        self._touch()
+        self.bump_version()
 
     def resume(self) -> None:
         self._ensure_not_archived()
         if not self.status.is_paused:
             raise DebtNotPaused("Debt is not paused.")
         self.status = DebtStatus("active")
-        self._touch()
+        self.bump_version()
 
     def close(self) -> None:
         """Mark the financial product as closed (no longer accepts charges)."""
@@ -265,5 +265,8 @@ class Debt:
             raise DebtAlreadyArchived("Cannot update an archived debt.")
 
     def _touch(self) -> None:
+        self.updated_at = datetime.now(UTC)
+
+    def bump_version(self) -> None:
         self.updated_at = datetime.now(UTC)
         self.version += 1
