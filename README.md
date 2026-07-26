@@ -277,7 +277,9 @@ uv run python scripts/seed_demo.py --with-sample-data
 | Email | `demo@wealthos.test` |
 | Password | `WealthOS-2026-Segura` |
 
-This command is idempotent: it recreates or restores the password if the user is missing, and optionally ensures a checking account, sample movements, and a goal.
+This command is idempotent: it recreates or restores the password if the user is missing, and optionally ensures a checking account, sample movements, a goal, and sample obligaciones.
+
+If login fails or the app looks empty after a Docker/DB reset, run the seed again before debugging the product.
 
 ### Useful checks
 

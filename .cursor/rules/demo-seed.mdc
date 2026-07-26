@@ -1,0 +1,38 @@
+---
+description: Always keep WealthOS local demo user/data seeded after DB resets
+alwaysApply: true
+---
+
+# Demo seed — always restore local demo data
+
+Local Postgres often loses data (compose recreate, volume wipe, fresh migrate). When that happens, **do not ask the user to re-login into a missing account** — restore the demo seed yourself.
+
+## When to run it
+
+Run seed **immediately** if any of these are true:
+
+- Login fails for `demo@wealthos.test`
+- DB has 0 users / empty org
+- After `docker compose up`, volume recreate, or `alembic upgrade head` on an empty DB
+- User says data “se borró”, “no puedo entrar”, “no hay demo”
+- Starting a session where you will exercise the app UI against local stack
+
+## Command (from repo root)
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+cd backend
+uv run alembic upgrade head
+uv run python scripts/seed_demo.py --with-sample-data
+```
+
+Use `required_permissions: ["all"]` if Docker/DB access is sandboxed.
+
+## Stable credentials (do not change casually)
+
+- Email: `demo@wealthos.test`
+- Password: `WealthOS-2026-Segura`
+
+## After seeding
+
+Confirm briefly (users/accounts/debts counts or seed ✓ lines) and tell the user they can log in again with those credentials.
