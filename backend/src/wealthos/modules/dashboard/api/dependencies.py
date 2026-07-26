@@ -50,7 +50,13 @@ from wealthos.modules.goals.application.services.goal_progress_service import (
 )
 from wealthos.modules.goals.domain.repositories.goal_repository import GoalRepository
 from wealthos.modules.goals.infrastructure.repositories import SqlAlchemyGoalRepository
-from wealthos.modules.planning.api.dependencies import get_planning_summary_query
+from wealthos.modules.planning.api.dependencies import (
+    get_get_safe_to_spend_summary_query,
+    get_planning_summary_query,
+)
+from wealthos.modules.planning.application.queries.get_planning_projection import (
+    GetSafeToSpendSummaryQuery,
+)
 from wealthos.modules.planning.application.queries.get_planning_summary import (
     GetPlanningSummaryQuery,
 )
@@ -228,6 +234,10 @@ def get_dashboard_query(
         GetPlanningSummaryQuery,
         Depends(get_planning_summary_query),
     ],
+    safe_to_spend_query: Annotated[
+        GetSafeToSpendSummaryQuery,
+        Depends(get_get_safe_to_spend_summary_query),
+    ],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> GetDashboardQuery:
     return GetDashboardQuery(
@@ -240,5 +250,6 @@ def get_dashboard_query(
         debts_query=debts_query,
         taxes_query=taxes_query,
         planning_query=planning_query,
+        safe_to_spend_query=safe_to_spend_query,
         uow=uow,
     )

@@ -61,7 +61,7 @@ function buildMetrics(
     },
     {
       id: 'safe_to_spend',
-      label: `Disponible para gastar (${currency})`,
+      label: `Disponible para usar (${currency})`,
       amount: sts.status === 'available' && (sts.currency === currency || !sts.currency)
         ? sts.amount
         : null,

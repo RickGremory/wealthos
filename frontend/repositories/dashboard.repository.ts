@@ -296,7 +296,7 @@ export function mapDashboardAggregate(dto: DashboardAggregateDto): DashboardProj
   if (dto.widgets.safe_to_spend.status === 'error') {
     widgetErrors.push({
       id: 'safe_to_spend',
-      title: 'Disponible para gastar',
+      title: 'Disponible para usar',
       message: 'No se pudo calcular el disponible para gastar.',
     })
   }

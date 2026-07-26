@@ -65,6 +65,10 @@ from wealthos.modules.debts.application.queries.get_debt_summary import GetDebtS
 from wealthos.modules.goals.application.queries.get_goals_dashboard_summary import (
     GetGoalsDashboardSummaryQuery,
 )
+from wealthos.modules.planning.application.queries.get_planning_projection import (
+    GetPlanningProjectionInput,
+    GetSafeToSpendSummaryQuery,
+)
 from wealthos.modules.planning.application.queries.get_planning_summary import (
     GetPlanningSummaryQuery,
 )
@@ -89,6 +93,7 @@ class GetDashboardQuery:
         debts_query: GetDebtSummaryQuery,
         taxes_query: GetTaxSummaryQuery,
         planning_query: GetPlanningSummaryQuery,
+        safe_to_spend_query: GetSafeToSpendSummaryQuery,
         uow: SqlAlchemyUnitOfWork,
     ) -> None:
         self._summary_query = summary_query
@@ -100,6 +105,7 @@ class GetDashboardQuery:
         self._debts_query = debts_query
         self._taxes_query = taxes_query
         self._planning_query = planning_query
+        self._safe_to_spend_query = safe_to_spend_query
         self._uow = uow
 
     def execute(
@@ -184,7 +190,7 @@ class GetDashboardQuery:
             primary_currency=primary_currency,
             selected_currency=currency,
         )
-        safe_to_spend = self._build_safe_to_spend(planning)
+        safe_to_spend = self._build_safe_to_spend_from_projection(organization_id, currency)
         budget = self._build_budget(planning)
         goal = self._build_goal(goals)
         debts_widget = self._build_debts_widget(debts)
@@ -709,6 +715,52 @@ class GetDashboardQuery:
         except Exception:
             logger.exception("dashboard.taxes.failed")
             return None
+
+    def _build_safe_to_spend_from_projection(
+        self,
+        organization_id: UUID,
+        currency: str,
+    ) -> SafeToSpendWidget:
+        try:
+            summary = self._safe_to_spend_query.execute(
+                GetPlanningProjectionInput(
+                    organization_id=organization_id,
+                    currency=currency,
+                )
+            )
+        except Exception:
+            logger.exception("dashboard.safe_to_spend.failed")
+            return SafeToSpendWidget(
+                status="error",
+                data=None,
+                action=WidgetAction(label="Abrir Planeación", to="/app/planning"),
+                error_code="planning_failed",
+            )
+
+        if summary.status in {"insufficient_data", "unavailable"}:
+            return SafeToSpendWidget(
+                status="unavailable",
+                data=SafeToSpendWidgetData(
+                    currency=summary.currency,
+                    safe_to_spend=None,
+                    funding_gap=Decimal(summary.reserve_shortfall or "0"),
+                ),
+                action=WidgetAction(label="Abrir Planeación", to="/app/planning"),
+            )
+
+        return SafeToSpendWidget(
+            status="available",
+            data=SafeToSpendWidgetData(
+                currency=summary.currency,
+                safe_to_spend=(
+                    Decimal(summary.safe_to_spend)
+                    if summary.safe_to_spend is not None
+                    else None
+                ),
+                funding_gap=Decimal(summary.reserve_shortfall or "0"),
+            ),
+            action=WidgetAction(label="Ver Planeación", to="/app/planning"),
+        )
 
     @staticmethod
     def _build_safe_to_spend(planning: dict | None) -> SafeToSpendWidget:

@@ -36,8 +36,7 @@ export function useAppNav() {
         id: 'planning',
         label: 'Planning',
         items: [
-          { label: 'Budget', to: '/app/planning', flag: 'planning' },
-          { label: 'Cash Flow', to: '/app/planning', flag: 'planning' },
+          { label: 'Planeación', to: '/app/planning', flag: 'planning' },
           { label: 'Calendar', to: '/app/calendar' },
         ],
       },
