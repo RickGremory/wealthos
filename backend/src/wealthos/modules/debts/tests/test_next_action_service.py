@@ -1,6 +1,6 @@
 """NextActionService unit tests."""
 
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -29,14 +29,17 @@ def _debt(**overrides) -> Debt:
 
 
 def test_overdue_yields_pay_overdue() -> None:
+    debt = _debt()
+    debt.created_at = datetime(2026, 7, 1, 12, 0, tzinfo=UTC)
     action = NextActionService().for_debt(
-        _debt(),
+        debt,
         account_balance=Decimal("-10000.00"),
         today=date(2026, 7, 25),
     )
     assert action.type == CommitmentNextActionType.PAY_OVERDUE
     assert action.reason_code == "overdue"
     assert action.amount == Decimal("1250.00")
+    assert action.due_date == date(2026, 7, 20)
 
 
 def test_missing_payment_schedule() -> None:

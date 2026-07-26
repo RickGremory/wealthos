@@ -1,6 +1,6 @@
 """DebtStrategyService ranking hierarchy tests."""
 
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -66,7 +66,9 @@ def test_snowball_ranks_lowest_balance_first() -> None:
 
 def test_overdue_outranks_strategy() -> None:
     overdue = _debt(name="Overdue", due_day=5, interest_rate="10.0")
+    overdue.created_at = datetime(2026, 7, 1, 12, 0, tzinfo=UTC)
     high = _debt(name="High", due_day=28, interest_rate="50.0")
+    high.created_at = datetime(2026, 7, 1, 12, 0, tzinfo=UTC)
     balances = {
         overdue.account_id: Decimal("-4000.00"),
         high.account_id: Decimal("-8000.00"),

@@ -1,6 +1,6 @@
 """DebtStateService — derived display status and due-day calendar rules."""
 
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -28,6 +28,11 @@ def _card(**overrides) -> Debt:
     }
     defaults.update(overrides)
     return Debt.create(**defaults)
+
+
+def _created_on(debt: Debt, day: date) -> Debt:
+    debt.created_at = datetime(day.year, day.month, day.day, 12, 0, tzinfo=UTC)
+    return debt
 
 
 def test_resolve_calendar_day_clamps_31_in_february() -> None:
@@ -69,19 +74,34 @@ def test_closed_zero_balance_is_paid_off() -> None:
 
 def test_overdue_when_cycle_due_passed_with_balance() -> None:
     service = DebtStateService()
-    debt = _card(due_day=20)
+    debt = _created_on(_card(due_day=20), date(2026, 7, 1))
     snap = service.snapshot(
         debt,
         account_balance=Decimal("-18450.00"),
         today=date(2026, 7, 25),
     )
     assert snap.display_status == CommitmentDisplayStatus.OVERDUE
+    assert snap.cycle_due_date == date(2026, 7, 20)
     assert snap.next_due_date == date(2026, 8, 20)
+
+
+def test_not_overdue_when_created_after_this_months_due_day() -> None:
+    """New card on Jul 25 with due_day=15 must not treat Jul 15 as missed."""
+    service = DebtStateService()
+    debt = _created_on(_card(due_day=15), date(2026, 7, 25))
+    snap = service.snapshot(
+        debt,
+        account_balance=Decimal("-6000.00"),
+        today=date(2026, 7, 25),
+    )
+    assert snap.display_status == CommitmentDisplayStatus.ACTIVE
+    assert snap.next_due_date == date(2026, 8, 15)
+    assert snap.days_until_due == 21
 
 
 def test_due_soon_within_window() -> None:
     service = DebtStateService()
-    debt = _card(due_day=28)
+    debt = _created_on(_card(due_day=28), date(2026, 7, 1))
     snap = service.snapshot(
         debt,
         account_balance=Decimal("-1000.00"),

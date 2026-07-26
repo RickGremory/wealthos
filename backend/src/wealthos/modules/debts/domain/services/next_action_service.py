@@ -85,7 +85,7 @@ class NextActionService:
                 type=CommitmentNextActionType.PAY_OVERDUE,
                 reason_code="overdue",
                 amount=amount,
-                due_date=snap.next_due_date,
+                due_date=snap.cycle_due_date or snap.next_due_date,
             )
 
         if snap.owed_balance > 0 and self._required_payment(debt) is None:

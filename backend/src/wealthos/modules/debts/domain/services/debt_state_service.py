@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import calendar
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from enum import StrEnum
 
@@ -48,6 +48,14 @@ def next_due_date_on_or_after(*, due_day: int, on_or_after: date) -> date:
     return resolve_calendar_day(year, month, due_day)
 
 
+def _as_calendar_date(value: date | datetime | None, *, fallback: date) -> date:
+    if value is None:
+        return fallback
+    if isinstance(value, datetime):
+        return value.date()
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class DebtStateSnapshot:
     display_status: CommitmentDisplayStatus
@@ -55,6 +63,8 @@ class DebtStateSnapshot:
     owed_balance: Decimal
     next_due_date: date | None
     days_until_due: int | None
+    """Due date used for overdue / due-soon (may be a missed cycle date)."""
+    cycle_due_date: date | None = None
 
 
 class DebtStateService:
@@ -70,16 +80,32 @@ class DebtStateService:
     ) -> DebtStateSnapshot:
         today = today or date.today()
         owed = abs(account_balance) if account_balance < _ZERO else _ZERO
+        active_since = _as_calendar_date(debt.created_at, fallback=today)
 
         next_due: date | None = None
         days_until: int | None = None
         cycle_due: date | None = None
+
         if debt.due_day is not None:
-            cycle_due = resolve_calendar_day(today.year, today.month, debt.due_day)
+            # This month's nominal due day (e.g. 15 Jul).
+            month_due = resolve_calendar_day(today.year, today.month, debt.due_day)
+
+            # A due date only "counts" if the commitment already existed that day.
+            # Creating a card on Jul 25 with due_day=15 must not mark Jul 15 as missed.
+            if month_due < active_since:
+                cycle_due = next_due_date_on_or_after(
+                    due_day=debt.due_day,
+                    on_or_after=active_since,
+                )
+            else:
+                cycle_due = month_due
+
             if owed > 0:
                 if cycle_due < today:
-                    year, month = _add_month(today.year, today.month)
-                    next_due = resolve_calendar_day(year, month, debt.due_day)
+                    next_due = next_due_date_on_or_after(
+                        due_day=debt.due_day,
+                        on_or_after=today,
+                    )
                 else:
                     next_due = cycle_due
                 days_until = (next_due - today).days
@@ -97,6 +123,7 @@ class DebtStateService:
             owed_balance=owed,
             next_due_date=next_due,
             days_until_due=days_until,
+            cycle_due_date=cycle_due,
         )
 
     def display_status(
