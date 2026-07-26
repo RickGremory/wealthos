@@ -211,13 +211,16 @@ Strategies and AI may use financial priority; they never overwrite emotional pri
 
 ## 8. Payment strategies (preferences)
 
-Not algorithms that mutate data. User preference only:
+Not algorithms that mutate data. **Organization-level** preference (`organization.debt_strategy`):
 
 - `avalanche`
 - `snowball`
-- `manual` — “I do not want recommendations”
+- `minimum_only`
+- `manual` — respect emotional priority only; no financial ranking push
 
-Strategies **only** produce recommendations. They never change balances, statuses, or transactions by themselves.
+Strategies **only** produce recommendations (reason codes + ranking). They never change balances, statuses, or transactions by themselves.
+
+Full rules: [Sprint 6.4](../roadmap/sprint-6.4-payment-strategies.md).
 
 ---
 
