@@ -1,23 +1,58 @@
 # WealthOS
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-teal.svg)](./LICENSE)
+[![Python 3.13+](https://img.shields.io/badge/Python-3.13%2B-blue.svg)](./backend)
+[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688.svg)](./backend)
+[![Nuxt 3](https://img.shields.io/badge/Frontend-Nuxt%203-00DC82.svg)](./frontend)
+[![Vue 3](https://img.shields.io/badge/UI-Vue%203-4FC08D.svg)](./frontend)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6.svg)](./frontend)
+[![PostgreSQL](https://img.shields.io/badge/DB-PostgreSQL-336791.svg)](./docker-compose.yml)
+[![Open Core](https://img.shields.io/badge/Model-Open%20Core-0B3D3A.svg)](./docs/adr/ADR-003-open-core.md)
+[![Status](https://img.shields.io/badge/Status-Active%20Development-orange.svg)](#project-status)
+
 > The Financial Operating System for Independent Professionals.
 
-WealthOS is an open-core platform that helps independent professionals organize their finances, build wealth, and make better financial decisions.
+## Preview
 
-Unlike traditional expense trackers, WealthOS focuses on financial clarity, long-term goals, taxes, debt management, and wealth creation.
+![WealthOS product tour](docs/assets/product-tour.gif)
+
+### Dashboard
+
+![WealthOS Dashboard](docs/assets/dashboard.png)
+
+### Dashboard · Mobile
+
+![WealthOS Dashboard mobile](docs/assets/dashboard-mobile.png)
+
+### Transactions
+
+![WealthOS Transactions](docs/assets/transactions.png)
+
+### Goals
+
+![WealthOS Goals](docs/assets/goals.png)
+
+---
+
+WealthOS is **not** an expense tracker.
+
+It is a financial operating system designed to help independent professionals build wealth — with clarity over balances, goals, taxes, debt, and long-term decisions.
 
 > [!IMPORTANT]
 > WealthOS is under active development and is **not yet recommended for storing production financial data.**
 
 ---
 
-## Preview
+## Built for
 
-![WealthOS Dashboard](docs/assets/dashboard.png)
-
-| Dashboard (mobile) | Transactions | Goals |
-| --- | --- | --- |
-| ![Mobile dashboard](docs/assets/dashboard-mobile.png) | ![Transactions](docs/assets/transactions.png) | ![Goals](docs/assets/goals.png) |
+- Freelancers
+- Consultants
+- Software developers
+- Designers
+- Architects
+- Lawyers
+- Small business owners
+- Independent professionals who treat money as a system, not a spreadsheet
 
 ---
 
@@ -51,6 +86,49 @@ WealthOS exists to solve that problem.
 
 ---
 
+## Design Principles
+
+- Financial truth over convenience
+- No hidden calculations
+- No silent currency conversions
+- Explicit financial decisions
+- Privacy by design
+- Progressive disclosure — show value before complexity
+
+---
+
+## At a glance
+
+| Current MVP | Documentation |
+| --- | --- |
+| ✓ Authentication & organizations | **12** Architecture Decision Records |
+| ✓ Accounts & categories | Product principles and delivery docs in `docs/` |
+| ✓ Transactions & dashboard | OpenAPI-typed frontend |
+| ✓ Goals & legal consent | Modular monolith · DDD |
+| ✓ Responsive UI | 100% TypeScript frontend · Python backend |
+
+---
+
+## Roadmap
+
+```
+✅ Authentication
+✅ Organizations & onboarding
+✅ Accounts & categories
+✅ Transactions
+✅ Dashboard
+✅ Goals
+✅ Legal consent & privacy pages
+🟡 Debts
+🟡 Taxes
+🟡 Budgets & cash-flow planning
+🟡 Recurring transactions
+⬜ AI insights
+⬜ Advisor / collaboration mode
+```
+
+---
+
 ## Technology
 
 ### Backend
@@ -71,6 +149,25 @@ WealthOS exists to solve that problem.
 - Vitest / Playwright
 
 ### Architecture
+
+```text
+┌─────────────────┐
+│  Nuxt 3 (Vue)   │  Web app
+└────────┬────────┘
+         │ HTTPS / JSON
+┌────────▼────────┐
+│ FastAPI (API)   │  /api/v1
+└────────┬────────┘
+         │
+┌────────▼────────┐
+│ Domain modules  │  identity · accounts · transactions ·
+│ (modular mono)  │  dashboard · goals · legal · …
+└────────┬────────┘
+         │
+┌────────▼────────┐
+│   PostgreSQL    │
+└─────────────────┘
+```
 
 - Modular monolith
 - Domain-driven design
@@ -102,32 +199,16 @@ See [ADR-003](./docs/adr/ADR-003-open-core.md).
 
 WealthOS is currently in **active development**.
 
-### Implemented
+The first usable financial workflow is live: **accounts → transactions → dashboard → goals**, with legal consent and a responsive UI.
 
-- Authentication and organization onboarding
-- Versioned terms / privacy acceptance
-- Financial accounts and categories
-- Income, expense, transfer, and adjustment transactions
-- Financial dashboard (multi-currency metrics)
-- Goal tracking (manual, linked accounts, net worth)
-- Responsive desktop and mobile interface
-
-### In progress / next modules
-
-- Product review and polish (responsive, a11y, consistency)
-- Debt management UI
-- Tax planning UI
-- Budgets and cash-flow planning UI
-- Recurring transactions
-- Deeper privacy tooling (ARCO workflows, account deletion)
+Still ahead: debts, taxes, planning UI, recurring transactions, and deeper privacy tooling (ARCO workflows, account deletion).
 
 ---
 
 ## Current Milestone
 
-The current milestone focuses on product review, responsive behavior,
-privacy policies, legal consent, and stabilization of the first usable
-financial workflow (accounts → transactions → dashboard → goals).
+Product review and polish — responsive behavior, accessibility, privacy policies,
+legal consent, and stabilization of the first usable financial workflow.
 
 ---
 
@@ -188,10 +269,9 @@ WealthOS/
 ├── .github/
 ├── .ai/
 ├── docs/              # strategy, ADRs, product principles
-│   └── assets/        # README screenshots
+│   └── assets/        # README screenshots & product tour
 ├── specs/             # execution SPECs
 ├── planning/          # backlog, roadmap, milestones
-├── adr/               # architecture decision records (repo root copies)
 ├── backend/           # FastAPI modular monolith
 ├── frontend/          # Nuxt 3 application
 ├── infrastructure/
@@ -206,4 +286,5 @@ Public legal pages (when running locally): `/legal`, `/legal/privacy`, `/legal/t
 
 ## Vision
 
-Become the operating system for personal finance.
+Become the financial operating system for independent professionals worldwide —
+helping them build wealth through clearer financial decisions.
