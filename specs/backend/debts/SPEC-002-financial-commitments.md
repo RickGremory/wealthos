@@ -196,10 +196,10 @@ Required NOT NULL: org, account, name, debt_type, currency, status, priority.
 
 ### Phase 4 — Frontend base
 
-- [ ] Repository + cache keys + composables  
-- [ ] Overview: header, summary, needs attention, strategy, filters, cards  
-- [ ] Create (type → form; inline liability account create)  
-- [ ] Detail (next action first)  
+- [x] Repository + cache keys + composables  
+- [x] Overview: header, summary, needs attention, strategy, filters, cards  
+- [x] Create (type → form; inline liability account create)  
+- [x] Detail (next action first)  
 
 ### Phase 5 — Payments
 

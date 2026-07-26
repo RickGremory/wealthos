@@ -8,6 +8,7 @@ const categoriesVersion = ref(0)
 const dashboardVersion = ref(0)
 const transactionsVersion = ref(0)
 const goalsVersion = ref(0)
+const commitmentsVersion = ref(0)
 
 export function useFinanceCache() {
   function invalidateAccounts() {
@@ -34,12 +35,19 @@ export function useFinanceCache() {
     dashboardVersion.value += 1
   }
 
+  function invalidateCommitments() {
+    commitmentsVersion.value += 1
+    accountsVersion.value += 1
+    dashboardVersion.value += 1
+  }
+
   function invalidateAll() {
     accountsVersion.value += 1
     categoriesVersion.value += 1
     dashboardVersion.value += 1
     transactionsVersion.value += 1
     goalsVersion.value += 1
+    commitmentsVersion.value += 1
   }
 
   return {
@@ -48,11 +56,13 @@ export function useFinanceCache() {
     dashboardVersion: readonly(dashboardVersion),
     transactionsVersion: readonly(transactionsVersion),
     goalsVersion: readonly(goalsVersion),
+    commitmentsVersion: readonly(commitmentsVersion),
     invalidateAccounts,
     invalidateCategories,
     invalidateDashboard,
     invalidateTransactions,
     invalidateGoals,
+    invalidateCommitments,
     invalidateAll,
   }
 }

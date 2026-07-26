@@ -177,7 +177,7 @@ test.describe('smoke auth shell', () => {
               debts: {
                 status: 'not_configured',
                 data: { title: 'Deudas', lines: [], hint: 'Registra pasivos' },
-                action: { label: 'Agregar deuda', to: '/app/debts' },
+                action: { label: 'Agregar deuda', to: '/app/commitments' },
               },
               taxes: {
                 status: 'not_configured',

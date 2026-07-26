@@ -18,6 +18,7 @@ export default defineNuxtConfig({
     { path: '~/components/categories', pathPrefix: false },
     { path: '~/components/transactions', pathPrefix: false },
     { path: '~/components/goals', pathPrefix: false },
+    { path: '~/components/commitments', pathPrefix: false },
     { path: '~/components/legal', pathPrefix: false },
   ],
 
