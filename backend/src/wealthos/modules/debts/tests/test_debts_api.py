@@ -426,3 +426,73 @@ def test_list_debts_filters_by_debt_type(client: TestClient) -> None:
     ).json()
     assert only_cards["total"] == 1
     assert only_cards["items"][0]["debt_type"] == "credit_card"
+
+
+def test_summary_strategy_activity_and_utilization(client: TestClient) -> None:
+    user = _register(client)
+    headers = user["headers"]
+    org_id = user["org_id"]
+    bank = _create_account(client, user, name="HSBC", opening="50000.00")
+    card = _create_account(
+        client,
+        user,
+        name="Tarjeta Nu",
+        opening="-25000.00",
+        account_type="credit_card",
+    )
+    created = client.post(
+        f"{ORG}/{org_id}/debts",
+        headers=headers,
+        json={
+            "account_id": card["id"],
+            "name": "Tarjeta Nu",
+            "debt_type": "credit_card",
+            "creditor": "Nu",
+            "interest_rate": "42.00",
+            "minimum_payment": "2000.00",
+            "credit_limit": "50000.00",
+            "due_day": 28,
+        },
+    )
+    assert created.status_code == 201, created.text
+    debt = created.json()
+    assert Decimal(str(debt["utilization_percentage"])) == Decimal("50.00")
+    assert debt["next_action"] is not None
+
+    summary = client.get(f"{ORG}/{org_id}/debts/summary", headers=headers).json()
+    assert summary["active_commitments"] == 1
+    assert summary["groups"][0]["currency"] == "MXN"
+    assert len(summary["by_currency"]) == 1
+
+    strategy = client.get(f"{ORG}/{org_id}/debts/strategy", headers=headers)
+    assert strategy.status_code == 200, strategy.text
+    body = strategy.json()
+    assert body["strategy"] == "avalanche"
+    assert body["status"] in {"available", "partial", "not_configured"}
+    assert body["ranking"][0]["commitment_id"] == debt["id"]
+
+    patched = client.patch(
+        f"{ORG}/{org_id}/debts/strategy",
+        headers=headers,
+        json={"strategy": "snowball"},
+    )
+    assert patched.status_code == 200, patched.text
+    assert patched.json()["strategy"] == "snowball"
+
+    payment = client.post(
+        f"{ORG}/{org_id}/debts/{debt['id']}/payments",
+        headers=headers,
+        json={
+            "source_account_id": bank["id"],
+            "amount": "1000.00",
+            "occurred_at": "2026-07-20T12:00:00Z",
+        },
+    )
+    assert payment.status_code == 201, payment.text
+
+    activity = client.get(
+        f"{ORG}/{org_id}/debts/{debt['id']}/activity",
+        headers=headers,
+    )
+    assert activity.status_code == 200, activity.text
+    assert activity.json()["total"] >= 1

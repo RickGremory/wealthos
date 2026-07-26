@@ -13,8 +13,11 @@ from wealthos.core.security.organization_access import OrganizationMember
 from wealthos.core.security.organization_permissions import require_organization_role
 from wealthos.modules.debts.api.dependencies import (
     get_archive_debt_command,
+    get_change_debt_strategy_command,
     get_close_debt_command,
     get_create_debt_command,
+    get_debt_activity_query,
+    get_debt_strategy_query,
     get_debt_summary_query,
     get_get_debt_query,
     get_list_debt_payments_query,
@@ -29,6 +32,10 @@ from wealthos.modules.debts.api.dependencies import (
 from wealthos.modules.debts.application.commands.archive_debt import (
     ArchiveDebtCommand,
     ArchiveDebtInput,
+)
+from wealthos.modules.debts.application.commands.change_debt_strategy import (
+    ChangeDebtStrategyCommand,
+    ChangeDebtStrategyInput,
 )
 from wealthos.modules.debts.application.commands.close_debt import (
     CloseDebtCommand,
@@ -55,6 +62,12 @@ from wealthos.modules.debts.application.commands.update_debt import (
     UpdateDebtInput,
 )
 from wealthos.modules.debts.application.queries.get_debt import GetDebtQuery
+from wealthos.modules.debts.application.queries.get_debt_activity import (
+    GetDebtActivityQuery,
+)
+from wealthos.modules.debts.application.queries.get_debt_strategy import (
+    GetDebtStrategyQuery,
+)
 from wealthos.modules.debts.application.queries.get_debt_summary import (
     GetDebtSummaryQuery,
 )
@@ -98,11 +111,15 @@ from wealthos.modules.debts.schemas.response import (
     DebtPaymentResponse,
     DebtResponse,
 )
+from wealthos.modules.debts.schemas.strategy import DebtStrategyResponse, DebtStrategyUpdate
 from wealthos.modules.debts.schemas.summary import DebtSummaryResponse
 from wealthos.modules.debts.schemas.update import DebtUpdate
 from wealthos.modules.organizations.domain.entities.organization_membership import (
     OrganizationMembership,
 )
+from wealthos.modules.organizations.domain.exceptions import OrganizationNotFoundError
+from wealthos.modules.transactions.schemas.collection import TransactionListResponse
+from wealthos.modules.transactions.schemas.response import TransactionResponse
 from wealthos.shared.domain.exceptions import InvalidCurrency
 from wealthos.shared.persistence import SqlAlchemyUnitOfWork
 
@@ -119,7 +136,7 @@ RequireManager = Annotated[
 
 
 def _http_map_debt_errors(exc: Exception) -> HTTPException:
-    if isinstance(exc, (DebtNotFoundError, DebtAccountNotFound)):
+    if isinstance(exc, (DebtNotFoundError, DebtAccountNotFound, OrganizationNotFoundError)):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if isinstance(
         exc,
@@ -251,6 +268,55 @@ def get_debt_summary(
 ) -> DebtSummaryResponse:
     summary = query.execute(organization_id)
     return DebtSummaryResponse.from_summary(summary)
+
+
+@router.get(
+    "/{organization_id}/debts/strategy",
+    response_model=DebtStrategyResponse,
+    summary="Organization payment strategy projection",
+)
+def get_debt_strategy(
+    organization_id: UUID,
+    _membership: OrganizationMember,
+    query: Annotated[GetDebtStrategyQuery, Depends(get_debt_strategy_query)],
+    currency: Annotated[str | None, Query(min_length=3, max_length=3)] = None,
+) -> DebtStrategyResponse:
+    try:
+        view = query.execute(
+            organization_id,
+            currency=currency.upper() if currency else None,
+        )
+    except (DebtError, OrganizationNotFoundError) as exc:
+        raise _http_map_debt_errors(exc) from exc
+    return DebtStrategyResponse.from_view(view)
+
+
+@router.patch(
+    "/{organization_id}/debts/strategy",
+    response_model=DebtStrategyResponse,
+    summary="Update organization payment strategy",
+)
+def patch_debt_strategy(
+    organization_id: UUID,
+    payload: DebtStrategyUpdate,
+    _membership: RequireManager,
+    command: Annotated[ChangeDebtStrategyCommand, Depends(get_change_debt_strategy_command)],
+    query: Annotated[GetDebtStrategyQuery, Depends(get_debt_strategy_query)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> DebtStrategyResponse:
+    try:
+        with uow:
+            command.execute(
+                ChangeDebtStrategyInput(
+                    organization_id=organization_id,
+                    strategy=payload.strategy,
+                )
+            )
+            uow.commit()
+        view = query.execute(organization_id)
+    except (DebtError, OrganizationNotFoundError) as exc:
+        raise _http_map_debt_errors(exc) from exc
+    return DebtStrategyResponse.from_view(view)
 
 
 @router.get(
@@ -399,6 +465,31 @@ def list_debt_payments(
         total=result.total,
         limit=limit,
         offset=offset,
+    )
+
+
+@router.get(
+    "/{organization_id}/debts/{debt_id}/activity",
+    response_model=TransactionListResponse,
+    summary="List activity on the linked liability account",
+)
+def get_debt_activity(
+    organization_id: UUID,
+    debt_id: UUID,
+    _membership: OrganizationMember,
+    query: Annotated[GetDebtActivityQuery, Depends(get_debt_activity_query)],
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> TransactionListResponse:
+    try:
+        result = query.execute(organization_id, debt_id, limit=limit, offset=offset)
+    except DebtNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    return TransactionListResponse(
+        items=[TransactionResponse.from_entity(item) for item in result.items],
+        total=result.total,
+        limit=result.limit,
+        offset=result.offset,
     )
 
 

@@ -21,6 +21,9 @@ from wealthos.modules.categories.infrastructure.repositories import (
     SqlAlchemyCategoryRepository,
 )
 from wealthos.modules.debts.application.commands.archive_debt import ArchiveDebtCommand
+from wealthos.modules.debts.application.commands.change_debt_strategy import (
+    ChangeDebtStrategyCommand,
+)
 from wealthos.modules.debts.application.commands.close_debt import CloseDebtCommand
 from wealthos.modules.debts.application.commands.create_debt import CreateDebtCommand
 from wealthos.modules.debts.application.commands.pause_debt import PauseDebtCommand
@@ -30,6 +33,12 @@ from wealthos.modules.debts.application.commands.record_debt_payment import (
 from wealthos.modules.debts.application.commands.resume_debt import ResumeDebtCommand
 from wealthos.modules.debts.application.commands.update_debt import UpdateDebtCommand
 from wealthos.modules.debts.application.queries.get_debt import GetDebtQuery
+from wealthos.modules.debts.application.queries.get_debt_activity import (
+    GetDebtActivityQuery,
+)
+from wealthos.modules.debts.application.queries.get_debt_strategy import (
+    GetDebtStrategyQuery,
+)
 from wealthos.modules.debts.application.queries.get_debt_summary import (
     GetDebtSummaryQuery,
 )
@@ -52,9 +61,17 @@ from wealthos.modules.debts.domain.repositories.debt_payment_repository import (
     DebtPaymentRepository,
 )
 from wealthos.modules.debts.domain.repositories.debt_repository import DebtRepository
+from wealthos.modules.debts.domain.services.debt_strategy_service import DebtStrategyService
+from wealthos.modules.debts.domain.services.next_action_service import NextActionService
 from wealthos.modules.debts.infrastructure.repositories import (
     SqlAlchemyDebtPaymentRepository,
     SqlAlchemyDebtRepository,
+)
+from wealthos.modules.organizations.domain.repositories.organization_repository import (
+    OrganizationRepository,
+)
+from wealthos.modules.organizations.infrastructure.repositories import (
+    SqlAlchemyOrganizationRepository,
 )
 from wealthos.modules.transactions.application.commands.create_transfer import (
     CreateTransferCommand,
@@ -209,6 +226,12 @@ def get_list_debt_payments_query(
     return ListDebtPaymentsQuery(debts, payments)
 
 
+def get_organization_repository(
+    session: Annotated[Session, Depends(get_db)],
+) -> OrganizationRepository:
+    return SqlAlchemyOrganizationRepository(session)
+
+
 def get_debt_summary_query(
     debts: Annotated[DebtRepository, Depends(get_debt_repository)],
     accounts: Annotated[AccountRepository, Depends(get_account_repository)],
@@ -222,3 +245,32 @@ def get_payoff_plan_query(
     simulator: Annotated[DebtStrategySimulator, Depends(get_strategy_simulator)],
 ) -> GetPayoffPlanQuery:
     return GetPayoffPlanQuery(debts, accounts, simulator)
+
+
+def get_debt_strategy_service() -> DebtStrategyService:
+    return DebtStrategyService()
+
+
+def get_next_action_service() -> NextActionService:
+    return NextActionService()
+
+
+def get_debt_strategy_query(
+    debts: Annotated[DebtRepository, Depends(get_debt_repository)],
+    accounts: Annotated[AccountRepository, Depends(get_account_repository)],
+    organizations: Annotated[OrganizationRepository, Depends(get_organization_repository)],
+) -> GetDebtStrategyQuery:
+    return GetDebtStrategyQuery(debts, accounts, organizations)
+
+
+def get_change_debt_strategy_command(
+    organizations: Annotated[OrganizationRepository, Depends(get_organization_repository)],
+) -> ChangeDebtStrategyCommand:
+    return ChangeDebtStrategyCommand(organizations)
+
+
+def get_debt_activity_query(
+    debts: Annotated[DebtRepository, Depends(get_debt_repository)],
+    transactions: Annotated[TransactionRepository, Depends(get_transaction_repository)],
+) -> GetDebtActivityQuery:
+    return GetDebtActivityQuery(debts, transactions)

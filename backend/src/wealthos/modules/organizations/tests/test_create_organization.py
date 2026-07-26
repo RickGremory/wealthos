@@ -36,6 +36,11 @@ class InMemoryOrganizationRepository:
     def get_by_slug(self, slug: OrganizationSlug) -> Organization | None:
         return self._by_slug.get(slug.value)
 
+    def save(self, organization: Organization) -> Organization:
+        self._by_id[organization.id] = organization
+        self._by_slug[organization.slug.value] = organization
+        return organization
+
 
 def test_create_organization_persists_entity() -> None:
     repo = InMemoryOrganizationRepository()

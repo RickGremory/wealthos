@@ -29,6 +29,7 @@ class Organization:
     locale: Locale
     created_at: datetime
     updated_at: datetime
+    debt_strategy: str = "avalanche"
 
     @classmethod
     def create(
@@ -39,10 +40,15 @@ class Organization:
         currency: str = "MXN",
         timezone: str = "America/Cancun",
         locale: str = "es-MX",
+        debt_strategy: str = "avalanche",
         organization_id: UUID | None = None,
     ) -> Organization:
         """Factory that validates primitives into value objects."""
         now = datetime.now(UTC)
+        strategy = debt_strategy.strip().lower()
+        allowed = {"avalanche", "snowball", "minimum_only", "manual"}
+        if strategy not in allowed:
+            raise ValueError(f"debt_strategy must be one of: {', '.join(sorted(allowed))}")
         return cls(
             id=organization_id or uuid4(),
             name=OrganizationName(name),
@@ -52,6 +58,7 @@ class Organization:
             locale=Locale(locale),
             created_at=now,
             updated_at=now,
+            debt_strategy=strategy,
         )
 
     def rename(self, name: OrganizationName | str) -> None:
@@ -68,4 +75,12 @@ class Organization:
 
     def change_locale(self, locale: Locale | str) -> None:
         self.locale = locale if isinstance(locale, Locale) else Locale(locale)
+        self.updated_at = datetime.now(UTC)
+
+    def change_debt_strategy(self, strategy: str) -> None:
+        cleaned = strategy.strip().lower()
+        allowed = {"avalanche", "snowball", "minimum_only", "manual"}
+        if cleaned not in allowed:
+            raise ValueError(f"debt_strategy must be one of: {', '.join(sorted(allowed))}")
+        self.debt_strategy = cleaned
         self.updated_at = datetime.now(UTC)

@@ -27,6 +27,7 @@ class OrganizationMapper(BaseMapper[OrganizationModel, Organization]):
             locale=Locale(model.locale),
             created_at=model.created_at,
             updated_at=model.updated_at,
+            debt_strategy=model.debt_strategy,
         )
 
     def to_model(self, entity: Organization) -> OrganizationModel:
@@ -37,7 +38,18 @@ class OrganizationMapper(BaseMapper[OrganizationModel, Organization]):
             currency=entity.currency.value,
             timezone=entity.timezone.value,
             locale=entity.locale.value,
+            debt_strategy=entity.debt_strategy,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
             deleted_at=None,
         )
+
+    def apply_to_model(self, entity: Organization, model: OrganizationModel) -> OrganizationModel:
+        model.name = entity.name.value
+        model.slug = entity.slug.value
+        model.currency = entity.currency.value
+        model.timezone = entity.timezone.value
+        model.locale = entity.locale.value
+        model.debt_strategy = entity.debt_strategy
+        model.updated_at = entity.updated_at
+        return model

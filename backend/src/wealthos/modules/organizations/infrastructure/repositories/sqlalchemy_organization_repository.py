@@ -55,3 +55,12 @@ class SqlAlchemyOrganizationRepository(BaseRepository[OrganizationModel]):
         if model is None:
             return None
         return self._mapper.to_entity(model)
+
+    def save(self, organization: Organization) -> Organization:
+        model = self.session.get(OrganizationModel, organization.id)
+        if model is None or model.deleted_at is not None:
+            raise LookupError("Organization not found for save.")
+        self._mapper.apply_to_model(organization, model)
+        self.flush()
+        self.refresh(model)
+        return self._mapper.to_entity(model)

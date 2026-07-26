@@ -23,6 +23,11 @@ class OrganizationModel(Base):
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     timezone: Mapped[str] = mapped_column(String(64), nullable=False)
     locale: Mapped[str] = mapped_column(String(16), nullable=False)
+    debt_strategy: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="avalanche",
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

@@ -12,6 +12,13 @@ from wealthos.modules.debts.application.views.debt_view import DebtWithBalance
 from wealthos.modules.debts.domain.entities.debt_payment import DebtPayment
 
 
+class DebtNextActionResponse(BaseModel):
+    type: str
+    reason_code: str
+    amount: Decimal | None = None
+    due_date: date | None = None
+
+
 class DebtResponse(BaseModel):
     id: UUID
     organization_id: UUID
@@ -35,6 +42,10 @@ class DebtResponse(BaseModel):
     notes: str | None
     version: int
     current_balance: Decimal
+    next_due_date: date | None = None
+    days_until_due: int | None = None
+    utilization_percentage: Decimal | None = None
+    next_action: DebtNextActionResponse | None = None
     payoff_date: date | None
     months_remaining: int | None
     total_interest: Decimal | None
@@ -49,6 +60,14 @@ class DebtResponse(BaseModel):
     def from_debt_with_balance(cls, item: DebtWithBalance) -> DebtResponse:
         debt = item.debt
         payoff = item.payoff
+        next_action = None
+        if item.next_action is not None:
+            next_action = DebtNextActionResponse(
+                type=item.next_action.type.value,
+                reason_code=item.next_action.reason_code,
+                amount=item.next_action.amount,
+                due_date=item.next_action.due_date,
+            )
         return cls(
             id=debt.id,
             organization_id=debt.organization_id,
@@ -80,6 +99,10 @@ class DebtResponse(BaseModel):
             notes=debt.notes,
             version=debt.version,
             current_balance=item.current_balance.amount,
+            next_due_date=item.next_due_date,
+            days_until_due=item.days_until_due,
+            utilization_percentage=item.utilization_percentage,
+            next_action=next_action,
             payoff_date=payoff.payoff_date if payoff else None,
             months_remaining=payoff.months_remaining if payoff else None,
             total_interest=payoff.total_interest if payoff else None,

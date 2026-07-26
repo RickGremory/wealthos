@@ -43,6 +43,7 @@ def test_mapper_to_entity_from_persisted_model() -> None:
         currency="MXN",
         timezone="America/Cancun",
         locale="es-MX",
+        debt_strategy="avalanche",
         created_at=now,
         updated_at=now,
         deleted_at=None,
@@ -52,4 +53,5 @@ def test_mapper_to_entity_from_persisted_model() -> None:
 
     assert entity.id == model_id
     assert entity.slug.value == "personal"
+    assert entity.debt_strategy == "avalanche"
     assert entity.created_at == now

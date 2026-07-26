@@ -44,6 +44,10 @@ class InMemoryOrganizationRepository:
                 return org
         return None
 
+    def save(self, organization: Organization) -> Organization:
+        self._by_id[organization.id] = organization
+        return organization
+
 
 class InMemoryUserRepository:
     def __init__(self) -> None:

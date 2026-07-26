@@ -188,11 +188,11 @@ Required NOT NULL: org, account, name, debt_type, currency, status, priority.
 
 ### Phase 3 — Projections
 
-- [ ] `GET …/commitments/summary` (currency groups)  
-- [ ] Next action service  
-- [ ] `GET/PATCH …/commitments/strategy` (`DebtStrategyService`)  
-- [ ] `GET …/activity` (transactions + domain events)  
-- [ ] Utilization % when credit_limit present  
+- [x] `GET …/commitments/summary` (currency groups)  
+- [x] Next action service  
+- [x] `GET/PATCH …/commitments/strategy` (`DebtStrategyService`)  
+- [x] `GET …/activity` (transactions + domain events)  
+- [x] Utilization % when credit_limit present  
 
 ### Phase 4 — Frontend base
 

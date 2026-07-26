@@ -23,3 +23,7 @@ class OrganizationRepository(Protocol):
     def get_by_slug(self, slug: OrganizationSlug) -> Organization | None:
         """Fetch by business slug."""
         ...
+
+    def save(self, organization: Organization) -> Organization:
+        """Persist mutations on an existing organization aggregate."""
+        ...
