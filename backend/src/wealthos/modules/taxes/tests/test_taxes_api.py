@@ -54,6 +54,7 @@ def _cleanup() -> Generator[None]:
         session.execute(text("DELETE FROM tax_periods"))
         session.execute(text("DELETE FROM tax_rules"))
         session.execute(text("DELETE FROM tax_profiles"))
+        session.execute(text("DELETE FROM timeline_events"))
         session.execute(text("DELETE FROM debt_payments"))
         session.execute(text("DELETE FROM debts"))
         session.execute(text("DELETE FROM goal_manual_progress"))

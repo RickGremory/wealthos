@@ -65,6 +65,8 @@ from wealthos.modules.taxes.infrastructure.repositories import (
     SqlAlchemyTaxProfileRepository,
     SqlAlchemyTaxReadRepository,
 )
+from wealthos.modules.timeline.api.dependencies import get_list_timeline_query
+from wealthos.modules.timeline.application.queries.list_timeline import ListTimelineQuery
 from wealthos.shared.persistence import SqlAlchemyUnitOfWork
 
 
@@ -214,6 +216,7 @@ def get_dashboard_query(
         GetRecentTransactionsQuery,
         Depends(get_recent_transactions_query),
     ],
+    timeline_query: Annotated[ListTimelineQuery, Depends(get_list_timeline_query)],
     repository: Annotated[DashboardReadRepository, Depends(get_dashboard_repository)],
     goals_query: Annotated[
         GetGoalsDashboardSummaryQuery,
@@ -231,6 +234,7 @@ def get_dashboard_query(
         summary_query=summary_query,
         cash_flow_query=cash_flow_query,
         recent_query=recent_query,
+        timeline_query=timeline_query,
         repository=repository,
         goals_query=goals_query,
         debts_query=debts_query,

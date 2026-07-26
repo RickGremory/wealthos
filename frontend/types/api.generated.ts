@@ -381,6 +381,10 @@ export interface paths {
     /** Dashboard debts overview */
     get: operations["get_dashboard_debts_api_v1_organizations__organization_id__dashboard_debts_get"];
   };
+  "/api/v1/organizations/{organization_id}/timeline": {
+    /** List financial timeline events */
+    get: operations["list_timeline_api_v1_organizations__organization_id__timeline_get"];
+  };
   "/api/v1/organizations/{organization_id}/budgets": {
     /** List budgets */
     get: operations["list_budgets_api_v1_organizations__organization_id__budgets_get"];
@@ -1737,6 +1741,8 @@ export interface components {
       message: string;
       /** Name */
       name: string;
+      /** Currency */
+      currency: string;
     };
     /** CommitmentCalendarEventResponse */
     CommitmentCalendarEventResponse: {
@@ -2350,6 +2356,8 @@ export interface components {
       code: string;
       /** Message */
       message: string;
+      /** Currency */
+      currency?: string | null;
     };
     /** FinancialCommitmentsNextDue */
     FinancialCommitmentsNextDue: {
@@ -2362,6 +2370,10 @@ export interface components {
       name: string;
       /** Due In Days */
       due_in_days: number;
+      /** Currency */
+      currency?: string | null;
+      /** Amount */
+      amount?: string | null;
     };
     /** FinancialCommitmentsProjection */
     FinancialCommitmentsProjection: {
@@ -3961,6 +3973,60 @@ export interface components {
       cash_like_assets: string;
       /** Available After Tax */
       available_after_tax: string;
+    };
+    /** TimelineEventResponse */
+    TimelineEventResponse: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Organization Id
+       * Format: uuid
+       */
+      organization_id: string;
+      /**
+       * Occurred At
+       * Format: date-time
+       */
+      occurred_at: string;
+      /** Source Type */
+      source_type: string;
+      /** Event Type */
+      event_type: string;
+      /** Importance */
+      importance: string;
+      /** Title */
+      title: string;
+      /** Description */
+      description: string;
+      /** Resource Type */
+      resource_type: string;
+      /**
+       * Resource Id
+       * Format: uuid
+       */
+      resource_id: string;
+      /** Currency */
+      currency?: string | null;
+      /** Amount */
+      amount?: string | null;
+      /** Metadata */
+      metadata?: {
+        [key: string]: unknown;
+      };
+      /** Created At */
+      created_at?: string | null;
+    };
+    /** TimelineListResponse */
+    TimelineListResponse: {
+      /** Items */
+      items: components["schemas"]["TimelineEventResponse"][];
+      /** Next Cursor */
+      next_cursor?: string | null;
+      /** Limit */
+      limit: number;
     };
     /** TokenResponse */
     TokenResponse: {
@@ -6371,6 +6437,37 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["DebtSummaryResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** List financial timeline events */
+  list_timeline_api_v1_organizations__organization_id__timeline_get: {
+    parameters: {
+      query?: {
+        cursor?: string | null;
+        limit?: number;
+        source_type?: ("transaction" | "goal" | "commitment" | "planning" | "tax" | "system") | null;
+        importance?: ("low" | "normal" | "high" | "critical") | null;
+        currency?: string | null;
+        date_from?: string | null;
+        date_to?: string | null;
+      };
+      path: {
+        organization_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["TimelineListResponse"];
         };
       };
       /** @description Validation Error */

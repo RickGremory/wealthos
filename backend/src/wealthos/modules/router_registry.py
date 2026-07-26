@@ -18,6 +18,7 @@ from wealthos.modules.legal.api.router import router as legal_router
 from wealthos.modules.planning.api.router import router as planning_router
 from wealthos.modules.tax_mx.api.router import router as tax_mx_router
 from wealthos.modules.taxes.api.router import router as taxes_router
+from wealthos.modules.timeline.api.router import router as timeline_router
 from wealthos.modules.transactions.api.router import router as transactions_router
 
 API_V1_PREFIX = "/api/v1"
@@ -67,6 +68,11 @@ def register_modules(app: FastAPI) -> None:
         dashboard_router,
         prefix=f"{API_V1_PREFIX}/organizations",
         tags=["Dashboard"],
+    )
+    app.include_router(
+        timeline_router,
+        prefix=f"{API_V1_PREFIX}/organizations",
+        tags=["Timeline"],
     )
     app.include_router(
         planning_router,

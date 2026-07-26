@@ -59,6 +59,7 @@ def _cleanup() -> Generator[None]:
         session.execute(text("DELETE FROM transaction_entries"))
         session.execute(text("DELETE FROM transactions"))
         session.execute(text("DELETE FROM categories"))
+        session.execute(text("DELETE FROM timeline_events"))
         session.execute(text("DELETE FROM debt_payments"))
         session.execute(text("DELETE FROM debts"))
         session.execute(text("DELETE FROM accounts"))
@@ -285,8 +286,14 @@ def test_dashboard_acceptance_flow(client: TestClient) -> None:
     assert dash["selected_currency"] == "MXN"
     assert Decimal(str(dash["currencies"][0]["liquid_balance"])) == Decimal("21000.00")
     assert dash["widgets"]["activity"]["status"] == "ready"
+    # Activity is Timeline-backed (importance ≥ high); status carries importance.
     assert all(
-        item["status"] == "posted" for item in dash["widgets"]["activity"]["data"]["items"]
+        item["status"] in {"high", "critical"}
+        for item in dash["widgets"]["activity"]["data"]["items"]
+    )
+    assert any(
+        item["description"] == "Ingreso registrado"
+        for item in dash["widgets"]["activity"]["data"]["items"]
     )
     assert dash["widgets"]["onboarding"]["status"] == "empty"
     assert dash["widgets"]["onboarding"]["data"]["is_visible"] is False

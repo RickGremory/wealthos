@@ -44,17 +44,19 @@ Detalle ejecutable: [Sprint 1 — Backend Foundation](./sprint-1-backend-foundat
 ## Phase 3 — Clarity loop
 
 - Tax reserve estimates (rules configurable, explainable)
-- Debt tracking and payoff visibility
+- Debt tracking and payoff visibility (**Financial Commitments** — SPEC-002)
 - Goals as targets (goals never hold/own money — they reference funded progress)
 - Simple net-worth snapshot
+- **Financial Timeline / Historia** — significant events spine ([Sprint 7](./sprint-7-financial-timeline.md), SPEC-003)
 
-**Exit criteria:** user answers “where does money go?” and “am I closer to X?”
+**Exit criteria:** user answers “where does money go?”, “am I closer to X?”, and “what happened in my financial life?”
 
 ## Phase 4 — Decision support
 
 - Decision / journal hooks tied to material money events
 - Budgets or allocations that still settle via transactions
 - Export / reporting basics
+- AI-ready structured context (consumes Timeline — M7+)
 
 **Exit criteria:** decisions leave a trail; reports are traceable to transactions.
 

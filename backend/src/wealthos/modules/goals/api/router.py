@@ -19,6 +19,12 @@ from wealthos.modules.goals.api.dependencies import (
     get_unit_of_work,
     get_update_goal_command,
 )
+from wealthos.modules.timeline.api.dependencies import get_event_publisher
+from wealthos.modules.timeline.application.emit import (
+    emit_goal_created,
+    emit_goal_progress,
+)
+from wealthos.modules.timeline.application.publisher import EventPublisher
 from wealthos.modules.goals.application.commands.archive_goal import (
     ArchiveGoalCommand,
     ArchiveGoalInput,
@@ -111,6 +117,7 @@ def create_goal(
     _membership: RequireWriter,
     command: Annotated[CreateGoalCommand, Depends(get_create_goal_command)],
     progress_service: Annotated[GoalProgressService, Depends(get_progress_service)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> GoalResponse:
     try:
@@ -127,6 +134,15 @@ def create_goal(
                 )
             )
             progress = progress_service.calculate(goal)
+            emit_goal_created(
+                publisher,
+                organization_id=organization_id,
+                goal_id=goal.id,
+                name=str(goal.name),
+                occurred_at=goal.created_at,
+                currency=goal.target_amount.currency.value,
+                target_amount=goal.target_amount.amount,
+            )
             uow.commit()
     except GoalError as exc:
         raise _http_map_goal_errors(exc) from exc
@@ -248,16 +264,32 @@ def update_manual_progress(
     payload: ManualProgressUpdate,
     _membership: RequireWriter,
     command: Annotated[UpdateManualProgressCommand, Depends(get_manual_progress_command)],
+    get_goal_query: Annotated[GetGoalQuery, Depends(get_get_goal_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> GoalResponse:
     try:
         with uow:
+            before = get_goal_query.execute(organization_id, goal_id)
+            previous_percent = float(before.progress.completion_percentage)
             result = command.execute(
                 UpdateManualProgressInput(
                     organization_id=organization_id,
                     goal_id=goal_id,
                     current_amount=payload.current_amount,
                 )
+            )
+            emit_goal_progress(
+                publisher,
+                organization_id=organization_id,
+                goal_id=result.goal.id,
+                name=str(result.goal.name),
+                occurred_at=result.goal.updated_at,
+                currency=result.goal.target_amount.currency.value,
+                previous_percent=previous_percent,
+                current_percent=float(result.progress.completion_percentage),
+                current_amount=result.progress.current_amount.amount,
+                status=result.goal.status.value,
             )
             uow.commit()
     except GoalError as exc:

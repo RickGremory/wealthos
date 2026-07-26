@@ -31,6 +31,13 @@ from wealthos.modules.debts.api.dependencies import (
     get_unit_of_work,
     get_update_debt_command,
 )
+from wealthos.modules.timeline.api.dependencies import get_event_publisher
+from wealthos.modules.timeline.application.emit import (
+    emit_commitment_created,
+    emit_commitment_lifecycle,
+    emit_commitment_payment,
+)
+from wealthos.modules.timeline.application.publisher import EventPublisher
 from wealthos.modules.debts.application.commands.archive_debt import (
     ArchiveDebtCommand,
     ArchiveDebtInput,
@@ -198,6 +205,7 @@ def create_debt(
     _membership: RequireWriter,
     command: Annotated[CreateDebtCommand, Depends(get_create_debt_command)],
     query: Annotated[GetDebtQuery, Depends(get_get_debt_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> DebtResponse:
     try:
@@ -220,6 +228,17 @@ def create_debt(
                     statement_day=payload.statement_day,
                     notes=payload.notes,
                 )
+            )
+            emit_commitment_created(
+                publisher,
+                organization_id=organization_id,
+                commitment_id=debt.id,
+                name=str(debt.name),
+                occurred_at=debt.created_at,
+                currency=debt.currency,
+                principal=(
+                    debt.original_amount.amount if debt.original_amount is not None else None
+                ),
             )
             uow.commit()
     except (DebtError, InvalidCurrency) as exc:
@@ -445,6 +464,7 @@ def record_debt_payment(
     current_user: CurrentUser,
     _membership: RequireWriter,
     command: Annotated[RecordDebtPaymentCommand, Depends(get_record_debt_payment_command)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> DebtPaymentResponse:
     try:
@@ -461,6 +481,16 @@ def record_debt_payment(
                     principal_amount=payload.principal_amount,
                     interest_amount=payload.interest_amount,
                 )
+            )
+            emit_commitment_payment(
+                publisher,
+                organization_id=organization_id,
+                commitment_id=result.debt.id,
+                name=str(result.debt.name),
+                occurred_at=result.payment.paid_at,
+                amount=result.payment.amount.amount,
+                currency=result.payment.amount.currency.value,
+                transaction_id=result.payment.transaction_id,
             )
             uow.commit()
     except DebtError as exc:
@@ -530,11 +560,22 @@ def pause_debt(
     _membership: RequireWriter,
     command: Annotated[PauseDebtCommand, Depends(get_pause_debt_command)],
     query: Annotated[GetDebtQuery, Depends(get_get_debt_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> DebtResponse:
     try:
         with uow:
-            command.execute(PauseDebtInput(organization_id=organization_id, debt_id=debt_id))
+            debt = command.execute(
+                PauseDebtInput(organization_id=organization_id, debt_id=debt_id)
+            )
+            emit_commitment_lifecycle(
+                publisher,
+                action="paused",
+                organization_id=organization_id,
+                commitment_id=debt.id,
+                name=str(debt.name),
+                occurred_at=debt.updated_at,
+            )
             uow.commit()
     except DebtError as exc:
         raise _http_map_debt_errors(exc) from exc
@@ -554,11 +595,22 @@ def resume_debt(
     _membership: RequireWriter,
     command: Annotated[ResumeDebtCommand, Depends(get_resume_debt_command)],
     query: Annotated[GetDebtQuery, Depends(get_get_debt_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> DebtResponse:
     try:
         with uow:
-            command.execute(ResumeDebtInput(organization_id=organization_id, debt_id=debt_id))
+            debt = command.execute(
+                ResumeDebtInput(organization_id=organization_id, debt_id=debt_id)
+            )
+            emit_commitment_lifecycle(
+                publisher,
+                action="resumed",
+                organization_id=organization_id,
+                commitment_id=debt.id,
+                name=str(debt.name),
+                occurred_at=debt.updated_at,
+            )
             uow.commit()
     except DebtError as exc:
         raise _http_map_debt_errors(exc) from exc
@@ -578,11 +630,22 @@ def close_debt(
     _membership: RequireManager,
     command: Annotated[CloseDebtCommand, Depends(get_close_debt_command)],
     query: Annotated[GetDebtQuery, Depends(get_get_debt_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> DebtResponse:
     try:
         with uow:
-            command.execute(CloseDebtInput(organization_id=organization_id, debt_id=debt_id))
+            debt = command.execute(
+                CloseDebtInput(organization_id=organization_id, debt_id=debt_id)
+            )
+            emit_commitment_lifecycle(
+                publisher,
+                action="closed",
+                organization_id=organization_id,
+                commitment_id=debt.id,
+                name=str(debt.name),
+                occurred_at=debt.closed_at or debt.updated_at,
+            )
             uow.commit()
     except DebtError as exc:
         raise _http_map_debt_errors(exc) from exc
@@ -602,11 +665,22 @@ def archive_debt(
     _membership: RequireManager,
     command: Annotated[ArchiveDebtCommand, Depends(get_archive_debt_command)],
     query: Annotated[GetDebtQuery, Depends(get_get_debt_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> DebtResponse:
     try:
         with uow:
-            command.execute(ArchiveDebtInput(organization_id=organization_id, debt_id=debt_id))
+            debt = command.execute(
+                ArchiveDebtInput(organization_id=organization_id, debt_id=debt_id)
+            )
+            emit_commitment_lifecycle(
+                publisher,
+                action="archived",
+                organization_id=organization_id,
+                commitment_id=debt.id,
+                name=str(debt.name),
+                occurred_at=debt.archived_at or debt.updated_at,
+            )
             uow.commit()
     except DebtError as exc:
         raise _http_map_debt_errors(exc) from exc

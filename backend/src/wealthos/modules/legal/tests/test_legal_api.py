@@ -34,6 +34,7 @@ def _reset_legal_state(session) -> None:
         "DELETE FROM budget_allocation_matches",
         "DELETE FROM budget_allocations",
         "DELETE FROM budgets",
+        "DELETE FROM timeline_events",
         "DELETE FROM debt_payments",
         "DELETE FROM debts",
         "DELETE FROM goal_manual_progress",

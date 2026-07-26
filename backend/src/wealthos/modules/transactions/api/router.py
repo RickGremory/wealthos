@@ -15,7 +15,13 @@ from wealthos.core.security.organization_permissions import require_organization
 from wealthos.modules.organizations.domain.entities.organization_membership import (
     OrganizationMembership,
 )
+from wealthos.modules.accounts.domain.repositories.account_repository import (
+    AccountRepository,
+)
+from wealthos.modules.timeline.application.emit import emit_transaction_posted
+from wealthos.modules.timeline.application.publisher import EventPublisher
 from wealthos.modules.transactions.api.dependencies import (
+    get_account_repository,
     get_create_adjustment_command,
     get_create_expense_command,
     get_create_income_command,
@@ -26,6 +32,7 @@ from wealthos.modules.transactions.api.dependencies import (
     get_update_transaction_command,
     get_void_transaction_command,
 )
+from wealthos.modules.timeline.api.dependencies import get_event_publisher
 from wealthos.modules.transactions.application.commands.create_adjustment import (
     CreateAdjustmentCommand,
     CreateAdjustmentInput,
@@ -117,6 +124,8 @@ def create_transaction(
     create_expense: Annotated[CreateExpenseCommand, Depends(get_create_expense_command)],
     create_transfer: Annotated[CreateTransferCommand, Depends(get_create_transfer_command)],
     create_adjustment: Annotated[CreateAdjustmentCommand, Depends(get_create_adjustment_command)],
+    accounts: Annotated[AccountRepository, Depends(get_account_repository)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> TransactionResponse:
     try:
@@ -178,6 +187,7 @@ def create_transaction(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                     detail="Unsupported transaction type.",
                 )
+            emit_transaction_posted(publisher, accounts, transaction)
             uow.commit()
     except (AccountNotFoundError, CategoryNotFoundError) as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

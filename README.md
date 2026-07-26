@@ -121,6 +121,7 @@ WealthOS exists to solve that problem.
 ✅ Goals
 ✅ Legal consent & privacy pages
 ✅ Debts / Obligaciones (Financial Commitments)
+✅ Financial Timeline / Historia (`/app/timeline`)
 🟡 Taxes
 🟡 Budgets & cash-flow planning
 🟡 Recurring transactions

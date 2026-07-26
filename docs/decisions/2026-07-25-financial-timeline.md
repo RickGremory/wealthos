@@ -1,8 +1,9 @@
 # 2026-07-25 — Financial Timeline
 
 **Type:** Product  
-**Status:** Accepted (concept reserved — not implemented)  
-**Sprint:** [6.3 Integration](../roadmap/sprint-6.3-commitments-integration.md)
+**Status:** Accepted (implemented via [SPEC-003](../../specs/backend/timeline/SPEC-003-financial-timeline.md) Completed)  
+**Sprint:** [Sprint 7 — Financial Timeline](../roadmap/sprint-7-financial-timeline.md)  
+**Prior:** Concept reserved during [6.3 Integration](../roadmap/sprint-6.3-commitments-integration.md)
 
 ## Decision
 
@@ -22,10 +23,11 @@ Per-module histories fragment the story. A single timeline turns WealthOS into a
 
 ## Consequences (now)
 
-- When modules emit dates/events, prefer shapes that can map to timeline entries later.  
-- Observability / domain events (`commitment_paid_off`, etc.) are candidates for timeline ingredients.  
-- Do **not** build the Timeline UI in Sprint 6. Document the noun in [PRODUCT_LANGUAGE](../product/PRODUCT_LANGUAGE.md).
+- Modules publish `FinancialEvent` via `shared/events/`; only `modules/timeline/` projects to `timeline_events`.  
+- Product UI: `/app/timeline`, nav **Historia**.  
+- Bus MVP: sync in-process publisher (same signature for a future real bus).  
+- AI Financial Story remains out of Sprint 7 (M7+).
 
 ## Later
 
-A dedicated Timeline slice (post–Commitments / Taxes / Planning) assembles the spine without redesigning domains.
+AI coaching context, richer grouping, planning/tax publishers beyond stubs.

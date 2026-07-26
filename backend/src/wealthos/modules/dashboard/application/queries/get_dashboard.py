@@ -14,6 +14,7 @@ from wealthos.modules.dashboard.application.queries.get_dashboard_summary import
 from wealthos.modules.dashboard.application.queries.get_recent_transactions import (
     GetRecentTransactionsQuery,
 )
+from wealthos.modules.timeline.application.queries.list_timeline import ListTimelineQuery
 from wealthos.modules.dashboard.application.queries.period_filters import (
     DashboardPeriodFilters,
 )
@@ -82,6 +83,7 @@ class GetDashboardQuery:
         summary_query: GetDashboardSummaryQuery,
         cash_flow_query: GetCashFlowQuery,
         recent_query: GetRecentTransactionsQuery,
+        timeline_query: ListTimelineQuery,
         repository: DashboardReadRepository,
         goals_query: GetGoalsDashboardSummaryQuery,
         debts_query: GetDebtSummaryQuery,
@@ -92,6 +94,7 @@ class GetDashboardQuery:
         self._summary_query = summary_query
         self._cash_flow_query = cash_flow_query
         self._recent_query = recent_query
+        self._timeline_query = timeline_query
         self._repository = repository
         self._goals_query = goals_query
         self._debts_query = debts_query
@@ -430,30 +433,47 @@ class GetDashboardQuery:
         currency: str,
     ) -> ActivityWidget:
         try:
-            recent = self._recent_query.execute(organization_id, limit=20)
-            items = [
-                ActivityItemData(
-                    id=item.id,
-                    transaction_type=item.transaction_type,
-                    description=item.description,
-                    category=(
-                        ActivityNamedRef(id=item.category.id, name=item.category.name)
-                        if item.category
-                        else None
-                    ),
-                    occurred_at=item.occurred_at,
-                    status=item.status,
-                    amount=item.amount,
-                    currency=item.currency,
-                    account=(
-                        ActivityNamedRef(id=item.account.id, name=item.account.name)
-                        if item.account
-                        else None
-                    ),
+            result = self._timeline_query.execute(
+                organization_id,
+                limit=20,
+                currency=currency,
+                min_importance="high",
+            )
+            items: list[ActivityItemData] = []
+            for event in result.items:
+                source_label = {
+                    "transaction": "Movimiento",
+                    "goal": "Meta",
+                    "commitment": "Obligación",
+                    "planning": "Planeación",
+                    "tax": "Impuestos",
+                    "system": "Sistema",
+                }.get(event.source_type, event.source_type)
+                tx_type = "transfer"
+                if event.event_type.endswith("income_posted"):
+                    tx_type = "income"
+                elif event.event_type.endswith("expense_posted"):
+                    tx_type = "expense"
+                elif event.event_type.endswith("adjustment_posted"):
+                    tx_type = "adjustment"
+                items.append(
+                    ActivityItemData(
+                        id=event.id,
+                        transaction_type=tx_type,
+                        description=event.title,
+                        category=ActivityNamedRef(id=event.resource_id, name=source_label),
+                        occurred_at=event.occurred_at,
+                        status=event.importance,
+                        amount=event.amount if event.amount is not None else _ZERO,
+                        currency=event.currency or currency,
+                        account=ActivityNamedRef(
+                            id=event.resource_id,
+                            name=event.description[:80],
+                        ),
+                    )
                 )
-                for item in recent
-                if item.currency == currency
-            ][:8]
+                if len(items) >= 8:
+                    break
             return ActivityWidget(
                 status="ready" if items else "empty",
                 data=ActivityWidgetData(items=items),

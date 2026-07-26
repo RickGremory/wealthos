@@ -5455,6 +5455,180 @@
         }
       }
     },
+    "/api/v1/organizations/{organization_id}/timeline": {
+      "get": {
+        "tags": [
+          "Timeline"
+        ],
+        "summary": "List financial timeline events",
+        "operationId": "list_timeline_api_v1_organizations__organization_id__timeline_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 40,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "source_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "transaction",
+                    "goal",
+                    "commitment",
+                    "planning",
+                    "tax",
+                    "system"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Type"
+            }
+          },
+          {
+            "name": "importance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "low",
+                    "normal",
+                    "high",
+                    "critical"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Importance"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 3
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Currency"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimelineListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/organizations/{organization_id}/budgets": {
       "post": {
         "tags": [
@@ -6306,7 +6480,7 @@
           "Planning"
         ],
         "summary": "Planning summary",
-        "description": "Cross-cutting planning snapshot: active/draft budgets and cash plans, plus `safe_to_spend` for the primary active cash plan when available. safe_to_spend is an operational estimate (liquid − committed − tax shortfall − buffer) and is not advice.",
+        "description": "Cross-cutting planning snapshot: active/draft budgets and cash plans, plus `safe_to_spend` for the primary active cash plan when available. safe_to_spend is an operational estimate (liquid \u2212 committed \u2212 tax shortfall \u2212 buffer) and is not advice.",
         "operationId": "get_planning_summary_api_v1_organizations__organization_id__planning_summary_get",
         "security": [
           {
@@ -11024,6 +11198,10 @@
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
           }
         },
         "type": "object",
@@ -11031,7 +11209,8 @@
           "commitment_id",
           "code",
           "message",
-          "name"
+          "name",
+          "currency"
         ],
         "title": "CommitmentAttentionItemResponse"
       },
@@ -12911,6 +13090,17 @@
           "message": {
             "type": "string",
             "title": "Message"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
           }
         },
         "type": "object",
@@ -12935,6 +13125,29 @@
           "due_in_days": {
             "type": "integer",
             "title": "Due In Days"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
           }
         },
         "type": "object",
@@ -17047,7 +17260,7 @@
           "by_currency"
         ],
         "title": "TaxSummaryResponse",
-        "description": "Operational tax estimates — not formal tax advice."
+        "description": "Operational tax estimates \u2014 not formal tax advice."
       },
       "TaxTransactionOverrideCreate": {
         "properties": {
@@ -17174,6 +17387,140 @@
           "available_after_tax"
         ],
         "title": "TaxesSummaryResponse"
+      },
+      "TimelineEventResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organization_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organization Id"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "importance": {
+            "type": "string",
+            "title": "Importance"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "resource_type": {
+            "type": "string",
+            "title": "Resource Type"
+          },
+          "resource_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Resource Id"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organization_id",
+          "occurred_at",
+          "source_type",
+          "event_type",
+          "importance",
+          "title",
+          "description",
+          "resource_type",
+          "resource_id"
+        ],
+        "title": "TimelineEventResponse"
+      },
+      "TimelineListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEventResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "limit"
+        ],
+        "title": "TimelineListResponse"
       },
       "TokenResponse": {
         "properties": {

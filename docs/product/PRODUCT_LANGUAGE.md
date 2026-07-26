@@ -134,9 +134,9 @@ Derived when a due date has passed and the commitment still has a balance. Shown
 
 Dashboard (and similar surfaces) attention items derived from commitments and other domains — e.g. overdue payment. Never a stored column on Debt.
 
-### Financial Timeline
+### Financial Timeline / Historia
 
-Unified chronological spine of financial life (transactions, goals, commitments, calendar, taxes, planning). Not a social feed; not a second ledger. Concept reserved — see [decision](../decisions/2026-07-25-financial-timeline.md).
+Unified chronological spine of financial life (transactions, goals, commitments, calendar, taxes, planning). Not a social feed; not a second ledger. Product surface: **Historia** at `/app/timeline`. See [decision](../decisions/2026-07-25-financial-timeline.md) and [SPEC-003](../../specs/backend/timeline/SPEC-003-financial-timeline.md).
 
 ---
 
@@ -165,7 +165,7 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Patrimonio neto | Net Worth (Dashboard projection) |
 | Verdad financiera | Principle + invariant, not a table |
 | ¿Qué debo hacer ahora? / Next Action | Guidance section — not persisted as tasks |
-| Financial Timeline | Future composition surface — not a module table yet |
+| Historia / Financial Timeline | UI `/app/timeline`; module `modules/timeline/`; contract `shared/events/` |
 
 ---
 

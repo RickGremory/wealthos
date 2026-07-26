@@ -33,6 +33,10 @@ class GoalProgressService:
             Decimal,
         ] = {}
 
+    def invalidate_manual(self, goal_id: UUID) -> None:
+        """Drop cached manual progress after a write."""
+        self._manual_cache.pop(goal_id, None)
+
     def calculate(self, goal: Goal) -> GoalProgress:
         with timed(
             "goals.progress",

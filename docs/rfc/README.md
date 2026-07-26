@@ -21,3 +21,4 @@ ADRs (`docs/adr/`) capture **decisions**. RFCs capture **design proposals** with
 |-----|-------|--------|-----------|
 | [RFC-001](./RFC-001-backend-foundation.md) | Backend Foundation | Accepted | [EPIC-001](../epics/EPIC-001-backend-bootstrap.md) → [SPEC-001](../../specs/backend/bootstrap/SPEC-001-backend-bootstrap.md) |
 | [RFC-002](./RFC-002-financial-commitments.md) | Financial Commitments (Debt product model) | Accepted | [EPIC-005](../epics/EPIC-005-debts.md) → [SPEC-002](../../specs/backend/debts/SPEC-002-financial-commitments.md) |
+| [RFC-003](./RFC-003-financial-timeline.md) | Financial Timeline (narrative event spine) | Accepted | [EPIC-006](../epics/EPIC-006-timeline.md) → [SPEC-003](../../specs/backend/timeline/SPEC-003-financial-timeline.md) |

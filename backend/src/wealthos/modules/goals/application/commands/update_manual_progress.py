@@ -53,6 +53,7 @@ class UpdateManualProgressCommand:
             raise InvalidTargetAmount("Manual progress cannot be negative.")
 
         self._goals.set_manual_progress(goal.id, data.current_amount)
+        self._progress.invalidate_manual(goal.id)
         progress = self._progress.calculate(goal)
         if progress.completion_percentage >= Decimal("100") and goal.status.is_active:
             goal.complete()

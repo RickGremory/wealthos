@@ -31,7 +31,7 @@ function typeLabel(item: DashboardRecentTransaction): string {
   <UiCard title="Actividad reciente">
     <template #header>
       <div class="recent__actions">
-        <NuxtLink to="/app/transactions">Ver movimientos</NuxtLink>
+        <NuxtLink to="/app/timeline">Ver historia</NuxtLink>
       </div>
     </template>
 
@@ -41,12 +41,12 @@ function typeLabel(item: DashboardRecentTransaction): string {
 
     <UiEmptyState
       v-else-if="!items.length"
-      title="Sin movimientos aún"
-      description="Registra un ingreso o gasto para empezar a ver actividad aquí."
+      title="Sin actividad reciente"
+      description="Los eventos importantes de tu vida financiera aparecerán aquí."
     >
       <template #actions>
-        <UiButton type="button" @click="navigateTo('/app/transactions')">
-          Registrar movimiento
+        <UiButton type="button" @click="navigateTo('/app/timeline')">
+          Ir a Historia
         </UiButton>
       </template>
     </UiEmptyState>

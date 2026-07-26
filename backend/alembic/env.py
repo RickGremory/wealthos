@@ -58,6 +58,7 @@ from wealthos.modules.taxes.infrastructure.models import (  # noqa: F401
     TaxRuleModel,
     TaxTransactionOverrideModel,
 )
+from wealthos.modules.timeline.infrastructure.models import TimelineEventModel  # noqa: F401
 from wealthos.modules.transactions.infrastructure.models import (  # noqa: F401
     TransactionEntryModel,
     TransactionModel,

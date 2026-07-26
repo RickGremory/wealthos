@@ -20,6 +20,7 @@ export function useAppNav() {
         label: 'Overview',
         items: [
           { label: 'Dashboard', to: '/app/dashboard' },
+          { label: 'Historia', to: '/app/timeline' },
         ],
       },
       {
