@@ -131,8 +131,18 @@ interface DashboardAggregateDto {
       error_code?: string | null
     }
     upcoming: {
-      status: 'not_configured' | 'empty'
-      data: { items: unknown[] }
+      status: 'not_configured' | 'empty' | 'ready'
+      data: {
+        items: Array<{
+          id: string
+          date_label?: string
+          description?: string
+          amount?: string | null
+          currency?: string | null
+          status?: string
+          to?: string
+        }>
+      }
     }
     safe_to_spend: {
       status: 'available' | 'not_configured' | 'unavailable' | 'error'
@@ -149,6 +159,27 @@ interface DashboardAggregateDto {
     debts: ModuleWidgetDto
     taxes: ModuleWidgetDto
   }
+  financial_commitments?: {
+    status: 'ready' | 'empty' | 'error'
+    active_count: number
+    overdue_count: number
+    totals_by_currency: Array<{
+      currency: string
+      total_obligations: string | number
+      monthly_payments: string | number
+    }>
+    next_due: {
+      commitment_id: string
+      name: string
+      due_in_days: number
+    } | null
+    attention: Array<{
+      commitment_id: string
+      code: string
+      message: string
+    }>
+    error_code?: string | null
+  } | null
 }
 
 /** @internal Exported for unit tests. */
@@ -289,14 +320,47 @@ export function mapDashboardAggregate(dto: DashboardAggregateDto): DashboardProj
     recentTransactions,
     activityStatus: dto.widgets.activity.status,
     cashFlow,
-    upcoming: [],
+    upcoming: (dto.widgets.upcoming.data?.items ?? []).map(item => ({
+      id: String(item.id),
+      dateLabel: String(item.date_label ?? ''),
+      description: String(item.description ?? ''),
+      amount: item.amount != null ? String(item.amount) : '0.00',
+      currency: item.currency ? String(item.currency) : dto.selected_currency,
+      status: String(item.status ?? 'normal'),
+      to: item.to ? String(item.to) : undefined,
+    })),
     upcomingStatus: dto.widgets.upcoming.status,
+    financialCommitments: dto.financial_commitments
+      ? {
+          status: dto.financial_commitments.status,
+          activeCount: dto.financial_commitments.active_count,
+          overdueCount: dto.financial_commitments.overdue_count,
+          totalsByCurrency: (dto.financial_commitments.totals_by_currency ?? []).map(t => ({
+            currency: t.currency,
+            totalObligations: String(t.total_obligations),
+            monthlyPayments: String(t.monthly_payments),
+          })),
+          nextDue: dto.financial_commitments.next_due
+            ? {
+                commitmentId: dto.financial_commitments.next_due.commitment_id,
+                name: dto.financial_commitments.next_due.name,
+                dueInDays: dto.financial_commitments.next_due.due_in_days,
+              }
+            : null,
+          attention: (dto.financial_commitments.attention ?? []).map(a => ({
+            commitmentId: a.commitment_id,
+            code: a.code,
+            message: a.message,
+          })),
+          errorCode: dto.financial_commitments.error_code ?? null,
+        }
+      : null,
     safeToSpend,
     budget: mapModuleWidget(dto.widgets.budget, widgetErrors, 'budget', 'Presupuesto'),
     primaryGoal: enhanceGoalModuleSummary(
       mapModuleWidget(dto.widgets.goal, widgetErrors, 'goal', 'Metas'),
     ),
-    debtSummary: mapModuleWidget(dto.widgets.debts, widgetErrors, 'debts', 'Deudas'),
+    debtSummary: mapModuleWidget(dto.widgets.debts, widgetErrors, 'debts', 'Obligaciones'),
     taxSummary: mapModuleWidget(dto.widgets.taxes, widgetErrors, 'taxes', 'Impuestos'),
     widgetErrors,
   }

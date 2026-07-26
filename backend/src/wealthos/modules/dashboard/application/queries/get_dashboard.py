@@ -43,6 +43,10 @@ from wealthos.modules.dashboard.schemas.dashboard import (
     DashboardPeriodInfo,
     DashboardResponse,
     DashboardWidgets,
+    FinancialCommitmentsAttentionItem,
+    FinancialCommitmentsNextDue,
+    FinancialCommitmentsProjection,
+    FinancialCommitmentsTotalByCurrency,
     MetricsWidget,
     ModuleLineData,
     ModuleWidget,
@@ -155,6 +159,7 @@ class GetDashboardQuery:
         )
         goals = self._safe_goals(organization_id, currency)
         debts = self._safe_debts(organization_id, currency)
+        financial_commitments = self._build_financial_commitments(organization_id)
         taxes = self._safe_taxes(organization_id, currency)
 
         attention = self._build_attention(
@@ -162,6 +167,7 @@ class GetDashboardQuery:
             onboarding=onboarding.data,
             taxes=taxes,
             debts=debts,
+            financial_commitments=financial_commitments,
             monthly_income=selected_metrics.monthly_income,
             monthly_expenses=selected_metrics.monthly_expenses,
         )
@@ -177,6 +183,7 @@ class GetDashboardQuery:
         goal = self._build_goal(goals)
         debts_widget = self._build_debts_widget(debts)
         taxes_widget = self._build_taxes_widget(taxes)
+        upcoming = self._build_upcoming(financial_commitments)
 
         return DashboardResponse(
             as_of=datetime.now(UTC),
@@ -200,16 +207,14 @@ class GetDashboardQuery:
                 attention=attention,
                 activity=activity,
                 cash_flow=cash_flow,
-                upcoming=UpcomingWidget(
-                    status="not_configured",
-                    data=UpcomingWidgetData(items=[]),
-                ),
+                upcoming=upcoming,
                 safe_to_spend=safe_to_spend,
                 budget=budget,
                 goal=goal,
                 debts=debts_widget,
                 taxes=taxes_widget,
             ),
+            financial_commitments=financial_commitments,
         )
 
     @staticmethod
@@ -300,6 +305,7 @@ class GetDashboardQuery:
         onboarding: OnboardingWidgetData,
         taxes: dict | None,
         debts: dict | None,
+        financial_commitments: FinancialCommitmentsProjection | None,
         monthly_income: Decimal,
         monthly_expenses: Decimal,
     ) -> AttentionWidget:
@@ -320,21 +326,35 @@ class GetDashboardQuery:
                 )
             )
 
-        active_debts = debts.get("active_count", 0) if debts else 0
-        debt_minimum = debts.get("minimum_payments") if debts else None
-        if active_debts > 0:
-            items.append(
-                AttentionItemData(
-                    id="active_debts",
-                    severity="info",
-                    title="Deudas activas",
-                    message=f"Tienes {active_debts} deuda(s) con seguimiento activo.",
-                    amount=debt_minimum,
-                    currency=currency if debt_minimum is not None else None,
-                    action_label="Ver deudas",
-                    action_to="/app/debts",
+        if financial_commitments and financial_commitments.attention:
+            for item in financial_commitments.attention[:5]:
+                severity = "critical" if item.code == "overdue" else "warning"
+                items.append(
+                    AttentionItemData(
+                        id=f"commitment_{item.commitment_id}",
+                        severity=severity,
+                        title="Obligación requiere atención",
+                        message=item.message,
+                        action_label="Ver obligación",
+                        action_to=f"/app/commitments/{item.commitment_id}",
+                    )
                 )
-            )
+        else:
+            active_debts = debts.get("active_count", 0) if debts else 0
+            debt_minimum = debts.get("minimum_payments") if debts else None
+            if active_debts > 0:
+                items.append(
+                    AttentionItemData(
+                        id="active_debts",
+                        severity="info",
+                        title="Obligaciones activas",
+                        message=f"Tienes {active_debts} obligación(es) con seguimiento activo.",
+                        amount=debt_minimum,
+                        currency=currency if debt_minimum is not None else None,
+                        action_label="Ver obligaciones",
+                        action_to="/app/commitments",
+                    )
+                )
 
         if onboarding.is_visible:
             items.append(
@@ -518,6 +538,74 @@ class GetDashboardQuery:
             logger.exception("dashboard.debts.failed")
             return None
 
+    def _build_financial_commitments(
+        self,
+        organization_id: UUID,
+    ) -> FinancialCommitmentsProjection:
+        try:
+            summary = self._debts_query.execute(organization_id)
+            overdue_count = sum(1 for item in summary.attention if item.code == "overdue")
+            next_due = None
+            if summary.next_due is not None:
+                next_due = FinancialCommitmentsNextDue(
+                    commitment_id=summary.next_due.commitment_id,
+                    name=summary.next_due.name,
+                    due_in_days=summary.next_due.days_until_due,
+                )
+            status = "ready" if summary.active_commitments > 0 else "empty"
+            return FinancialCommitmentsProjection(
+                status=status,
+                active_count=summary.active_commitments,
+                overdue_count=overdue_count,
+                totals_by_currency=[
+                    FinancialCommitmentsTotalByCurrency(
+                        currency=item.currency,
+                        total_obligations=item.total_debt,
+                        monthly_payments=item.total_minimum_payments,
+                    )
+                    for item in summary.by_currency
+                ],
+                next_due=next_due,
+                attention=[
+                    FinancialCommitmentsAttentionItem(
+                        commitment_id=item.commitment_id,
+                        code=item.code,
+                        message=item.message,
+                    )
+                    for item in summary.attention
+                ],
+            )
+        except Exception:
+            logger.exception("dashboard.financial_commitments.failed")
+            return FinancialCommitmentsProjection(
+                status="error",
+                error_code="commitments_failed",
+            )
+
+    @staticmethod
+    def _build_upcoming(
+        financial_commitments: FinancialCommitmentsProjection,
+    ) -> UpcomingWidget:
+        if financial_commitments.status == "error":
+            return UpcomingWidget(status="empty", data=UpcomingWidgetData(items=[]))
+        items: list[dict] = []
+        if financial_commitments.next_due is not None:
+            nd = financial_commitments.next_due
+            items.append(
+                {
+                    "id": str(nd.commitment_id),
+                    "date_label": f"En {nd.due_in_days} día(s)",
+                    "description": f"Pago · {nd.name}",
+                    "amount": None,
+                    "currency": None,
+                    "status": "attention" if nd.due_in_days <= 7 else "normal",
+                    "to": f"/app/commitments/{nd.commitment_id}",
+                }
+            )
+        if not items:
+            return UpcomingWidget(status="empty", data=UpcomingWidgetData(items=[]))
+        return UpcomingWidget(status="ready", data=UpcomingWidgetData(items=items))
+
     def _safe_taxes(self, organization_id: UUID, currency: str) -> dict | None:
         try:
             with self._uow:
@@ -674,36 +762,36 @@ class GetDashboardQuery:
         if debts is None:
             return ModuleWidget(
                 status="error",
-                data=ModuleWidgetData(title="Deudas", lines=[]),
-                action=WidgetAction(label="Ver deudas", to="/app/debts"),
+                data=ModuleWidgetData(title="Obligaciones", lines=[]),
+                action=WidgetAction(label="Ver obligaciones", to="/app/commitments"),
                 error_code="debts_failed",
             )
         if debts["active_count"] > 0:
             return ModuleWidget(
                 status="available",
                 data=ModuleWidgetData(
-                    title="Deudas",
+                    title="Obligaciones",
                     lines=[
                         ModuleLineData(
-                            label="Deuda total",
+                            label="Total adeudado",
                             value=format(debts["total_debt"], "f"),
                         ),
                         ModuleLineData(
-                            label="Pagos mínimos",
+                            label="Pagos del mes",
                             value=format(debts["minimum_payments"], "f"),
                         ),
                     ],
                 ),
-                action=WidgetAction(label="Ver deudas", to="/app/debts"),
+                action=WidgetAction(label="Ver obligaciones", to="/app/commitments"),
             )
         return ModuleWidget(
             status="not_configured",
             data=ModuleWidgetData(
-                title="Deudas",
+                title="Obligaciones",
                 lines=[],
-                hint="Registra tus pasivos para ver pagos próximos y progreso.",
+                hint="Registra tarjetas y préstamos para ver pagos próximos.",
             ),
-            action=WidgetAction(label="Agregar deuda", to="/app/debts"),
+            action=WidgetAction(label="Nueva obligación", to="/app/commitments/new"),
         )
 
     @staticmethod

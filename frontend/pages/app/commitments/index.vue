@@ -2,6 +2,7 @@
 import type { CommitmentListItemView, PaymentStrategy } from '~/types/commitments'
 import { createCommitmentsRepository } from '~/repositories/commitments.repository'
 import { toUserMessage } from '~/lib/api/errors'
+import { track } from '~/utils/track'
 
 definePageMeta({
   layout: 'app',
@@ -89,6 +90,11 @@ async function onStrategyChange(next: PaymentStrategy) {
     const repo = createCommitmentsRepository($api)
     await repo.updateStrategy(orgId, next)
     cache.invalidateCommitments()
+    track('commitment_strategy_updated', {
+      strategy: next,
+      source_screen: 'commitments',
+      success: true,
+    })
     toast.success('Estrategia actualizada')
     await loadStrategy()
   }

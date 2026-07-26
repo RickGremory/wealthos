@@ -151,8 +151,30 @@ export interface DashboardProjection {
     amount: string
     currency: string
     status: string
+    to?: string
   }>
-  upcomingStatus: 'not_configured' | 'empty'
+  upcomingStatus: 'not_configured' | 'empty' | 'ready'
+  financialCommitments: {
+    status: 'ready' | 'empty' | 'error'
+    activeCount: number
+    overdueCount: number
+    totalsByCurrency: Array<{
+      currency: string
+      totalObligations: string
+      monthlyPayments: string
+    }>
+    nextDue: {
+      commitmentId: string
+      name: string
+      dueInDays: number
+    } | null
+    attention: Array<{
+      commitmentId: string
+      code: string
+      message: string
+    }>
+    errorCode?: string | null
+  } | null
   safeToSpend: DashboardSafeToSpend
   budget: DashboardModuleSummary | null
   primaryGoal: DashboardModuleSummary | null
@@ -183,6 +205,8 @@ export interface DashboardViewModel {
     amount: string
     currency: string
     status: string
+    to?: string
   }>
+  financialCommitments: DashboardProjection['financialCommitments']
   widgetErrors: DashboardWidgetErrorState[]
 }

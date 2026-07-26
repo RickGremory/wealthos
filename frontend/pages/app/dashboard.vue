@@ -111,6 +111,40 @@ onMounted(() => {
       <ModuleSummaryCard v-if="view.debtSummary" :summary="view.debtSummary" />
       <ModuleSummaryCard v-if="view.taxSummary" :summary="view.taxSummary" />
     </div>
+
+    <UiCard
+      v-if="view?.financialCommitments?.status === 'ready'"
+      title="Obligaciones"
+      class="dashboard__commitments"
+    >
+      <p class="text-muted">
+        {{ view.financialCommitments.activeCount }} activas
+        <template v-if="view.financialCommitments.overdueCount">
+          · {{ view.financialCommitments.overdueCount }} vencidas
+        </template>
+      </p>
+      <ul
+        v-if="view.financialCommitments.totalsByCurrency.length"
+        class="commitments-totals"
+      >
+        <li
+          v-for="group in view.financialCommitments.totalsByCurrency"
+          :key="group.currency"
+        >
+          <CurrencyBadge :currency="group.currency" />
+          <MoneyValue
+            :amount="group.totalObligations"
+            :currency="group.currency"
+            :emphasize-sign="false"
+          />
+        </li>
+      </ul>
+      <div class="cluster" style="margin-top: 0.75rem">
+        <UiButton type="button" variant="secondary" @click="navigateTo('/app/commitments')">
+          Ver obligaciones
+        </UiButton>
+      </div>
+    </UiCard>
   </div>
 </template>
 
@@ -136,6 +170,24 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
+}
+
+.dashboard__commitments {
+  margin-top: var(--space-6);
+}
+
+.commitments-totals {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.commitments-totals li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
 }
 
 @media (max-width: 1100px) {

@@ -49,11 +49,20 @@ class CommitmentUpcomingDue:
 
 
 @dataclass(frozen=True, slots=True)
+class CommitmentAttentionItem:
+    commitment_id: UUID
+    code: str
+    message: str
+    name: str
+
+
+@dataclass(frozen=True, slots=True)
 class DebtSummary:
     by_currency: tuple[DebtSummaryByCurrency, ...]
     active_commitments: int = 0
     commitments_needing_attention: int = 0
     next_due: CommitmentUpcomingDue | None = None
+    attention: tuple[CommitmentAttentionItem, ...] = ()
 
     @property
     def groups(self) -> tuple[DebtSummaryByCurrency, ...]:
@@ -84,6 +93,7 @@ class GetDebtSummaryQuery:
         buckets: dict[str, dict] = {}
         active_count = 0
         attention_count = 0
+        attention_items: list[CommitmentAttentionItem] = []
         next_due: CommitmentUpcomingDue | None = None
 
         for debt in debts:
@@ -98,6 +108,26 @@ class GetDebtSummaryQuery:
 
             if snap.display_status in _ATTENTION:
                 attention_count += 1
+                code = snap.display_status.value
+                if code == "overdue":
+                    message = f"Pago vencido de {debt.name.value}."
+                elif code == "due_soon":
+                    days = snap.days_until_due
+                    message = (
+                        f"{debt.name.value} vence en {days} día(s)."
+                        if days is not None
+                        else f"{debt.name.value} vence pronto."
+                    )
+                else:
+                    message = f"{debt.name.value} está en mora."
+                attention_items.append(
+                    CommitmentAttentionItem(
+                        commitment_id=debt.id,
+                        code=code,
+                        message=message,
+                        name=debt.name.value,
+                    )
+                )
 
             if (
                 snap.next_due_date is not None
@@ -187,4 +217,5 @@ class GetDebtSummaryQuery:
             active_commitments=active_count,
             commitments_needing_attention=attention_count,
             next_due=next_due,
+            attention=tuple(attention_items),
         )

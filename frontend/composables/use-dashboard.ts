@@ -111,6 +111,7 @@ function toViewModel(
     debtSummary: moduleFromProjection(projection.debtSummary),
     taxSummary: moduleFromProjection(projection.taxSummary),
     upcoming: projection.upcoming,
+    financialCommitments: projection.financialCommitments,
     widgetErrors: projection.widgetErrors,
   }
 }

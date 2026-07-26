@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
@@ -15,6 +16,7 @@ from wealthos.modules.debts.api.dependencies import (
     get_archive_debt_command,
     get_change_debt_strategy_command,
     get_close_debt_command,
+    get_commitment_calendar_query,
     get_create_debt_command,
     get_debt_activity_query,
     get_debt_strategy_query,
@@ -61,6 +63,9 @@ from wealthos.modules.debts.application.commands.update_debt import (
     UpdateDebtCommand,
     UpdateDebtInput,
 )
+from wealthos.modules.debts.application.queries.get_commitment_calendar import (
+    GetCommitmentCalendarQuery,
+)
 from wealthos.modules.debts.application.queries.get_debt import GetDebtQuery
 from wealthos.modules.debts.application.queries.get_debt_activity import (
     GetDebtActivityQuery,
@@ -102,6 +107,7 @@ from wealthos.modules.debts.domain.exceptions import (
     InvalidPaymentDay,
     InvalidPayoffStrategy,
 )
+from wealthos.modules.debts.schemas.calendar import CommitmentCalendarResponse
 from wealthos.modules.debts.schemas.create import DebtCreate
 from wealthos.modules.debts.schemas.payment import DebtPaymentCreate
 from wealthos.modules.debts.schemas.payoff_plan import PayoffPlanListResponse
@@ -254,6 +260,26 @@ def list_debts(
         items=[DebtResponse.from_debt_with_balance(item) for item in items],
         total=len(items),
     )
+
+
+@router.get(
+    "/{organization_id}/debts/calendar-events",
+    response_model=CommitmentCalendarResponse,
+    summary="Commitment calendar events",
+)
+def get_commitment_calendar_events(
+    organization_id: UUID,
+    _membership: OrganizationMember,
+    query: Annotated[GetCommitmentCalendarQuery, Depends(get_commitment_calendar_query)],
+    date_from: Annotated[date | None, Query()] = None,
+    date_to: Annotated[date | None, Query()] = None,
+) -> CommitmentCalendarResponse:
+    result = query.execute(
+        organization_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    return CommitmentCalendarResponse.from_result(result)
 
 
 @router.get(

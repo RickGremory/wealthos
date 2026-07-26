@@ -32,6 +32,9 @@ from wealthos.modules.debts.application.commands.record_debt_payment import (
 )
 from wealthos.modules.debts.application.commands.resume_debt import ResumeDebtCommand
 from wealthos.modules.debts.application.commands.update_debt import UpdateDebtCommand
+from wealthos.modules.debts.application.queries.get_commitment_calendar import (
+    GetCommitmentCalendarQuery,
+)
 from wealthos.modules.debts.application.queries.get_debt import GetDebtQuery
 from wealthos.modules.debts.application.queries.get_debt_activity import (
     GetDebtActivityQuery,
@@ -274,3 +277,10 @@ def get_debt_activity_query(
     transactions: Annotated[TransactionRepository, Depends(get_transaction_repository)],
 ) -> GetDebtActivityQuery:
     return GetDebtActivityQuery(debts, transactions)
+
+
+def get_commitment_calendar_query(
+    debts: Annotated[DebtRepository, Depends(get_debt_repository)],
+    accounts: Annotated[AccountRepository, Depends(get_account_repository)],
+) -> GetCommitmentCalendarQuery:
+    return GetCommitmentCalendarQuery(debts, accounts)

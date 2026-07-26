@@ -9,6 +9,7 @@ import type {
 } from '~/types/commitments'
 import { toUserMessage } from '~/lib/api/errors'
 import { getAccountHintForType } from '~/utils/commitment-types'
+import { track } from '~/utils/track'
 
 const CURRENCY_OPTIONS = [
   { label: 'MXN — Peso mexicano', value: 'MXN' },
@@ -234,11 +235,22 @@ export function useCommitmentForm(mode: 'create' | 'edit' = 'create') {
         notes: form.notes.trim() || null,
       })
       cache.invalidateCommitments()
+      track('commitment_created', {
+        commitment_type: created.debtType,
+        source_screen: 'commitments_new',
+        success: true,
+      })
       toast.success('Obligación creada', created.name)
       return created.id
     }
     catch (e) {
       error.value = toUserMessage(e)
+      track('commitment_created_failed', {
+        commitment_type: form.debtType,
+        source_screen: 'commitments_new',
+        success: false,
+        error_code: 'create_failed',
+      })
       toast.error('No se pudo crear', toUserMessage(e))
       return null
     }

@@ -366,6 +366,47 @@ export function createCommitmentsRepository(api: ApiClient) {
         offset: number
       }>(`${base(organizationId)}/${commitmentId}/activity${qs ? `?${qs}` : ''}`)
     },
+
+    async calendarEvents(
+      organizationId: string,
+      opts?: { dateFrom?: string, dateTo?: string },
+    ): Promise<Array<{
+      id: string
+      commitmentId: string
+      name: string
+      eventType: string
+      eventDate: string
+      severity: string
+      currency: string
+      amount: string | null
+    }>> {
+      const params = new URLSearchParams()
+      if (opts?.dateFrom) params.set('date_from', opts.dateFrom)
+      if (opts?.dateTo) params.set('date_to', opts.dateTo)
+      const qs = params.toString()
+      const dto = await api.get<{
+        items: Array<{
+          id: string
+          commitment_id: string
+          name: string
+          event_type: string
+          event_date: string
+          severity: string
+          currency: string
+          amount: string | number | null
+        }>
+      }>(`${base(organizationId)}/calendar-events${qs ? `?${qs}` : ''}`)
+      return (dto.items ?? []).map(item => ({
+        id: item.id,
+        commitmentId: item.commitment_id,
+        name: item.name,
+        eventType: item.event_type,
+        eventDate: item.event_date,
+        severity: item.severity,
+        currency: item.currency,
+        amount: item.amount == null ? null : String(item.amount),
+      }))
+    },
   }
 }
 

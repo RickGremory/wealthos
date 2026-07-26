@@ -7,6 +7,7 @@ defineProps<{
     amount: string
     currency: string
     status: string
+    to?: string
   }>
 }>()
 </script>
@@ -16,7 +17,7 @@ defineProps<{
     <UiEmptyState
       v-if="!items.length"
       title="Sin compromisos próximos"
-      description="Agrega pagos recurrentes o un cash plan para anticipar tu flujo de caja."
+      description="Registra obligaciones para anticipar pagos y cortes."
     >
       <template #actions>
         <UiButton type="button" variant="secondary" @click="navigateTo('/app/calendar')">
@@ -28,8 +29,21 @@ defineProps<{
     <ul v-else class="upcoming__list">
       <li v-for="item in items" :key="item.id" class="upcoming__item">
         <span class="upcoming__date">{{ item.dateLabel }}</span>
-        <span class="upcoming__desc">{{ item.description }}</span>
-        <MoneyValue :amount="item.amount" :currency="item.currency" />
+        <button
+          v-if="item.to"
+          type="button"
+          class="upcoming__link"
+          @click="navigateTo(item.to)"
+        >
+          {{ item.description }}
+        </button>
+        <span v-else class="upcoming__desc">{{ item.description }}</span>
+        <MoneyValue
+          v-if="item.amount && item.amount !== '0.00' && item.currency"
+          :amount="item.amount"
+          :currency="item.currency"
+          :emphasize-sign="false"
+        />
       </li>
     </ul>
   </UiCard>
@@ -59,7 +73,22 @@ defineProps<{
   letter-spacing: 0.04em;
 }
 
-.upcoming__desc {
+.upcoming__desc,
+.upcoming__link {
   font-weight: 600;
+  text-align: left;
+}
+
+.upcoming__link {
+  border: 0;
+  background: transparent;
+  color: var(--color-teal-800);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.upcoming__link:hover {
+  text-decoration: underline;
 }
 </style>

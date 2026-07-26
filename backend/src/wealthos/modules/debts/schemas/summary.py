@@ -30,12 +30,20 @@ class CommitmentUpcomingDueResponse(BaseModel):
     amount: Decimal | None = None
 
 
+class CommitmentAttentionItemResponse(BaseModel):
+    commitment_id: UUID
+    code: str
+    message: str
+    name: str
+
+
 class DebtSummaryResponse(BaseModel):
     by_currency: list[DebtSummaryByCurrencyResponse]
     groups: list[DebtSummaryByCurrencyResponse] = Field(default_factory=list)
     active_commitments: int = 0
     commitments_needing_attention: int = 0
     next_due: CommitmentUpcomingDueResponse | None = None
+    attention: list[CommitmentAttentionItemResponse] = Field(default_factory=list)
 
     @classmethod
     def from_summary(cls, summary: DebtSummary) -> DebtSummaryResponse:
@@ -62,10 +70,20 @@ class DebtSummaryResponse(BaseModel):
                 days_until_due=nd.days_until_due,
                 amount=nd.amount,
             )
+        attention = [
+            CommitmentAttentionItemResponse(
+                commitment_id=item.commitment_id,
+                code=item.code,
+                message=item.message,
+                name=item.name,
+            )
+            for item in summary.attention
+        ]
         return cls(
             by_currency=groups,
             groups=groups,
             active_commitments=summary.active_commitments,
             commitments_needing_attention=summary.commitments_needing_attention,
             next_due=next_due,
+            attention=attention,
         )

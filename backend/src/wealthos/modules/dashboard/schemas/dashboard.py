@@ -138,7 +138,7 @@ class UpcomingWidgetData(BaseModel):
 
 
 class UpcomingWidget(BaseModel):
-    status: Literal["not_configured", "empty"]
+    status: Literal["not_configured", "empty", "ready"]
     data: UpcomingWidgetData
 
 
@@ -187,6 +187,36 @@ class DashboardWidgets(BaseModel):
     taxes: ModuleWidget
 
 
+class FinancialCommitmentsTotalByCurrency(BaseModel):
+    currency: str
+    total_obligations: Decimal
+    monthly_payments: Decimal
+
+
+class FinancialCommitmentsNextDue(BaseModel):
+    commitment_id: UUID
+    name: str
+    due_in_days: int
+
+
+class FinancialCommitmentsAttentionItem(BaseModel):
+    commitment_id: UUID
+    code: str
+    message: str
+
+
+class FinancialCommitmentsProjection(BaseModel):
+    status: Literal["ready", "empty", "error"] = "ready"
+    active_count: int = 0
+    overdue_count: int = 0
+    totals_by_currency: list[FinancialCommitmentsTotalByCurrency] = Field(
+        default_factory=list
+    )
+    next_due: FinancialCommitmentsNextDue | None = None
+    attention: list[FinancialCommitmentsAttentionItem] = Field(default_factory=list)
+    error_code: str | None = None
+
+
 class DashboardResponse(BaseModel):
     """Single dashboard projection for the organization overview."""
 
@@ -197,3 +227,4 @@ class DashboardResponse(BaseModel):
     selected_currency: str
     available_currencies: list[str]
     widgets: DashboardWidgets
+    financial_commitments: FinancialCommitmentsProjection | None = None

@@ -208,9 +208,9 @@ Required NOT NULL: org, account, name, debt_type, currency, status, priority.
 
 ### Phase 6 — Ecosystem
 
-- [ ] Dashboard widget projection  
-- [ ] Calendar events  
-- [ ] Audit + product analytics (no PII balances/names in analytics)  
+- [x] Dashboard widget projection  
+- [x] Calendar events  
+- [x] Audit + product analytics (no PII balances/names in analytics)  
 
 ### Phase 7 — Quality
 
