@@ -26,6 +26,9 @@ from wealthos.modules.transactions.application.commands.create_adjustment import
 from wealthos.modules.transactions.application.commands.create_expense import (
     CreateExpenseCommand,
 )
+from wealthos.modules.transactions.application.commands.create_fx_transfer import (
+    CreateFxTransferCommand,
+)
 from wealthos.modules.transactions.application.commands.create_income import (
     CreateIncomeCommand,
 )
@@ -118,6 +121,14 @@ def get_create_adjustment_command(
     accounts: Annotated[AccountRepository, Depends(get_account_repository)],
 ) -> CreateAdjustmentCommand:
     return CreateAdjustmentCommand(posting, accounts)
+
+
+def get_create_fx_transfer_command(
+    posting: Annotated[TransactionPostingService, Depends(get_posting_service)],
+    accounts: Annotated[AccountRepository, Depends(get_account_repository)],
+    session: Annotated[Session, Depends(get_db)],
+) -> CreateFxTransferCommand:
+    return CreateFxTransferCommand(posting=posting, accounts=accounts, session=session)
 
 
 def get_update_transaction_command(

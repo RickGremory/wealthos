@@ -1,6 +1,8 @@
 import type { ApiClient } from '~/lib/api/types'
 import type {
+  CreateFxTransferInput,
   CreateTransactionInput,
+  FxTransferView,
   TransactionDetailView,
   TransactionEntryView,
   TransactionListItemView,
@@ -229,6 +231,65 @@ export function createTransactionsRepository(api: ApiClient) {
         { headers: { 'Idempotency-Key': idempotencyKey } },
       )
       return mapTransactionDto(dto)
+    },
+
+    async createFxTransfer(
+      organizationId: string,
+      input: CreateFxTransferInput,
+      idempotencyKey: string,
+    ): Promise<FxTransferView> {
+      const body: Record<string, unknown> = {
+        source_account_id: input.sourceAccountId,
+        destination_account_id: input.destinationAccountId,
+        source_amount: input.sourceAmount,
+        destination_amount: input.destinationAmount,
+        description: input.description,
+        occurred_at: input.occurredAt,
+        notes: input.notes ?? null,
+      }
+      if (input.feeAmount) body.fee_amount = input.feeAmount
+
+      const dto = await api.post<{
+        id: string
+        source_account_id: string
+        destination_account_id: string
+        source_amount: string
+        source_currency: string
+        destination_amount: string
+        destination_currency: string
+        effective_exchange_rate: string
+        fee_amount: string | null
+        fee_currency: string | null
+        occurred_at: string
+        description: string
+        notes: string | null
+        source_transaction_id: string
+        destination_transaction_id: string
+        fee_transaction_id: string | null
+      }>(
+        `/organizations/${organizationId}/fx-transfers`,
+        body,
+        { headers: { 'Idempotency-Key': idempotencyKey } },
+      )
+
+      return {
+        id: dto.id,
+        sourceAccountId: dto.source_account_id,
+        destinationAccountId: dto.destination_account_id,
+        sourceAmount: toDecimalString(dto.source_amount),
+        sourceCurrency: dto.source_currency,
+        destinationAmount: toDecimalString(dto.destination_amount),
+        destinationCurrency: dto.destination_currency,
+        effectiveExchangeRate: String(dto.effective_exchange_rate),
+        feeAmount: dto.fee_amount != null ? toDecimalString(dto.fee_amount) : null,
+        feeCurrency: dto.fee_currency,
+        occurredAt: dto.occurred_at,
+        description: dto.description,
+        notes: dto.notes,
+        sourceTransactionId: dto.source_transaction_id,
+        destinationTransactionId: dto.destination_transaction_id,
+        feeTransactionId: dto.fee_transaction_id,
+      }
     },
 
     async updateMetadata(

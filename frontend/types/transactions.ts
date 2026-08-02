@@ -154,6 +154,42 @@ export interface TransactionFormModel {
   destinationAccountId: string
   /** Real balance entered by user for adjustment UX */
   realBalance: string
+  /** Sprint 9.6: cross-currency conversion flow */
+  fxConversion: boolean
+  /** Amount credited on destination account (FX only) */
+  destinationAmount: string
+  /** Optional fee charged on source account (FX only) */
+  feeAmount: string
+}
+
+export interface CreateFxTransferInput {
+  sourceAccountId: string
+  destinationAccountId: string
+  sourceAmount: string
+  destinationAmount: string
+  description: string
+  occurredAt: string
+  feeAmount?: string | null
+  notes?: string | null
+}
+
+export interface FxTransferView {
+  id: string
+  sourceAccountId: string
+  destinationAccountId: string
+  sourceAmount: string
+  sourceCurrency: string
+  destinationAmount: string
+  destinationCurrency: string
+  effectiveExchangeRate: string
+  feeAmount: string | null
+  feeCurrency: string | null
+  occurredAt: string
+  description: string
+  notes: string | null
+  sourceTransactionId: string
+  destinationTransactionId: string
+  feeTransactionId: string | null
 }
 
 export interface TransactionDuplicateDraft {

@@ -9,7 +9,9 @@ import type { AccountSummary } from '~/types/domain'
 import { toUserMessage } from '~/lib/api/errors'
 import {
   buildCreateTransactionPayload,
+  buildOccurredAtIso,
   emptyTransactionForm,
+  normalizeUnsignedAmount,
   todayDateInputValue,
   validateTransactionForm,
 } from '~/utils/transaction-payload'
@@ -50,6 +52,14 @@ export function useTransactionForm(options?: {
     return sourceAccount.value.currency !== destinationAccount.value.currency
   })
 
+  watch(currencyMismatch, (mismatch) => {
+    if (!mismatch && form.value.fxConversion) {
+      form.value.fxConversion = false
+      form.value.destinationAmount = ''
+      form.value.feeAmount = ''
+    }
+  })
+
   function reset(type: TransactionType = 'expense') {
     form.value = emptyTransactionForm(type)
     fieldErrors.value = {}
@@ -72,16 +82,38 @@ export function useTransactionForm(options?: {
       form.value.destinationAccountId = ''
       form.value.amount = ''
       form.value.categoryId = ''
+      form.value.fxConversion = false
+      form.value.destinationAmount = ''
+      form.value.feeAmount = ''
     } else {
       form.value.sourceAccountId = ''
       form.value.destinationAccountId = ''
       form.value.realBalance = ''
+      form.value.fxConversion = false
+      form.value.destinationAmount = ''
+      form.value.feeAmount = ''
       if (prev === 'income' || prev === 'expense') {
         form.value.categoryId = ''
       }
     }
     fieldErrors.value = {}
     error.value = null
+  }
+
+  function enableFxConversion() {
+    if (!currencyMismatch.value) return
+    form.value.fxConversion = true
+    if (!form.value.description.trim()) {
+      form.value.description = 'Conversión de moneda'
+    }
+    fieldErrors.value = {}
+    error.value = null
+  }
+
+  function disableFxConversion() {
+    form.value.fxConversion = false
+    form.value.destinationAmount = ''
+    form.value.feeAmount = ''
   }
 
   function applyDuplicateDraft(draft: Partial<TransactionDuplicateDraft> | null) {
@@ -103,10 +135,16 @@ export function useTransactionForm(options?: {
   function validate(): boolean {
     const currentBalance = selectedAccount.value?.currentBalance ?? '0.00'
     const errors = validateTransactionForm(form.value, { currentBalance })
-    if (currencyMismatch.value) {
+    if (currencyMismatch.value && !form.value.fxConversion) {
       errors.push({
         field: 'destinationAccountId',
-        message: 'Las cuentas deben tener la misma moneda.',
+        message: 'Las cuentas deben tener la misma moneda, o registra una conversión.',
+      })
+    }
+    if (form.value.fxConversion && !currencyMismatch.value) {
+      errors.push({
+        field: 'destinationAccountId',
+        message: 'La conversión requiere monedas distintas.',
       })
     }
     const map: Record<string, string> = {}
@@ -128,6 +166,33 @@ export function useTransactionForm(options?: {
 
     submitting.value = true
     try {
+      const repo = createTransactionsRepository($api)
+
+      if (form.value.type === 'transfer' && form.value.fxConversion) {
+        const fee = form.value.feeAmount.trim()
+          ? normalizeUnsignedAmount(form.value.feeAmount)
+          : null
+        const fx = await repo.createFxTransfer(
+          orgId,
+          {
+            sourceAccountId: form.value.sourceAccountId,
+            destinationAccountId: form.value.destinationAccountId,
+            sourceAmount: normalizeUnsignedAmount(form.value.amount),
+            destinationAmount: normalizeUnsignedAmount(form.value.destinationAmount),
+            description: form.value.description.trim() || 'Conversión de moneda',
+            occurredAt: buildOccurredAtIso({ date: form.value.occurredDate }),
+            feeAmount: fee && fee !== '0.00' ? fee : null,
+            notes: form.value.notes.trim() || null,
+          },
+          idempotency.current(),
+        )
+        const result = await repo.get(orgId, fx.sourceTransactionId)
+        created.value = result
+        cache.invalidateTransactions()
+        idempotency.renew()
+        return result
+      }
+
       const composer = useTransactionComposerStore()
       const categoryName = form.value.categoryId
         ? options?.categoryNameResolver?.(form.value.categoryId) ?? null
@@ -138,7 +203,6 @@ export function useTransactionForm(options?: {
         categoryName,
         source: composer.createSource,
       })
-      const repo = createTransactionsRepository($api)
       const result = await repo.create(orgId, payload, idempotency.current())
       created.value = result
       cache.invalidateTransactions()
@@ -164,6 +228,8 @@ export function useTransactionForm(options?: {
     currencyMismatch,
     reset,
     setType,
+    enableFxConversion,
+    disableFxConversion,
     applyDuplicateDraft,
     validate,
     submit,

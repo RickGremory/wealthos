@@ -25,6 +25,8 @@ const {
   currencyMismatch,
   reset,
   setType,
+  enableFxConversion,
+  disableFxConversion,
   applyDuplicateDraft,
   submit,
 } = useTransactionForm({
@@ -196,6 +198,8 @@ async function onVoidConfirm(reason: string) {
               :currency-mismatch="currencyMismatch"
               @type-change="onTypeChange"
               @category-created="loadEnrichment"
+              @enable-fx="enableFxConversion"
+              @disable-fx="disableFxConversion"
             />
           </template>
         </div>

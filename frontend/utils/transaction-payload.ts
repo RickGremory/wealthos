@@ -120,6 +120,28 @@ export function validateTransactionForm(
           message: 'Origen y destino deben ser distintas.',
         })
       }
+      if (form.fxConversion) {
+        const destinationAmount = normalizeUnsignedAmount(form.destinationAmount)
+        if (
+          !destinationAmount
+          || isZeroDecimalString(destinationAmount)
+          || destinationAmount.startsWith('-')
+        ) {
+          errors.push({
+            field: 'destinationAmount',
+            message: 'Ingresa el monto recibido mayor a cero.',
+          })
+        }
+        if (form.feeAmount.trim()) {
+          const fee = normalizeUnsignedAmount(form.feeAmount)
+          if (!fee || isZeroDecimalString(fee) || fee.startsWith('-')) {
+            errors.push({
+              field: 'feeAmount',
+              message: 'La comisión debe ser mayor a cero.',
+            })
+          }
+        }
+      }
       if (form.description.trim().length < 2) {
         errors.push({
           field: 'description',
@@ -270,5 +292,8 @@ export function emptyTransactionForm(
     sourceAccountId: '',
     destinationAccountId: '',
     realBalance: '',
+    fxConversion: false,
+    destinationAmount: '',
+    feeAmount: '',
   }
 }

@@ -38,6 +38,14 @@ def _cleanup() -> Generator[None]:
         session.execute(text("DELETE FROM goal_manual_progress"))
         session.execute(text("DELETE FROM goal_accounts"))
         session.execute(text("DELETE FROM goals"))
+        session.execute(text("DELETE FROM fx_transfers"))
+        session.execute(text("DELETE FROM recurring_occurrence_settlements"))
+        session.execute(text("DELETE FROM recurring_occurrence_exceptions"))
+        session.execute(text("DELETE FROM recurring_rule_pauses"))
+        session.execute(text("DELETE FROM recurring_rule_versions"))
+        session.execute(text("DELETE FROM recurring_rules"))
+        session.execute(text("DELETE FROM planned_cash_flows"))
+        session.execute(text("DELETE FROM planning_settings"))
         session.execute(text("DELETE FROM transaction_entries"))
         session.execute(text("DELETE FROM transactions"))
         session.execute(text("DELETE FROM categories"))
@@ -277,3 +285,49 @@ def test_roles_and_isolation(client: TestClient) -> None:
         headers=stranger["headers"],
     )
     assert cross.status_code == 404
+
+
+def test_create_fx_transfer_posts_two_adjustment_legs(client: TestClient) -> None:
+    owner = _register(client, org_name="FX Org")
+    mxn = _create_account(client, owner, name="HSBC MXN", opening="5000.00", currency="MXN")
+    usd = _create_account(client, owner, name="Hapi USD", opening="0.00", currency="USD")
+
+    created = client.post(
+        f"{ORG}/{owner['org_id']}/fx-transfers",
+        headers={**owner["headers"], "Idempotency-Key": str(uuid4())},
+        json={
+            "source_account_id": mxn["id"],
+            "destination_account_id": usd["id"],
+            "source_amount": "1803.95",
+            "destination_amount": "100.00",
+            "description": "Envío a Hapi / compra de USD",
+            "occurred_at": "2026-08-01T18:00:00Z",
+            "fee_amount": "25.00",
+        },
+    )
+    assert created.status_code == 201, created.text
+    body = created.json()
+    assert body["source_currency"] == "MXN"
+    assert body["destination_currency"] == "USD"
+    assert body["source_amount"] == "1803.95"
+    assert body["destination_amount"] == "100.00"
+    assert Decimal(body["effective_exchange_rate"]) == Decimal("18.0395")
+    assert body["fee_amount"] == "25.00"
+    assert body["source_transaction_id"]
+    assert body["destination_transaction_id"]
+    assert body["fee_transaction_id"]
+
+    listed = client.get(
+        f"{ORG}/{owner['org_id']}/transactions",
+        headers=owner["headers"],
+        params={"limit": 50},
+    )
+    assert listed.status_code == 200
+    items = listed.json()["items"]
+    linked = [
+        item
+        for item in items
+        if (item.get("source") or {}).get("related_resource_type") == "fx_transfer"
+        and str((item.get("source") or {}).get("related_resource_id")) == body["id"]
+    ]
+    assert len(linked) == 3

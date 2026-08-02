@@ -84,6 +84,17 @@ describe('transaction-payload', () => {
     expect(errors.some(e => e.field === 'categoryId')).toBe(true)
   })
 
+  it('requires destination amount for FX conversion transfers', () => {
+    const form = emptyTransactionForm('transfer')
+    form.fxConversion = true
+    form.amount = '1803.95'
+    form.sourceAccountId = 'a'
+    form.destinationAccountId = 'b'
+    form.description = 'Conversión'
+    const errors = validateTransactionForm(form)
+    expect(errors.some(e => e.field === 'destinationAmount')).toBe(true)
+  })
+
   it('uses noon local for past dates and now for today', () => {
     const now = new Date(2026, 6, 24, 18, 30, 0)
     const past = buildOccurredAtIso({ date: '2026-07-20', now })

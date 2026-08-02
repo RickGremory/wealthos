@@ -34,6 +34,7 @@ from wealthos.modules.transactions.api.dependencies import (
     get_account_repository,
     get_create_adjustment_command,
     get_create_expense_command,
+    get_create_fx_transfer_command,
     get_create_income_command,
     get_create_transfer_command,
     get_get_transaction_query,
@@ -50,6 +51,10 @@ from wealthos.modules.transactions.application.commands.create_adjustment import
 from wealthos.modules.transactions.application.commands.create_expense import (
     CreateExpenseCommand,
     CreateExpenseInput,
+)
+from wealthos.modules.transactions.application.commands.create_fx_transfer import (
+    CreateFxTransferCommand,
+    CreateFxTransferInput,
 )
 from wealthos.modules.transactions.application.commands.create_income import (
     CreateIncomeCommand,
@@ -101,6 +106,10 @@ from wealthos.modules.transactions.schemas.create import (
     IncomeTransactionCreate,
     TransactionCreate,
     TransferTransactionCreate,
+)
+from wealthos.modules.transactions.schemas.fx_transfer import (
+    FxTransferCreateRequest,
+    FxTransferResponse,
 )
 from wealthos.modules.transactions.schemas.response import TransactionResponse
 from wealthos.modules.transactions.schemas.update import TransactionUpdate
@@ -265,6 +274,64 @@ def create_transaction(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     return TransactionResponse.from_entity(transaction)
+
+
+@router.post(
+    "/{organization_id}/fx-transfers",
+    response_model=FxTransferResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create foreign-currency conversion between own accounts",
+)
+def create_fx_transfer(
+    organization_id: UUID,
+    payload: FxTransferCreateRequest,
+    current_user: CurrentUser,
+    _membership: RequireWriter,
+    command: Annotated[CreateFxTransferCommand, Depends(get_create_fx_transfer_command)],
+    accounts: Annotated[AccountRepository, Depends(get_account_repository)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> FxTransferResponse:
+    try:
+        with uow:
+            result = command.execute(
+                CreateFxTransferInput(
+                    organization_id=organization_id,
+                    source_account_id=payload.source_account_id,
+                    destination_account_id=payload.destination_account_id,
+                    source_amount=payload.source_amount,
+                    destination_amount=payload.destination_amount,
+                    occurred_at=payload.occurred_at,
+                    description=payload.description,
+                    created_by_user_id=current_user.id,
+                    fee_amount=payload.fee_amount,
+                    notes=payload.notes,
+                )
+            )
+            for tx in (
+                result.source_transaction,
+                result.destination_transaction,
+                result.fee_transaction,
+            ):
+                if tx is not None:
+                    emit_transaction_posted(publisher, accounts, tx)
+            uow.commit()
+    except (AccountNotFoundError,) as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except (
+        AccountInactive,
+        InvalidTransactionEntries,
+        SameAccountTransfer,
+        EntryCurrencyMismatch,
+        CurrencyMismatch,
+        InvalidCurrency,
+        ZeroEntryAmount,
+    ) as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except TransactionError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    return FxTransferResponse.from_entity(result.fx_transfer)
 
 
 @router.get(
