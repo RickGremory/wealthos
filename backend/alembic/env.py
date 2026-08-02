@@ -38,6 +38,13 @@ from wealthos.modules.planning.infrastructure.models import (  # noqa: F401
     PlannedCashFlowModel,
     PlanningSettingsModel,
 )
+from wealthos.modules.recurring.infrastructure.persistence.models import (  # noqa: F401
+    RecurringOccurrenceExceptionModel,
+    RecurringOccurrenceSettlementModel,
+    RecurringRuleModel,
+    RecurringRulePauseModel,
+    RecurringRuleVersionModel,
+)
 from wealthos.modules.tax_mx.infrastructure.models import (  # noqa: F401
     MexicoTaxCalculationSnapshotModel,
     MexicoTaxCategoryMappingModel,
