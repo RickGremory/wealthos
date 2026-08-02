@@ -50,21 +50,14 @@ SNAPSHOT_ROOT = REPO_ROOT / "local" / "personal-snapshots"
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("DB_ECHO", "false")
 
-# Parent → child tables without organization_id (exported via join).
+# Child tables without organization_id (exported via parent FK join).
+# Tables that already have organization_id are covered by the org-scoped dump.
 CHILD_SPECS: list[tuple[str, str, str]] = [
     # (child_table, fk_column, parent_table)
     ("transaction_entries", "transaction_id", "transactions"),
     ("goal_accounts", "goal_id", "goals"),
     ("goal_manual_progress", "goal_id", "goals"),
-    ("debt_payments", "debt_id", "debts"),
-    ("budget_allocations", "budget_id", "budgets"),
-    ("budget_allocation_matches", "allocation_id", "budget_allocations"),
-    ("cash_plan_items", "cash_plan_id", "cash_plans"),
-    ("cash_plan_item_matches", "item_id", "cash_plan_items"),
-    ("recurring_rule_versions", "rule_id", "recurring_rules"),
-    ("recurring_rule_pauses", "rule_id", "recurring_rules"),
-    ("recurring_occurrence_exceptions", "rule_id", "recurring_rules"),
-    ("recurring_occurrence_settlements", "rule_id", "recurring_rules"),
+    ("cash_plan_accounts", "cash_plan_id", "cash_plans"),
 ]
 
 # Import order (FK-safe). Unknown org-scoped tables append after these.
@@ -89,6 +82,7 @@ IMPORT_ORDER = [
     "budget_allocations",
     "budget_allocation_matches",
     "cash_plans",
+    "cash_plan_accounts",
     "cash_plan_items",
     "cash_plan_item_matches",
     "recurring_rules",
