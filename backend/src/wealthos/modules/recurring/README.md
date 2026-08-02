@@ -4,7 +4,11 @@ Module: `wealthos.modules.recurring`
 
 Implements [SPEC-005](../../../../../specs/backend/recurring/SPEC-005-recurring-engine.md).
 
-## Status
+## Progress
 
-- **PR1** Persistence foundation (tables, aggregate, repositories) — in progress
-- PR2+ Generation engine, commands, APIs, UI — pending
+| Phase | Status |
+|-------|--------|
+| PR1 Persistence (5 tables, aggregate, repos) | Done |
+| PR2 Recurrence generator + strategies | Done |
+| PR3 Lifecycle commands | Pending |
+| PR4–9 APIs, settlements wiring, FE, hardening | Pending |
