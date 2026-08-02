@@ -154,11 +154,13 @@ See [Sprint 8.3](../roadmap/sprint-8.3-planning-integration.md) · [Sprint 9.1](
 
 Persistent configuration for a repeating expected inflow, outflow, or transfer (salary, rent, subscription, savings transfer).
 
-Product: **Movimiento recurrente**. Code aggregate: `RecurringRule`.
+Product: **Movimiento recurrente**. Code: series shell `RecurringRule` + temporal `RecurringRuleVersion` (config never flattened only onto the shell).
 
 Answers: *¿Qué movimientos espero que se repitan?*
 
-Not a Transaction. Not proof that money moved. See [Principle 11](./02-product-principles.md) · [RFC-005](../rfc/RFC-005-recurring-engine.md).
+Structural mid-series changes (“desde septiembre, 950 MXN”) create a new version with `effective_from` — history is not rewritten.
+
+Not a Transaction. Not proof that money moved. See [Principle 11](./02-product-principles.md) · [RFC-005](../rfc/RFC-005-recurring-engine.md) · [Sprint 9.3](../roadmap/sprint-9.3-persistence-lifecycle.md).
 
 ### Recurring occurrence (*ocurrencia proyectada*)
 

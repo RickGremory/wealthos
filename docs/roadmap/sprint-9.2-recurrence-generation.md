@@ -346,4 +346,4 @@ Keep **identity date** and **expected execution date** separate so reschedule ne
 
 ## Next
 
-**Sprint 9.3 — Persistence, commands, lifecycle:** tables, create/edit, pauses, exceptions, effective versioning, archive, backend APIs, replace Planning stub wiring.
+**Sprint 9.3 — Persistence, commands, lifecycle** — **Accepted** ([sprint-9.3-persistence-lifecycle.md](./sprint-9.3-persistence-lifecycle.md)). Next: **9.4** UX.

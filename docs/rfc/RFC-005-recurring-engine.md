@@ -2,11 +2,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Accepted (9.1–9.2) |
+| **Status** | Accepted (9.1–9.3) |
 | **Created** | 2026-08-01 |
 | **Epic** | [EPIC-008](../epics/EPIC-008-recurring-engine.md) |
-| **Sprint** | [Sprint 9](../roadmap/sprint-9-recurring-engine.md) · [9.1](../roadmap/sprint-9.1-recurring-domain-model.md) · [9.2](../roadmap/sprint-9.2-recurrence-generation.md) |
-| **Decision** | [2026-08-01-recurring-expectations-not-facts](../decisions/2026-08-01-recurring-expectations-not-facts.md) · [identity vs effective date](../decisions/2026-08-01-recurrence-identity-vs-effective-date.md) |
+| **Sprint** | [Sprint 9](../roadmap/sprint-9-recurring-engine.md) · [9.1](../roadmap/sprint-9.1-recurring-domain-model.md) · [9.2](../roadmap/sprint-9.2-recurrence-generation.md) · [9.3](../roadmap/sprint-9.3-persistence-lifecycle.md) |
+| **Decision** | [expectations ≠ facts](../decisions/2026-08-01-recurring-expectations-not-facts.md) · [identity vs effective date](../decisions/2026-08-01-recurrence-identity-vs-effective-date.md) · [Rule + Version](../decisions/2026-08-01-recurring-rule-versioning.md) |
 
 ---
 
@@ -30,11 +30,19 @@ Auto-create transactions · free RRULE UI · business-day calendars · FX transf
 
 ## Core model
 
-### RecurringRule (aggregate)
+### RecurringRule (series shell)
 
-Persists configuration only. Product name: **Movimiento recurrente**.
+Product name: **Movimiento recurrente**. Persists identity, org, `source_type`, related resource, lifecycle `status`, archive timestamps, optimistic `version`.
 
-Key attributes: org, name, direction (`inflow`/`outflow`/`transfer`), expected `amount` + `amount_strategy`, `currency`, `certainty`, `RecurrencePattern`, `invalid_date_policy`, `starts_on`/`ends_on`, accounts/category, `source_type` + optional related resource, `settlement_mode`, `status`, optional `grace_period_days`, version/timestamps.
+Does **not** store amount, frequency, currency, or day-of-month — those live on versions.
+
+### RecurringRuleVersion (temporal configuration)
+
+Non-overlapping `effective_from` / `effective_until` slices carrying money, pattern, accounts, certainty, settlement mode, grace, and series bounds for that slice.
+
+Structural updates close the current version and open a new one with `effective_from`. Occurrence keys use `rule_id` + original date — **not** version id.
+
+See [Sprint 9.3](../roadmap/sprint-9.3-persistence-lifecycle.md) · [decision](../decisions/2026-08-01-recurring-rule-versioning.md).
 
 ### RecurrencePattern (frozen VO)
 
@@ -82,10 +90,23 @@ Details and test matrix: [Sprint 9.2](../roadmap/sprint-9.2-recurrence-generatio
 
 ---
 
+## Persistence & lifecycle (9.3)
+
+Tables: `recurring_rules`, `recurring_rule_versions`, `recurring_rule_pauses`, `recurring_occurrence_exceptions`. No `recurring_occurrences`.
+
+- `RecurringAggregateRepository` for commands; `RecurringProjectionRepository` for Planning/Calendar.  
+- Commands: create, update (simple vs structural), archive, pause/resume, exception create/soft-remove.  
+- Preview HTTP endpoints (rule + org-wide) reuse the 9.2 generator.  
+- Optimistic locking; soft archive; soft-deactivate exceptions.  
+
+Details: [Sprint 9.3](../roadmap/sprint-9.3-persistence-lifecycle.md).
+
+---
+
 ## Planning / Calendar ports
 
 ```text
-RecurringPlanningService.preview_occurrences(org, currency, period_start, period_end)
+RecurringProjectionRepository.preview_occurrences(org, currency, period_start, period_end)
   → RecurringOccurrence*
 ```
 
@@ -109,26 +130,26 @@ Settlement default: one linked transaction settles the occurrence even if amount
 
 ```text
 modules/recurring/
-  domain/ entities | enums | value_objects | services | policies | ports
-  application/
-  infrastructure/
+  domain/
+  application/   # commands, queries, dto, services
+  infrastructure/persistence | generator
   api/
+  tests/
 ```
 
-Aligns with ADR-007 modular boundaries. Owning modules may expose adapters implementing Recurring/Planning ports.
+Aligns with ADR-007 modular boundaries.
 
 ---
 
 ## Success criteria
 
-See Sprint 9.1 (model) and Sprint 9.2 (generator) acceptance checklists. Engine must be unit-testable without DB before API ships (9.3+).
+See Sprint 9.1–9.3 acceptance checklists. Pure engine tests without DB; persistence/API in SPEC (9.5).
 
 ## Open points → later slices
 
 | Topic | Slice |
 |-------|--------|
 | Exact expansion algorithms | **9.2 Accepted** |
-| Tables / Alembic / repositories / lifecycle commands | 9.3 |
+| Tables / commands / preview / Planning port | **9.3 Accepted** |
 | Confirm UI + series edit UX | 9.4 |
 | Executable SPEC | 9.5 |
-| Structural rule versioning table | after MVP if needed |

@@ -18,6 +18,7 @@ Newest first.
 |----------|------|
 | [Recurring events are expectations, not facts](./2026-08-01-recurring-expectations-not-facts.md) | Product + domain · [RFC-005](../rfc/RFC-005-recurring-engine.md) · Principle 11 · Sprint 9.1 |
 | [Recurrence identity vs effective date](./2026-08-01-recurrence-identity-vs-effective-date.md) | Domain algorithm · [Sprint 9.2](../roadmap/sprint-9.2-recurrence-generation.md) |
+| [RecurringRule + RuleVersion from day one](./2026-08-01-recurring-rule-versioning.md) | Persistence / lifecycle · [Sprint 9.3](../roadmap/sprint-9.3-persistence-lifecycle.md) |
 
 ## 2026-07-25
 
