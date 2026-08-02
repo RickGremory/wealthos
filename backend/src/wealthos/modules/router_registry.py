@@ -16,6 +16,7 @@ from wealthos.modules.identity.api.auth_router import router as auth_router
 from wealthos.modules.identity.api.me_router import router as me_router
 from wealthos.modules.legal.api.router import router as legal_router
 from wealthos.modules.planning.api.router import router as planning_router
+from wealthos.modules.recurring.api.router import router as recurring_router
 from wealthos.modules.tax_mx.api.router import router as tax_mx_router
 from wealthos.modules.taxes.api.router import router as taxes_router
 from wealthos.modules.timeline.api.router import router as timeline_router
@@ -78,6 +79,11 @@ def register_modules(app: FastAPI) -> None:
         planning_router,
         prefix=f"{API_V1_PREFIX}/organizations",
         tags=["Planning"],
+    )
+    app.include_router(
+        recurring_router,
+        prefix=f"{API_V1_PREFIX}/organizations",
+        tags=["Recurring"],
     )
 
     for module_name in MODULES:

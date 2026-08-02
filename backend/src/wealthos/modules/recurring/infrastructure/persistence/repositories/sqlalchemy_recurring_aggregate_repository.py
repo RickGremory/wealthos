@@ -142,3 +142,51 @@ class SqlAlchemyRecurringAggregateRepository(BaseRepository[RecurringRuleModel])
                 )
             )
         return results
+
+    def list_aggregates(
+        self,
+        organization_id: UUID,
+        filters: RecurringRuleFilters,
+    ) -> list[RecurringAggregate]:
+        stmt = (
+            select(RecurringRuleModel)
+            .where(RecurringRuleModel.organization_id == organization_id)
+            .options(
+                selectinload(RecurringRuleModel.versions),
+                selectinload(RecurringRuleModel.pauses),
+                selectinload(RecurringRuleModel.exceptions),
+            )
+        )
+        if filters.status is not None:
+            stmt = stmt.where(RecurringRuleModel.status == filters.status.value)
+        elif not filters.include_archived:
+            stmt = stmt.where(
+                RecurringRuleModel.status != RecurringRuleStatus.ARCHIVED.value
+            )
+        if filters.source_type is not None:
+            stmt = stmt.where(RecurringRuleModel.source_type == filters.source_type.value)
+        stmt = stmt.order_by(RecurringRuleModel.updated_at.desc())
+        models = list(self.session.scalars(stmt).unique())
+        aggregates = [self._mapper.to_entity(model) for model in models]
+        if filters.direction is None and filters.currency is None and filters.account_id is None:
+            return aggregates
+        filtered: list[RecurringAggregate] = []
+        for aggregate in aggregates:
+            current = next(
+                (
+                    version
+                    for version in reversed(aggregate.versions_tuple())
+                    if version.effective_until is None
+                ),
+                None,
+            )
+            if current is None:
+                continue
+            if filters.direction is not None and current.direction != filters.direction:
+                continue
+            if filters.currency is not None and current.currency != filters.currency:
+                continue
+            if filters.account_id is not None and current.account_id != filters.account_id:
+                continue
+            filtered.append(aggregate)
+        return filtered

@@ -102,6 +102,22 @@ class InMemoryRecurringAggregateRepository:
     def list(self, organization_id: UUID, filters: RecurringRuleFilters):
         return []
 
+    def list_aggregates(self, organization_id: UUID, filters: RecurringRuleFilters):
+        items = [
+            deepcopy(item)
+            for (org_id, _), item in self._items.items()
+            if org_id == organization_id
+        ]
+        if filters.status is not None:
+            items = [item for item in items if item.rule.status == filters.status]
+        elif not filters.include_archived:
+            items = [
+                item
+                for item in items
+                if item.rule.status.value != "archived"
+            ]
+        return items
+
 
 class InMemorySettlementRepository:
     def __init__(self) -> None:

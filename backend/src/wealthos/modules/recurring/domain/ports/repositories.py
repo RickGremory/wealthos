@@ -70,6 +70,12 @@ class RecurringAggregateRepository(Protocol):
         filters: RecurringRuleFilters,
     ) -> list[RecurringRuleListProjection]: ...
 
+    def list_aggregates(
+        self,
+        organization_id: UUID,
+        filters: RecurringRuleFilters,
+    ) -> list[RecurringAggregate]: ...
+
 
 class RecurringSettlementRepository(Protocol):
     def add(self, settlement: RecurringOccurrenceSettlement) -> RecurringOccurrenceSettlement: ...
