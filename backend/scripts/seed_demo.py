@@ -190,75 +190,14 @@ def _ensure_sample_data(client: TestClient, token: str, org_id: str) -> None:
         return out
 
     flat = _flatten(cat_items if isinstance(cat_items, list) else [])
-    income_cat = next((c for c in flat if c.get("category_type") == "income"), None)
-    expense_cat = next((c for c in flat if c.get("category_type") == "expense"), None)
 
-    txs = client.get(
-        f"{ORG}/{org_id}/transactions",
-        headers=headers,
-        params={"limit": 50},
-    )
-    posted_ops = 0
-    if txs.status_code == 200:
-        posted_ops = sum(
-            1
-            for item in (txs.json().get("items") or [])
-            if item.get("transaction_type") in {"income", "expense"}
-        )
+    def _cat_type(node: dict) -> str:
+        return str(node.get("category_type") or node.get("type") or "")
 
-    if posted_ops == 0 and income_cat and expense_cat:
-        today = date.today()
-        income = client.post(
-            f"{ORG}/{org_id}/transactions",
-            headers={**headers, "Idempotency-Key": str(uuid4())},
-            json={
-                "transaction_type": "income",
-                "account_id": account_id,
-                "category_id": income_cat["id"],
-                "amount": "45000.00",
-                "description": "Cobro cliente — demo",
-                "occurred_at": datetime(
-                    today.year,
-                    today.month,
-                    max(1, today.day - 3),
-                    10,
-                    0,
-                    tzinfo=UTC,
-                ).isoformat(),
-            },
-        )
-        if income.status_code not in (200, 201):
-            print(f"· Skipping sample income ({income.status_code}): {income.text[:120]}")
-        else:
-            print("✓ Sample income posted")
+    income_cat = next((c for c in flat if _cat_type(c) == "income"), None)
+    expense_cat = next((c for c in flat if _cat_type(c) == "expense"), None)
 
-        expense = client.post(
-            f"{ORG}/{org_id}/transactions",
-            headers={**headers, "Idempotency-Key": str(uuid4())},
-            json={
-                "transaction_type": "expense",
-                "account_id": account_id,
-                "category_id": expense_cat["id"],
-                "amount": "1850.00",
-                "description": "Software / suscripciones — demo",
-                "occurred_at": datetime(
-                    today.year,
-                    today.month,
-                    max(1, today.day - 1),
-                    16,
-                    30,
-                    tzinfo=UTC,
-                ).isoformat(),
-            },
-        )
-        if expense.status_code not in (200, 201):
-            print(f"· Skipping sample expense ({expense.status_code}): {expense.text[:120]}")
-        else:
-            print("✓ Sample expense posted")
-    elif posted_ops > 0:
-        print("· Demo income/expense already present")
-    else:
-        print("· Categories unavailable — skipping sample movements")
+    _ensure_sample_transactions(client, token, org_id, account_id, income_cat, expense_cat)
 
     goals = client.get(f"{ORG}/{org_id}/goals", headers=headers)
     if goals.status_code == 200 and int(goals.json().get("total") or 0) == 0:
@@ -284,6 +223,112 @@ def _ensure_sample_data(client: TestClient, token: str, org_id: str) -> None:
     _ensure_sample_commitments(client, token, org_id)
     _ensure_sample_planning(client, token, org_id)
     _ensure_sample_recurring(client, token, org_id, account_id, expense_cat, income_cat)
+
+
+def _demo_month_datetimes() -> tuple[datetime, datetime]:
+    """Keep sample movements inside the current calendar month (UTC noon)."""
+    today = date.today()
+    month_start = date(today.year, today.month, 1)
+    income_day = max(month_start, today - timedelta(days=2))
+    expense_day = max(month_start, today - timedelta(days=1))
+    return (
+        datetime(income_day.year, income_day.month, income_day.day, 12, 0, tzinfo=UTC),
+        datetime(expense_day.year, expense_day.month, expense_day.day, 16, 30, tzinfo=UTC),
+    )
+
+
+def _ensure_sample_transactions(
+    client: TestClient,
+    token: str,
+    org_id: str,
+    account_id: str,
+    income_cat: dict | None,
+    expense_cat: dict | None,
+) -> None:
+    """Create or repair demo income/expense so «Este mes» always finds them."""
+    if not income_cat or not expense_cat:
+        print("· Categories unavailable — skipping sample movements")
+        return
+
+    headers = _headers(token)
+    income_at, expense_at = _demo_month_datetimes()
+    month_start = datetime(date.today().year, date.today().month, 1, tzinfo=UTC)
+
+    txs = client.get(
+        f"{ORG}/{org_id}/transactions",
+        headers=headers,
+        params={"limit": 100},
+    )
+    items = txs.json().get("items") or [] if txs.status_code == 200 else []
+    by_description = {
+        str(item.get("description") or ""): item for item in items
+    }
+
+    samples = [
+        {
+            "description": "Cobro cliente — demo",
+            "transaction_type": "income",
+            "category_id": income_cat["id"],
+            "amount": "45000.00",
+            "occurred_at": income_at,
+            "hour_label": "income",
+        },
+        {
+            "description": "Software / suscripciones — demo",
+            "transaction_type": "expense",
+            "category_id": expense_cat["id"],
+            "amount": "1850.00",
+            "occurred_at": expense_at,
+            "hour_label": "expense",
+        },
+    ]
+
+    for sample in samples:
+        existing = by_description.get(sample["description"])
+        if existing is None:
+            created = client.post(
+                f"{ORG}/{org_id}/transactions",
+                headers={**headers, "Idempotency-Key": str(uuid4())},
+                json={
+                    "transaction_type": sample["transaction_type"],
+                    "account_id": account_id,
+                    "category_id": sample["category_id"],
+                    "amount": sample["amount"],
+                    "description": sample["description"],
+                    "occurred_at": sample["occurred_at"].isoformat(),
+                },
+            )
+            if created.status_code in (200, 201):
+                print(f"✓ Sample {sample['hour_label']} posted")
+            else:
+                print(
+                    f"· Skipping sample {sample['hour_label']} "
+                    f"({created.status_code}): {created.text[:120]}"
+                )
+            continue
+
+        occurred = existing.get("occurred_at") or ""
+        try:
+            occurred_dt = datetime.fromisoformat(str(occurred).replace("Z", "+00:00"))
+        except ValueError:
+            occurred_dt = None
+
+        if occurred_dt is not None and occurred_dt >= month_start:
+            print(f"· Demo {sample['hour_label']} already present")
+            continue
+
+        patched = client.patch(
+            f"{ORG}/{org_id}/transactions/{existing['id']}",
+            headers=headers,
+            json={"occurred_at": sample["occurred_at"].isoformat()},
+        )
+        if patched.status_code in (200, 201):
+            print(f"✓ Demo {sample['hour_label']} date moved into current month")
+        else:
+            print(
+                f"· Skipping {sample['hour_label']} date fix "
+                f"({patched.status_code}): {patched.text[:120]}"
+            )
 
 
 def _ensure_sample_recurring(

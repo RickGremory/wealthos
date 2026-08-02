@@ -3,6 +3,7 @@ import {
   emptyTransactionFilters,
   filtersFromQuery,
   filtersToQuery,
+  hasActiveFilters,
   resolvePeriodRange,
 } from '../../utils/transaction-filters'
 
@@ -58,5 +59,11 @@ describe('transaction-filters', () => {
 
   it('keeps this_month out of query', () => {
     expect(filtersToQuery(emptyTransactionFilters())).toEqual({})
+  })
+
+  it('detects active filters', () => {
+    expect(hasActiveFilters(emptyTransactionFilters())).toBe(false)
+    expect(hasActiveFilters({ ...emptyTransactionFilters(), type: 'income' })).toBe(true)
+    expect(hasActiveFilters({ ...emptyTransactionFilters(), period: 'all' })).toBe(true)
   })
 })

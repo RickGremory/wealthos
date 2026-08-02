@@ -12,13 +12,7 @@ const {
   applyCurrency,
   load,
 } = useDashboard()
-const composer = useTransactionComposerStore()
-const { canWrite } = useOrganizationPermissions()
 const currencyWhyOpen = ref(false)
-
-function openNewTransaction() {
-  composer.openCreate('expense')
-}
 
 const selectedCommitmentTotal = computed(() => {
   const groups = view.value?.financialCommitments?.totalsByCurrency ?? []
@@ -43,16 +37,6 @@ onMounted(() => {
           :model-value="selectedCurrency"
           @update:model-value="applyCurrency"
         />
-        <UiButton
-          v-if="canWrite"
-          class="hide-on-mobile"
-          variant="primary"
-          size="sm"
-          type="button"
-          @click="openNewTransaction"
-        >
-          + Nueva transacción
-        </UiButton>
       </template>
     </DashboardHeader>
 

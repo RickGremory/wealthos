@@ -45,6 +45,20 @@ export function emptyTransactionFilters(): TransactionFiltersState {
   }
 }
 
+/** True when filters differ from the default list view (type/status/search/account/period). */
+export function hasActiveFilters(filters: TransactionFiltersState): boolean {
+  const defaults = emptyTransactionFilters()
+  return (
+    filters.type !== defaults.type
+    || filters.status !== defaults.status
+    || filters.accountId != null
+    || filters.categoryId != null
+    || filters.search.trim() !== ''
+    || filters.period !== defaults.period
+    || filters.currency != null
+  )
+}
+
 function startOfDayIso(date: Date): string {
   const d = new Date(date)
   d.setHours(0, 0, 0, 0)

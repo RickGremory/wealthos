@@ -7,10 +7,12 @@ const props = defineProps<{
   loading?: boolean
   loadingMore?: boolean
   hasMore?: boolean
+  filtersActive?: boolean
 }>()
 
 const emit = defineEmits<{
   loadMore: []
+  clearFilters: []
 }>()
 
 const grouped = computed(() => {
@@ -37,9 +39,17 @@ const grouped = computed(() => {
 
     <UiEmptyState
       v-else-if="!items.length"
-      title="Sin movimientos"
-      description="Ajusta los filtros o registra tu primera transacción."
-    />
+      :title="filtersActive ? 'Ningún movimiento con estos filtros' : 'Sin movimientos'"
+      :description="filtersActive
+        ? 'Prueba limpiar filtros o ampliar el periodo.'
+        : 'Ajusta los filtros o registra tu primera transacción.'"
+    >
+      <template v-if="filtersActive" #actions>
+        <UiButton type="button" variant="secondary" @click="emit('clearFilters')">
+          Limpiar filtros
+        </UiButton>
+      </template>
+    </UiEmptyState>
 
     <div v-else class="stack">
       <section v-for="group in grouped" :key="group.date" class="tx-list__group">

@@ -29,3 +29,6 @@ htmlcov/
 
 # Logs
 *.log
+
+# Local-only personal data snapshots (never commit)
+local/

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CreatePlannedCashFlowInput, ScenarioAdjustmentInput } from '~/types/planning'
 import { planningHorizonLabel } from '~/composables/use-planning'
+import { toUserMessage } from '~/lib/api/errors'
 
 definePageMeta({
   layout: 'app',
@@ -20,7 +21,14 @@ const {
   clearSimulation,
 } = usePlanningProjection()
 
-const cashFlows = usePlannedCashFlows()
+const {
+  items: cashFlowItems,
+  loading: cashFlowsLoading,
+  error: cashFlowsError,
+  load: loadCashFlows,
+  create: createCashFlow,
+  cancel: cancelCashFlow,
+} = usePlannedCashFlows()
 const { canWrite } = useOrganizationPermissions()
 
 const showManualForm = ref(false)
@@ -29,13 +37,14 @@ const manualAmount = ref('')
 const manualDirection = ref<'inflow' | 'outflow'>('outflow')
 const manualDate = ref('')
 const manualError = ref<string | null>(null)
+const savingManual = ref(false)
 
 onMounted(async () => {
-  await Promise.all([refresh(), cashFlows.load(currency.value)])
+  await Promise.all([refresh(), loadCashFlows(currency.value)])
 })
 
 watch(currency, () => {
-  void cashFlows.load(currency.value)
+  void loadCashFlows(currency.value)
 })
 
 async function onSimulate(adjustments: ScenarioAdjustmentInput[]) {
@@ -51,22 +60,31 @@ async function createManual() {
   const payload: CreatePlannedCashFlowInput = {
     name: manualName.value.trim(),
     direction: manualDirection.value,
-    amount: manualAmount.value,
+    amount: manualAmount.value.replace(/,/g, '').trim(),
     currency: currency.value,
     expectedAt: new Date(`${manualDate.value}T12:00:00`).toISOString(),
     certainty: 'expected',
   }
+  savingManual.value = true
   try {
-    await cashFlows.create(payload)
+    await createCashFlow(payload)
     showManualForm.value = false
     manualName.value = ''
     manualAmount.value = ''
     manualDate.value = ''
-    await refresh()
+    await Promise.all([refresh(), loadCashFlows(currency.value)])
   }
   catch (err) {
-    manualError.value = err instanceof Error ? err.message : 'No se pudo crear el movimiento.'
+    manualError.value = toUserMessage(err)
   }
+  finally {
+    savingManual.value = false
+  }
+}
+
+async function onCancelCashFlow(id: string) {
+  await cancelCashFlow(id)
+  await refresh()
 }
 </script>
 
@@ -126,7 +144,7 @@ async function createManual() {
         />
       </div>
 
-      <section v-if="canWrite" class="manual stack">
+      <section v-if="canWrite" class="manual stack" data-testid="planned-cash-flows">
         <div class="manual__header">
           <h2>Movimientos planeados</h2>
           <UiButton
@@ -154,21 +172,34 @@ async function createManual() {
           </select>
           <input v-model="manualAmount" placeholder="Importe" inputmode="decimal" required>
           <input v-model="manualDate" type="date" required>
-          <UiButton type="submit" size="sm" variant="primary">
+          <UiButton type="submit" size="sm" variant="primary" :loading="savingManual">
             Guardar
           </UiButton>
         </form>
         <p v-if="manualError" class="planning-page__error">
           {{ manualError }}
         </p>
-        <ul v-if="cashFlows.items.length" class="manual__list">
-          <li v-for="item in cashFlows.items" :key="item.id">
-            <span>{{ item.name }} · {{ item.direction }}</span>
+        <p v-if="cashFlowsError" class="planning-page__error">
+          {{ cashFlowsError }}
+        </p>
+        <UiSkeleton v-if="cashFlowsLoading && !cashFlowItems.length" height="3rem" />
+        <UiEmptyState
+          v-else-if="!cashFlowItems.length"
+          title="Sin movimientos planeados"
+          description="Agrega un ingreso o gasto esperado para incluirlo en la proyección."
+        />
+        <ul v-else class="manual__list">
+          <li v-for="item in cashFlowItems" :key="item.id">
+            <span>
+              {{ item.name }}
+              · {{ item.direction === 'inflow' ? 'Ingreso' : 'Gasto' }}
+              · {{ item.amount }} {{ item.currency }}
+            </span>
             <UiButton
               type="button"
               size="sm"
               variant="ghost"
-              @click="cashFlows.cancel(item.id).then(() => refresh())"
+              @click="onCancelCashFlow(item.id)"
             >
               Cancelar
             </UiButton>

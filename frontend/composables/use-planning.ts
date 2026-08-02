@@ -198,7 +198,9 @@ export function usePlannedCashFlows() {
 
   async function create(input: Parameters<typeof repo.createCashFlow>[1]) {
     const orgId = organization.currentOrganizationId
-    if (!orgId) return
+    if (!orgId) {
+      throw new Error('Selecciona una organización para crear el movimiento.')
+    }
     const created = await repo.createCashFlow(orgId, input)
     items.value = [created, ...items.value]
     return created
@@ -206,7 +208,9 @@ export function usePlannedCashFlows() {
 
   async function cancel(cashFlowId: string) {
     const orgId = organization.currentOrganizationId
-    if (!orgId) return
+    if (!orgId) {
+      throw new Error('Selecciona una organización.')
+    }
     await repo.cancelCashFlow(orgId, cashFlowId)
     items.value = items.value.filter(item => item.id !== cashFlowId)
   }

@@ -9,7 +9,12 @@ const { format } = useMoney()
 const { formatDate } = useDate()
 
 const upcoming = computed(() =>
-  props.projection.timeline.filter(point => point.cashFlowId != null).slice(0, 8),
+  props.projection.timeline
+    .filter(point =>
+      point.cashFlowId != null
+      || point.category === 'planned_cash_flow',
+    )
+    .slice(0, 8),
 )
 </script>
 

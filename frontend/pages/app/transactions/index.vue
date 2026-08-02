@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { hasActiveFilters } from '~/utils/transaction-filters'
+
 definePageMeta({
   layout: 'app',
   middleware: ['auth', 'organization', 'onboarding'],
@@ -12,6 +14,7 @@ const route = useRoute()
 const {
   filters,
   resetFilters,
+  applyFilters,
 } = useTransactionFilters()
 
 const {
@@ -30,8 +33,31 @@ const {
 
 const organization = useOrganizationStore()
 
+const filtersActive = computed(() => hasActiveFilters(filters.value))
+const showEmpty = computed(() => !loading.value && !error.value && total.value === 0)
+
+const emptyTitle = computed(() => {
+  if (filtersActive.value) return 'Ningún movimiento con estos filtros'
+  if (filters.value.period === 'this_month') return 'Sin movimientos este mes'
+  return 'Sin movimientos'
+})
+
+const emptyDescription = computed(() => {
+  if (filtersActive.value) {
+    return 'Puede haber datos fuera de tipo, estado o periodo. Usa «Limpiar filtros» o cambia el periodo a «Todo».'
+  }
+  if (filters.value.period === 'this_month') {
+    return 'El periodo por defecto es el mes en curso. Amplía a «Todo» para ver el historial completo.'
+  }
+  return 'Registra tu primera transacción para empezar.'
+})
+
 async function refresh() {
   await load(filters.value, { reset: true })
+}
+
+function showAllPeriods() {
+  applyFilters({ period: 'all' })
 }
 
 onMounted(async () => {
@@ -169,20 +195,62 @@ const summaryCurrency = computed(() => {
       {{ total }} movimiento{{ total === 1 ? '' : 's' }}
     </p>
 
-    <TransactionTable
-      class="transactions-page__desktop"
-      :items="items"
-      :loading="loading"
-    />
+    <UiCard v-if="showEmpty" class="transactions-page__empty" data-testid="transactions-empty">
+      <UiEmptyState
+        :title="emptyTitle"
+        :description="emptyDescription"
+      >
+        <template #actions>
+          <div class="transactions-page__empty-actions">
+            <UiButton
+              v-if="filtersActive"
+              type="button"
+              variant="secondary"
+              data-testid="transactions-clear-filters"
+              @click="resetFilters"
+            >
+              Limpiar filtros
+            </UiButton>
+            <UiButton
+              v-else-if="filters.period !== 'all'"
+              type="button"
+              variant="secondary"
+              data-testid="transactions-show-all-periods"
+              @click="showAllPeriods"
+            >
+              Ver todo el historial
+            </UiButton>
+            <UiButton
+              v-if="canWrite && !filtersActive"
+              type="button"
+              variant="primary"
+              @click="composer.openCreate('expense')"
+            >
+              + Nueva transacción
+            </UiButton>
+          </div>
+        </template>
+      </UiEmptyState>
+    </UiCard>
 
-    <TransactionList
-      class="transactions-page__mobile"
-      :items="items"
-      :loading="loading"
-      :loading-more="loadingMore"
-      :has-more="hasMore"
-      @load-more="loadMore(filters)"
-    />
+    <template v-else>
+      <TransactionTable
+        class="transactions-page__desktop"
+        :items="items"
+        :loading="loading"
+      />
+
+      <TransactionList
+        class="transactions-page__mobile"
+        :items="items"
+        :loading="loading"
+        :loading-more="loadingMore"
+        :has-more="hasMore"
+        :filters-active="filtersActive"
+        @load-more="loadMore(filters)"
+        @clear-filters="resetFilters"
+      />
+    </template>
   </div>
 </template>
 
@@ -203,6 +271,17 @@ const summaryCurrency = computed(() => {
 .transactions-page__count {
   margin: 0;
   font-size: 0.85rem;
+}
+
+.transactions-page__empty {
+  padding: var(--space-4);
+}
+
+.transactions-page__empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
 }
 
 .transactions-page__mobile {
