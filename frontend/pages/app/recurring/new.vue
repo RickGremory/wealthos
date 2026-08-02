@@ -84,6 +84,16 @@ function applyCadence(kind: 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'y
   void runPreview()
 }
 
+const activeCadence = computed(() => {
+  const { frequency, interval } = form.value
+  if (frequency === 'weekly' && interval === 1) return 'weekly'
+  if (frequency === 'weekly' && interval === 2) return 'biweekly'
+  if (frequency === 'monthly' && interval === 1) return 'monthly'
+  if (frequency === 'monthly' && interval === 3) return 'quarterly'
+  if (frequency === 'yearly' && interval === 1) return 'yearly'
+  return null
+})
+
 async function onSubmit() {
   const id = await submitCreate()
   if (id) await navigateTo(`/app/recurring/${id}`)
@@ -159,11 +169,46 @@ const categoryOptions = computed(() =>
 
         <h2>Cadencia</h2>
         <div class="chips">
-          <button type="button" class="chip" @click="applyCadence('weekly')">Cada semana</button>
-          <button type="button" class="chip" @click="applyCadence('biweekly')">Cada 2 semanas</button>
-          <button type="button" class="chip" @click="applyCadence('monthly')">Cada mes</button>
-          <button type="button" class="chip" @click="applyCadence('quarterly')">Cada 3 meses</button>
-          <button type="button" class="chip" @click="applyCadence('yearly')">Cada año</button>
+          <button
+            type="button"
+            class="chip"
+            :class="{ 'chip--on': activeCadence === 'weekly' }"
+            @click="applyCadence('weekly')"
+          >
+            Cada semana
+          </button>
+          <button
+            type="button"
+            class="chip"
+            :class="{ 'chip--on': activeCadence === 'biweekly' }"
+            @click="applyCadence('biweekly')"
+          >
+            Cada 2 semanas
+          </button>
+          <button
+            type="button"
+            class="chip"
+            :class="{ 'chip--on': activeCadence === 'monthly' }"
+            @click="applyCadence('monthly')"
+          >
+            Cada mes
+          </button>
+          <button
+            type="button"
+            class="chip"
+            :class="{ 'chip--on': activeCadence === 'quarterly' }"
+            @click="applyCadence('quarterly')"
+          >
+            Cada 3 meses
+          </button>
+          <button
+            type="button"
+            class="chip"
+            :class="{ 'chip--on': activeCadence === 'yearly' }"
+            @click="applyCadence('yearly')"
+          >
+            Cada año
+          </button>
         </div>
 
         <label>
