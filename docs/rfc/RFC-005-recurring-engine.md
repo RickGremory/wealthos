@@ -2,11 +2,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Accepted (9.1–9.4) |
+| **Status** | Accepted (9.1–9.5) · Execution [SPEC-005](../../specs/backend/recurring/SPEC-005-recurring-engine.md) Ready |
 | **Created** | 2026-08-01 |
 | **Epic** | [EPIC-008](../epics/EPIC-008-recurring-engine.md) |
-| **Sprint** | [Sprint 9](../roadmap/sprint-9-recurring-engine.md) · [9.1](../roadmap/sprint-9.1-recurring-domain-model.md) · [9.2](../roadmap/sprint-9.2-recurrence-generation.md) · [9.3](../roadmap/sprint-9.3-persistence-lifecycle.md) · [9.4](../roadmap/sprint-9.4-recurring-ux.md) |
-| **Decision** | [expectations ≠ facts](../decisions/2026-08-01-recurring-expectations-not-facts.md) · [identity vs effective date](../decisions/2026-08-01-recurrence-identity-vs-effective-date.md) · [Rule + Version](../decisions/2026-08-01-recurring-rule-versioning.md) · [confirm via Transaction](../decisions/2026-08-01-recurring-confirm-occurrence.md) |
+| **Sprint** | [Sprint 9](../roadmap/sprint-9-recurring-engine.md) · [9.1](../roadmap/sprint-9.1-recurring-domain-model.md)–[9.5](../roadmap/sprint-9.5-implementation-spec.md) |
+| **Decision** | [expectations ≠ facts](../decisions/2026-08-01-recurring-expectations-not-facts.md) · [identity vs effective date](../decisions/2026-08-01-recurrence-identity-vs-effective-date.md) · [Rule + Version](../decisions/2026-08-01-recurring-rule-versioning.md) · [confirm via Transaction](../decisions/2026-08-01-recurring-confirm-occurrence.md) · [SPEC-005](../decisions/2026-08-01-recurring-spec-005.md) |
 
 ---
 
@@ -127,12 +127,8 @@ Calendar consumes the same projection. Ownership: Commitment/Goal/Tax-sourced ru
 
 ## Transaction link
 
-Preferred fields on Transaction (names may map to existing metadata):
-
-- `source_occurrence_key`  
-- optional `related_resource_type` / `related_resource_id`  
-
-Settlement default: one linked transaction settles the occurrence even if amount differs (show delta).
+Settlement source of truth: `recurring_occurrence_settlements` (`explicit` / `manual` / `suggested_confirmed`; `voided_at` on void).  
+Transactions may keep a generic source pointer for navigation. Confirm is atomic with settlement when source is explicit.
 
 ---
 
@@ -142,9 +138,8 @@ Settlement default: one linked transaction settles the occurrence even if amount
 modules/recurring/
   domain/
   application/   # commands, queries, dto, services
-  infrastructure/persistence | generator
+  infrastructure/persistence | planning | calendar
   api/
-  tests/
 ```
 
 Aligns with ADR-007 modular boundaries.
@@ -153,13 +148,13 @@ Aligns with ADR-007 modular boundaries.
 
 ## Success criteria
 
-See Sprint 9.1–9.4 acceptance checklists. Pure engine tests without DB; persistence/API/UI in SPEC (9.5).
+See Sprint 9.1–9.4 checklists and [SPEC-005](../../specs/backend/recurring/SPEC-005-recurring-engine.md) DoD.
 
 ## Open points → later slices
 
 | Topic | Slice |
 |-------|--------|
-| Exact expansion algorithms | **9.2 Accepted** |
-| Tables / commands / preview / Planning port | **9.3 Accepted** |
-| Confirm UI + series edit UX | **9.4 Accepted** |
-| Executable SPEC + hardening | 9.5 |
+| Design 9.1–9.4 | **Accepted** |
+| Executable SPEC + PR plan | **9.5 Accepted · SPEC-005 Ready** |
+| Implementation | SPEC-005 phases 1–9 |
+| AI foundation | Sprint 10 (placeholder) |

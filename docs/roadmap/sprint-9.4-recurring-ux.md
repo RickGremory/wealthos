@@ -259,4 +259,4 @@ Confirmation is always an **explicit Transaction create** (prefilled). Recurring
 
 ## Next
 
-**Sprint 9.5 — Implementation SPEC & hardening:** DTOs, migrations, definitive endpoints, permissions, performance, observability, PR order to ship Recurring end-to-end.
+**Sprint 9.5** — **Accepted** ([sprint-9.5-implementation-spec.md](./sprint-9.5-implementation-spec.md) · [SPEC-005](../../specs/backend/recurring/SPEC-005-recurring-engine.md) Ready). Coding starts at PR 1.

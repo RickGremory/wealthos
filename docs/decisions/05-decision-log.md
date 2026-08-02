@@ -20,6 +20,7 @@ Newest first.
 | [Recurrence identity vs effective date](./2026-08-01-recurrence-identity-vs-effective-date.md) | Domain algorithm · [Sprint 9.2](../roadmap/sprint-9.2-recurrence-generation.md) |
 | [RecurringRule + RuleVersion from day one](./2026-08-01-recurring-rule-versioning.md) | Persistence / lifecycle · [Sprint 9.3](../roadmap/sprint-9.3-persistence-lifecycle.md) |
 | [Confirm recurring occurrence via Transaction](./2026-08-01-recurring-confirm-occurrence.md) | Product / UX · [Sprint 9.4](../roadmap/sprint-9.4-recurring-ux.md) |
+| [Recurring implementation via SPEC-005](./2026-08-01-recurring-spec-005.md) | Process · [SPEC-005](../../specs/backend/recurring/SPEC-005-recurring-engine.md) Ready |
 
 ## 2026-07-25
 
