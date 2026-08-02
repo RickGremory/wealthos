@@ -57,7 +57,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--with-sample-data",
         action="store_true",
-        help="Ensure a checking account, sample income/expense, a goal, and commitments exist",
+        help="Ensure a checking account, sample income/expense, a goal, commitments, and recurring rules exist",
     )
     return parser.parse_args()
 
@@ -283,7 +283,113 @@ def _ensure_sample_data(client: TestClient, token: str, org_id: str) -> None:
 
     _ensure_sample_commitments(client, token, org_id)
     _ensure_sample_planning(client, token, org_id)
+    _ensure_sample_recurring(client, token, org_id, account_id, expense_cat, income_cat)
 
+
+def _ensure_sample_recurring(
+    client: TestClient,
+    token: str,
+    org_id: str,
+    account_id: str,
+    expense_cat: dict | None,
+    income_cat: dict | None,
+) -> None:
+    """Create a few manual recurring rules for Planning / Calendar / Recurrentes demos."""
+    headers = _headers(token)
+    listed = client.get(f"{ORG}/{org_id}/recurring", headers=headers)
+    if listed.status_code != 200:
+        print(f"· Skipping recurring seed ({listed.status_code}): {listed.text[:120]}")
+        return
+
+    existing = listed.json()
+    if isinstance(existing, dict):
+        existing = existing.get("items") or []
+    existing_names = {str(item.get("name") or "") for item in existing}
+
+    today = date.today()
+    starts = date(today.year, today.month, 1) - timedelta(days=45)
+    created = 0
+
+    rules = [
+        {
+            "name": "Internet — demo",
+            "direction": "outflow",
+            "amount": "799.00",
+            "currency": "MXN",
+            "starts_on": starts.isoformat(),
+            "certainty": "expected",
+            "account_id": account_id,
+            "category_id": expense_cat["id"] if expense_cat else None,
+            "pattern": {
+                "frequency": "monthly",
+                "interval": 1,
+                "day_of_month": 15,
+                "end_of_month": False,
+            },
+        },
+        {
+            "name": "Nómina — demo",
+            "direction": "inflow",
+            "amount": "28000.00",
+            "currency": "MXN",
+            "starts_on": starts.isoformat(),
+            "certainty": "confirmed",
+            "account_id": account_id,
+            "category_id": income_cat["id"] if income_cat else None,
+            "pattern": {
+                "frequency": "monthly",
+                "interval": 1,
+                "day_of_month": None,
+                "end_of_month": True,
+            },
+        },
+        {
+            "name": "Gym — demo",
+            "direction": "outflow",
+            "amount": "699.00",
+            "currency": "MXN",
+            "starts_on": starts.isoformat(),
+            "certainty": "expected",
+            "account_id": account_id,
+            "category_id": expense_cat["id"] if expense_cat else None,
+            "pattern": {
+                "frequency": "monthly",
+                "interval": 1,
+                "day_of_month": 5,
+                "end_of_month": False,
+            },
+        },
+    ]
+
+    for body in rules:
+        if body["name"] in existing_names:
+            continue
+        payload = {k: v for k, v in body.items() if v is not None}
+        # Keep explicit null day_of_month for end_of_month patterns
+        if body.get("pattern", {}).get("end_of_month"):
+            payload["pattern"] = {
+                "frequency": "monthly",
+                "interval": 1,
+                "end_of_month": True,
+            }
+        response = client.post(
+            f"{ORG}/{org_id}/recurring",
+            headers=headers,
+            json=payload,
+        )
+        if response.status_code in (200, 201):
+            created += 1
+            print(f"✓ Demo recurring rule created ({body['name']})")
+        else:
+            print(
+                f"· Skipping recurring '{body['name']}' "
+                f"({response.status_code}): {response.text[:120]}"
+            )
+
+    if created == 0 and existing_names:
+        print("· Demo recurring rules already present")
+    elif created == 0:
+        print("· No demo recurring rules created")
 
 def _ensure_sample_planning(client: TestClient, token: str, org_id: str) -> None:
     """Persist Planning settings + a sample planned inflow for Safe To Spend demos."""

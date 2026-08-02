@@ -218,7 +218,7 @@ function patternToApi(pattern: RecurrencePatternInput): Record<string, unknown> 
 }
 
 function base(orgId: string) {
-  return `/api/v1/organizations/${orgId}/recurring`
+  return `/organizations/${orgId}/recurring`
 }
 
 export function createRecurringRepository(api: ApiClient) {
