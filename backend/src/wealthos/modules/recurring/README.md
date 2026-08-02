@@ -15,7 +15,7 @@ Implements [SPEC-005](../../../../../specs/backend/recurring/SPEC-005-recurring-
 | PR5 Settlements ↔ Transactions | Done |
 | PR6 Planning/Calendar/Dashboard adapters | Done |
 | PR7–8 Frontend Recurrentes | Done |
-| PR9 Hardening + E2E | Pending |
+| PR9 Hardening + E2E | Done |
 
 ## HTTP surface
 
@@ -47,3 +47,11 @@ Confirm flow: `POST /transactions` with `source.type=recurring_occurrence` + `oc
 Adapters share `RecurringOccurrenceProjector` (manual rules only for Planning/Dashboard; Calendar includes transfers). Externally managed rules are excluded from Recurring Planning to avoid double-count.
 
 Occurrences are expanded on read — never persisted as future rows.
+
+## Hardening (PR9)
+
+- Roles: viewer read; member write/confirm/skip/pause; owner/admin end+archive (`RequireWriter` / `RequireManager`)
+- Timeline: `recurring.rule.*`, `recurring.exception.*`, `recurring.settlement.*`
+- Audit logs: `audit.recurring.*` (org/actor/rule ids only — no amounts/names/notes)
+- Metrics: `timed("recurring.preview|planning_adapter")` + structured counters
+- E2E: `frontend/tests/e2e/recurring-lifecycle.spec.ts`

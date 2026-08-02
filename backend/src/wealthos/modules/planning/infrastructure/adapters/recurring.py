@@ -51,6 +51,16 @@ class RecurringPlanningAdapter:
         self._projector = projector or RecurringOccurrenceProjector(repo, settlements)
 
     def collect(self, request: PlanningCollectionRequest) -> PlanningSourceContribution:
+        from wealthos.core.timing import timed
+
+        with timed(
+            "recurring.planning_adapter",
+            organization_id=str(request.organization_id),
+            currency=request.currency.strip().upper(),
+        ):
+            return self._collect(request)
+
+    def _collect(self, request: PlanningCollectionRequest) -> PlanningSourceContribution:
         now = datetime.now(UTC)
         currency = request.currency.strip().upper()
         try:

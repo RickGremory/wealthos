@@ -102,8 +102,27 @@ def _register(client: TestClient, org_name: str = "Recurring Org") -> dict:
     assert response.status_code == 201, response.text
     token = response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
+    me = client.get(f"{AUTH}/me", headers=headers).json()
     org_id = client.get(f"{ME}/organizations", headers=headers).json()["items"][0]["id"]
-    return {"headers": headers, "org_id": org_id}
+    return {"headers": headers, "org_id": org_id, "user_id": me["id"]}
+
+
+def _rule_body(**overrides):
+    body = {
+        "name": "Internet",
+        "direction": "outflow",
+        "amount": "800.00",
+        "currency": "MXN",
+        "starts_on": "2026-07-15",
+        "pattern": {
+            "frequency": "monthly",
+            "interval": 1,
+            "day_of_month": 15,
+            "end_of_month": False,
+        },
+    }
+    body.update(overrides)
+    return body
 
 
 def test_create_list_preview_flow(client: TestClient) -> None:
@@ -134,19 +153,7 @@ def test_create_list_preview_flow(client: TestClient) -> None:
     created = client.post(
         f"{ORG}/{user['org_id']}/recurring",
         headers=user["headers"],
-        json={
-            "name": "Internet",
-            "direction": "outflow",
-            "amount": "800.00",
-            "currency": "MXN",
-            "starts_on": "2026-07-15",
-            "pattern": {
-                "frequency": "monthly",
-                "interval": 1,
-                "day_of_month": 15,
-                "end_of_month": False,
-            },
-        },
+        json=_rule_body(),
     )
     assert created.status_code == 201, created.text
     rule_id = created.json()["id"]
@@ -172,3 +179,72 @@ def test_create_list_preview_flow(client: TestClient) -> None:
     )
     assert detail.status_code == 200, detail.text
     assert detail.json()["name"] == "Internet"
+
+    timeline = client.get(
+        f"{ORG}/{user['org_id']}/timeline",
+        headers=user["headers"],
+        params={"source_type": "recurring"},
+    )
+    assert timeline.status_code == 200, timeline.text
+    events = timeline.json().get("items") or timeline.json()
+    if isinstance(events, dict):
+        events = events.get("items", [])
+    assert any(e.get("event_type") == "recurring.rule.created" for e in events)
+
+
+def test_viewer_can_get_member_cannot_archive(client: TestClient) -> None:
+    owner = _register(client, org_name="Owner Recurring")
+    viewer = _register(client, org_name="Viewer Personal")
+    add = client.post(
+        f"{ORG}/{owner['org_id']}/members",
+        headers=owner["headers"],
+        json={"user_id": viewer["user_id"], "role": "viewer"},
+    )
+    assert add.status_code == 201, add.text
+
+    created = client.post(
+        f"{ORG}/{owner['org_id']}/recurring",
+        headers=owner["headers"],
+        json=_rule_body(),
+    )
+    assert created.status_code == 201, created.text
+    rule = created.json()
+    rule_id = rule["id"]
+    version = rule["version"]
+
+    listed = client.get(
+        f"{ORG}/{owner['org_id']}/recurring",
+        headers=viewer["headers"],
+    )
+    assert listed.status_code == 200, listed.text
+
+    denied_create = client.post(
+        f"{ORG}/{owner['org_id']}/recurring",
+        headers=viewer["headers"],
+        json=_rule_body(name="Viewer rule"),
+    )
+    assert denied_create.status_code == 403, denied_create.text
+
+    member = _register(client, org_name="Member Personal")
+    add_member = client.post(
+        f"{ORG}/{owner['org_id']}/members",
+        headers=owner["headers"],
+        json={"user_id": member["user_id"], "role": "member"},
+    )
+    assert add_member.status_code == 201, add_member.text
+
+    denied_archive = client.post(
+        f"{ORG}/{owner['org_id']}/recurring/{rule_id}/archive",
+        headers=member["headers"],
+        json={"expected_version": version},
+    )
+    assert denied_archive.status_code == 403, denied_archive.text
+
+    archived = client.post(
+        f"{ORG}/{owner['org_id']}/recurring/{rule_id}/archive",
+        headers=owner["headers"],
+        json={"expected_version": version},
+    )
+    assert archived.status_code == 200, archived.text
+    assert archived.json()["status"] == "archived"
+

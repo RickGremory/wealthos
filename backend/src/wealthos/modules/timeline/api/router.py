@@ -18,7 +18,15 @@ from wealthos.modules.timeline.schemas.response import (
 
 router = APIRouter()
 
-SourceTypeFilter = Literal["transaction", "goal", "commitment", "planning", "tax", "system"]
+SourceTypeFilter = Literal[
+    "transaction",
+    "goal",
+    "commitment",
+    "planning",
+    "tax",
+    "system",
+    "recurring",
+]
 ImportanceFilter = Literal["low", "normal", "high", "critical"]
 
 

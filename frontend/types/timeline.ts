@@ -5,6 +5,7 @@ export type TimelineSourceType =
   | 'planning'
   | 'tax'
   | 'system'
+  | 'recurring'
 
 export type TimelineImportance = 'low' | 'normal' | 'high' | 'critical'
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import Annotated
 from uuid import UUID
 
@@ -11,6 +11,23 @@ from fastapi import APIRouter, Depends, Query, status
 from wealthos.core.security.current_user import CurrentUser
 from wealthos.core.security.organization_access import OrganizationMember
 from wealthos.core.security.organization_permissions import require_organization_role
+from wealthos.core.timing import timed
+from wealthos.modules.organizations.domain.entities.organization_membership import (
+    OrganizationMembership,
+)
+from wealthos.modules.recurring.application.observability import (
+    audit_recurring,
+    metric_recurring,
+)
+from wealthos.modules.timeline.api.dependencies import get_event_publisher
+from wealthos.modules.timeline.application.emit import (
+    emit_recurring_exception_created,
+    emit_recurring_lifecycle,
+    emit_recurring_rule_created,
+    emit_recurring_settlement_linked,
+    emit_recurring_settlement_unlinked,
+)
+from wealthos.modules.timeline.application.publisher import EventPublisher
 from wealthos.modules.recurring.api.dependencies import (
     get_archive_handler,
     get_calendar_adapter,
@@ -130,6 +147,15 @@ from wealthos.shared.persistence import SqlAlchemyUnitOfWork
 
 router = APIRouter(prefix="/{organization_id}/recurring", tags=["Recurring"])
 
+RequireWriter = Annotated[
+    OrganizationMembership,
+    Depends(require_organization_role("owner", "admin", "member")),
+]
+RequireManager = Annotated[
+    OrganizationMembership,
+    Depends(require_organization_role("owner", "admin")),
+]
+
 
 def _occ(dto: RecurringOccurrenceDTO) -> RecurringOccurrenceResponse:
     return RecurringOccurrenceResponse.model_validate(dto, from_attributes=True)
@@ -240,15 +266,15 @@ def list_rules(
     "",
     response_model=RecurringRuleDetailResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
 )
 def create_rule(
     organization_id: UUID,
     payload: CreateRecurringRuleRequest,
-    _: OrganizationMember,
+    _membership: RequireWriter,
     current_user: CurrentUser,
     handler: Annotated[CreateRecurringRuleHandler, Depends(get_create_rule_handler)],
     get_query: Annotated[GetRecurringRuleQuery, Depends(get_get_rule_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringRuleDetailResponse:
@@ -274,7 +300,29 @@ def create_rule(
                 notes=payload.notes,
             )
         )
+        emit_recurring_rule_created(
+            publisher,
+            organization_id=organization_id,
+            rule_id=aggregate.id,
+            name=payload.name,
+            occurred_at=datetime.now(UTC),
+            currency=payload.currency,
+            direction=payload.direction,
+        )
         uow.commit()
+        audit_recurring(
+            "rule.created",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=aggregate.id,
+            direction=payload.direction,
+            currency=payload.currency,
+        )
+        metric_recurring(
+            "recurring.rule_created",
+            organization_id=organization_id,
+            rule_id=aggregate.id,
+        )
         detail = get_query.execute(
             GetRecurringRuleInput(
                 organization_id=organization_id,
@@ -295,24 +343,30 @@ def preview_unsaved(
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringPreviewResponse:
     with http_map_recurring_errors():
-        result = query.execute(
-            PreviewUnsavedRecurringRuleInput(
-                organization_id=organization_id,
-                period_start=payload.from_date,
-                period_end=payload.to_date,
-                evaluated_on=date.today(),
-                timezone=payload.timezone or timezone,
-                name=payload.name,
-                direction=RecurringDirection.parse(payload.direction),
-                amount=payload.amount,
-                currency=payload.currency,
-                pattern=pattern_from_schema(payload.pattern),
-                starts_on=payload.starts_on,
-                ends_on=payload.ends_on,
-                amount_strategy=RecurringAmountStrategy.parse(payload.amount_strategy),
-                certainty=RecurringCertainty.parse(payload.certainty),
-                grace_period_days=payload.grace_period_days,
+        with timed("recurring.preview", organization_id=str(organization_id)):
+            result = query.execute(
+                PreviewUnsavedRecurringRuleInput(
+                    organization_id=organization_id,
+                    period_start=payload.from_date,
+                    period_end=payload.to_date,
+                    evaluated_on=date.today(),
+                    timezone=payload.timezone or timezone,
+                    name=payload.name,
+                    direction=RecurringDirection.parse(payload.direction),
+                    amount=payload.amount,
+                    currency=payload.currency,
+                    pattern=pattern_from_schema(payload.pattern),
+                    starts_on=payload.starts_on,
+                    ends_on=payload.ends_on,
+                    amount_strategy=RecurringAmountStrategy.parse(payload.amount_strategy),
+                    certainty=RecurringCertainty.parse(payload.certainty),
+                    grace_period_days=payload.grace_period_days,
+                )
             )
+        metric_recurring(
+            "recurring.occurrences_generated",
+            organization_id=organization_id,
+            count=len(result.occurrences),
         )
     return RecurringPreviewResponse(
         dates=list(result.dates),
@@ -405,15 +459,26 @@ def preview_rule(
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringPreviewResponse:
     with http_map_recurring_errors():
-        result = query.execute(
-            PreviewRecurringRuleInput(
-                organization_id=organization_id,
-                rule_id=rule_id,
-                period_start=payload.from_date,
-                period_end=payload.to_date,
-                evaluated_on=date.today(),
-                timezone=payload.timezone or timezone,
+        with timed(
+            "recurring.preview",
+            organization_id=str(organization_id),
+            rule_id=str(rule_id),
+        ):
+            result = query.execute(
+                PreviewRecurringRuleInput(
+                    organization_id=organization_id,
+                    rule_id=rule_id,
+                    period_start=payload.from_date,
+                    period_end=payload.to_date,
+                    evaluated_on=date.today(),
+                    timezone=payload.timezone or timezone,
+                )
             )
+        metric_recurring(
+            "recurring.occurrences_generated",
+            organization_id=organization_id,
+            rule_id=rule_id,
+            count=len(result.occurrences),
         )
     return RecurringPreviewResponse(
         dates=list(result.dates),
@@ -424,13 +489,12 @@ def preview_rule(
 @router.patch(
     "/{rule_id}/metadata",
     response_model=RecurringRuleDetailResponse,
-    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
 )
 def update_metadata(
     organization_id: UUID,
     rule_id: UUID,
     payload: UpdateMetadataRequest,
-    _: OrganizationMember,
+    _membership: RequireWriter,
     current_user: CurrentUser,
     handler: Annotated[
         UpdateRecurringRuleMetadataHandler,
@@ -451,6 +515,12 @@ def update_metadata(
             )
         )
         uow.commit()
+        audit_recurring(
+            "rule.metadata_updated",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+        )
         detail = get_query.execute(
             GetRecurringRuleInput(
                 organization_id=organization_id,
@@ -465,24 +535,24 @@ def update_metadata(
 @router.post(
     "/{rule_id}/versions",
     response_model=RecurringRuleDetailResponse,
-    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
 )
 def create_version(
     organization_id: UUID,
     rule_id: UUID,
     payload: CreateVersionRequest,
-    _: OrganizationMember,
+    _membership: RequireWriter,
     current_user: CurrentUser,
     handler: Annotated[
         CreateRecurringRuleVersionHandler,
         Depends(get_create_version_handler),
     ],
     get_query: Annotated[GetRecurringRuleQuery, Depends(get_get_rule_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringRuleDetailResponse:
     with http_map_recurring_errors():
-        handler.execute(
+        aggregate = handler.execute(
             CreateRecurringRuleVersionCommand(
                 organization_id=organization_id,
                 actor_id=current_user.id,
@@ -509,7 +579,21 @@ def create_version(
                 ),
             )
         )
+        emit_recurring_lifecycle(
+            publisher,
+            action="versioned",
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=(aggregate.current_version(date.today()) or aggregate.versions_tuple()[-1]).name,
+        )
         uow.commit()
+        audit_recurring(
+            "rule.versioned",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+            effective_from=str(payload.effective_from),
+        )
         detail = get_query.execute(
             GetRecurringRuleInput(
                 organization_id=organization_id,
@@ -522,23 +606,23 @@ def create_version(
 
 
 @router.post(
-    "/{rule_id}/pauses",
+    "/{rule_id}/pause",
     response_model=RecurringRuleDetailResponse,
-    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
 )
 def pause_rule(
     organization_id: UUID,
     rule_id: UUID,
     payload: PauseRequest,
-    _: OrganizationMember,
+    _membership: RequireWriter,
     current_user: CurrentUser,
     handler: Annotated[PauseRecurringRuleHandler, Depends(get_pause_handler)],
     get_query: Annotated[GetRecurringRuleQuery, Depends(get_get_rule_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringRuleDetailResponse:
     with http_map_recurring_errors():
-        handler.execute(
+        aggregate = handler.execute(
             PauseRecurringRuleCommand(
                 organization_id=organization_id,
                 actor_id=current_user.id,
@@ -549,7 +633,25 @@ def pause_rule(
                 reason=payload.reason,
             )
         )
+        emit_recurring_lifecycle(
+            publisher,
+            action="paused",
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=(aggregate.current_version(date.today()) or aggregate.versions_tuple()[-1]).name,
+        )
         uow.commit()
+        audit_recurring(
+            "rule.paused",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+        )
+        metric_recurring(
+            "recurring.rule_paused",
+            organization_id=organization_id,
+            rule_id=rule_id,
+        )
         detail = get_query.execute(
             GetRecurringRuleInput(
                 organization_id=organization_id,
@@ -564,21 +666,21 @@ def pause_rule(
 @router.post(
     "/{rule_id}/resume",
     response_model=RecurringRuleDetailResponse,
-    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
 )
 def resume_rule(
     organization_id: UUID,
     rule_id: UUID,
     payload: ResumeRequest,
-    _: OrganizationMember,
+    _membership: RequireWriter,
     current_user: CurrentUser,
     handler: Annotated[ResumeRecurringRuleHandler, Depends(get_resume_handler)],
     get_query: Annotated[GetRecurringRuleQuery, Depends(get_get_rule_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringRuleDetailResponse:
     with http_map_recurring_errors():
-        handler.execute(
+        aggregate = handler.execute(
             ResumeRecurringRuleCommand(
                 organization_id=organization_id,
                 actor_id=current_user.id,
@@ -587,7 +689,25 @@ def resume_rule(
                 expected_version=payload.expected_version,
             )
         )
+        emit_recurring_lifecycle(
+            publisher,
+            action="resumed",
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=(aggregate.current_version(date.today()) or aggregate.versions_tuple()[-1]).name,
+        )
         uow.commit()
+        audit_recurring(
+            "rule.resumed",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+        )
+        metric_recurring(
+            "recurring.rule_resumed",
+            organization_id=organization_id,
+            rule_id=rule_id,
+        )
         detail = get_query.execute(
             GetRecurringRuleInput(
                 organization_id=organization_id,
@@ -602,21 +722,21 @@ def resume_rule(
 @router.post(
     "/{rule_id}/end",
     response_model=RecurringRuleDetailResponse,
-    dependencies=[Depends(require_organization_role("owner", "admin"))],
 )
 def end_rule(
     organization_id: UUID,
     rule_id: UUID,
     payload: EndRequest,
-    _: OrganizationMember,
+    _membership: RequireManager,
     current_user: CurrentUser,
     handler: Annotated[EndRecurringRuleHandler, Depends(get_end_handler)],
     get_query: Annotated[GetRecurringRuleQuery, Depends(get_get_rule_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringRuleDetailResponse:
     with http_map_recurring_errors():
-        handler.execute(
+        aggregate = handler.execute(
             EndRecurringRuleCommand(
                 organization_id=organization_id,
                 actor_id=current_user.id,
@@ -626,7 +746,25 @@ def end_rule(
                 today=date.today(),
             )
         )
+        emit_recurring_lifecycle(
+            publisher,
+            action="ended",
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=(aggregate.current_version(date.today()) or aggregate.versions_tuple()[-1]).name,
+        )
         uow.commit()
+        audit_recurring(
+            "rule.ended",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+        )
+        metric_recurring(
+            "recurring.rule_ended",
+            organization_id=organization_id,
+            rule_id=rule_id,
+        )
         detail = get_query.execute(
             GetRecurringRuleInput(
                 organization_id=organization_id,
@@ -641,21 +779,21 @@ def end_rule(
 @router.post(
     "/{rule_id}/archive",
     response_model=RecurringRuleDetailResponse,
-    dependencies=[Depends(require_organization_role("owner", "admin"))],
 )
 def archive_rule(
     organization_id: UUID,
     rule_id: UUID,
     payload: ArchiveRequest,
-    _: OrganizationMember,
+    _membership: RequireManager,
     current_user: CurrentUser,
     handler: Annotated[ArchiveRecurringRuleHandler, Depends(get_archive_handler)],
     get_query: Annotated[GetRecurringRuleQuery, Depends(get_get_rule_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringRuleDetailResponse:
     with http_map_recurring_errors():
-        handler.execute(
+        aggregate = handler.execute(
             ArchiveRecurringRuleCommand(
                 organization_id=organization_id,
                 actor_id=current_user.id,
@@ -663,7 +801,25 @@ def archive_rule(
                 expected_version=payload.expected_version,
             )
         )
+        emit_recurring_lifecycle(
+            publisher,
+            action="archived",
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=(aggregate.current_version(date.today()) or aggregate.versions_tuple()[-1]).name,
+        )
         uow.commit()
+        audit_recurring(
+            "rule.archived",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+        )
+        metric_recurring(
+            "recurring.rule_archived",
+            organization_id=organization_id,
+            rule_id=rule_id,
+        )
         detail = get_query.execute(
             GetRecurringRuleInput(
                 organization_id=organization_id,
@@ -678,24 +834,24 @@ def archive_rule(
 @router.post(
     "/{rule_id}/exceptions",
     response_model=RecurringRuleDetailResponse,
-    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
 )
 def create_exception(
     organization_id: UUID,
     rule_id: UUID,
     payload: CreateExceptionRequest,
-    _: OrganizationMember,
+    _membership: RequireWriter,
     current_user: CurrentUser,
     handler: Annotated[
         CreateRecurringOccurrenceExceptionHandler,
         Depends(get_create_exception_handler),
     ],
     get_query: Annotated[GetRecurringRuleQuery, Depends(get_get_rule_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringRuleDetailResponse:
     with http_map_recurring_errors():
-        handler.execute(
+        aggregate = handler.execute(
             CreateRecurringOccurrenceExceptionCommand(
                 organization_id=organization_id,
                 actor_id=current_user.id,
@@ -715,7 +871,26 @@ def create_exception(
                 reason=payload.reason,
             )
         )
+        emit_recurring_exception_created(
+            publisher,
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=(aggregate.current_version(date.today()) or aggregate.versions_tuple()[-1]).name,
+            exception_type=payload.exception_type,
+        )
         uow.commit()
+        audit_recurring(
+            "exception.created",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+            exception_type=payload.exception_type,
+        )
+        metric_recurring(
+            f"recurring.exception_{payload.exception_type}",
+            organization_id=organization_id,
+            rule_id=rule_id,
+        )
         detail = get_query.execute(
             GetRecurringRuleInput(
                 organization_id=organization_id,
@@ -730,14 +905,13 @@ def create_exception(
 @router.post(
     "/{rule_id}/exceptions/{exception_id}/deactivate",
     response_model=RecurringRuleDetailResponse,
-    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
 )
 def deactivate_exception(
     organization_id: UUID,
     rule_id: UUID,
     exception_id: UUID,
     payload: ArchiveRequest,
-    _: OrganizationMember,
+    _membership: RequireWriter,
     current_user: CurrentUser,
     handler: Annotated[
         DeactivateRecurringOccurrenceExceptionHandler,
@@ -758,6 +932,13 @@ def deactivate_exception(
             )
         )
         uow.commit()
+        audit_recurring(
+            "exception.deactivated",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+            exception_id=exception_id,
+        )
         detail = get_query.execute(
             GetRecurringRuleInput(
                 organization_id=organization_id,
@@ -773,18 +954,19 @@ def deactivate_exception(
     "/{rule_id}/settlements",
     response_model=RecurringSettlementResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
 )
 def link_settlement(
     organization_id: UUID,
     rule_id: UUID,
     payload: CreateSettlementRequest,
-    _: OrganizationMember,
+    _membership: RequireWriter,
     current_user: CurrentUser,
     handler: Annotated[
         LinkRecurringOccurrenceTransactionHandler,
         Depends(get_link_settlement_handler),
     ],
+    get_query: Annotated[GetRecurringRuleQuery, Depends(get_get_rule_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
     timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringSettlementResponse:
@@ -802,7 +984,34 @@ def link_settlement(
                 settled_amount=payload.settled_amount,
             )
         )
+        detail = get_query.execute(
+            GetRecurringRuleInput(
+                organization_id=organization_id,
+                rule_id=rule_id,
+                evaluated_on=date.today(),
+                timezone=timezone,
+            )
+        )
+        emit_recurring_settlement_linked(
+            publisher,
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=detail.name,
+            transaction_id=settlement.transaction_id,
+        )
         uow.commit()
+        audit_recurring(
+            "settlement.linked",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+            transaction_id=settlement.transaction_id,
+        )
+        metric_recurring(
+            "recurring.settlement_linked",
+            organization_id=organization_id,
+            rule_id=rule_id,
+        )
     return RecurringSettlementResponse(
         id=settlement.id,
         organization_id=settlement.organization_id,
@@ -820,19 +1029,21 @@ def link_settlement(
 @router.post(
     "/{rule_id}/settlements/{settlement_id}/unlink",
     response_model=RecurringSettlementResponse,
-    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
 )
 def unlink_settlement(
     organization_id: UUID,
     rule_id: UUID,
     settlement_id: UUID,
-    _: OrganizationMember,
+    _membership: RequireWriter,
     current_user: CurrentUser,
     handler: Annotated[
         UnlinkRecurringOccurrenceTransactionHandler,
         Depends(get_unlink_settlement_handler),
     ],
+    get_query: Annotated[GetRecurringRuleQuery, Depends(get_get_rule_query)],
+    publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+    timezone: Annotated[str, Depends(get_org_timezone)],
 ) -> RecurringSettlementResponse:
     with http_map_recurring_errors():
         settlement = handler.execute(
@@ -843,7 +1054,28 @@ def unlink_settlement(
                 settlement_id=settlement_id,
             )
         )
+        detail = get_query.execute(
+            GetRecurringRuleInput(
+                organization_id=organization_id,
+                rule_id=rule_id,
+                evaluated_on=date.today(),
+                timezone=timezone,
+            )
+        )
+        emit_recurring_settlement_unlinked(
+            publisher,
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=detail.name,
+        )
         uow.commit()
+        audit_recurring(
+            "settlement.unlinked",
+            organization_id=organization_id,
+            actor_id=current_user.id,
+            rule_id=rule_id,
+            settlement_id=settlement_id,
+        )
     return RecurringSettlementResponse(
         id=settlement.id,
         organization_id=settlement.organization_id,

@@ -8,7 +8,15 @@ from decimal import Decimal
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
-SourceType = Literal["transaction", "goal", "commitment", "planning", "tax", "system"]
+SourceType = Literal[
+    "transaction",
+    "goal",
+    "commitment",
+    "planning",
+    "tax",
+    "system",
+    "recurring",
+]
 Importance = Literal["low", "normal", "high", "critical"]
 
 

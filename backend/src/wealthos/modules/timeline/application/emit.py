@@ -24,6 +24,17 @@ from wealthos.modules.timeline.application.builders.goal_events import (
     build_goal_milestone_event,
     crossed_milestones,
 )
+from wealthos.modules.timeline.application.builders.recurring_events import (
+    build_recurring_exception_created_event,
+    build_recurring_rule_archived_event,
+    build_recurring_rule_created_event,
+    build_recurring_rule_ended_event,
+    build_recurring_rule_paused_event,
+    build_recurring_rule_resumed_event,
+    build_recurring_rule_versioned_event,
+    build_recurring_settlement_linked_event,
+    build_recurring_settlement_unlinked_event,
+)
 from wealthos.modules.timeline.application.builders.transaction_events import (
     build_transaction_posted_event,
     resolve_transfer_destination_id,
@@ -194,3 +205,111 @@ def emit_goal_progress(
                 )
             )
     publisher.publish_many(events)
+
+
+def emit_recurring_rule_created(
+    publisher: EventPublisher,
+    *,
+    organization_id: UUID,
+    rule_id: UUID,
+    name: str,
+    occurred_at: datetime,
+    currency: str | None = None,
+    direction: str | None = None,
+) -> None:
+    publisher.publish(
+        build_recurring_rule_created_event(
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=name,
+            occurred_at=occurred_at,
+            currency=currency,
+            direction=direction,
+        )
+    )
+
+
+def emit_recurring_lifecycle(
+    publisher: EventPublisher,
+    *,
+    action: str,
+    organization_id: UUID,
+    rule_id: UUID,
+    name: str,
+    occurred_at: datetime | None = None,
+) -> None:
+    when = occurred_at or datetime.now(UTC)
+    builders = {
+        "paused": build_recurring_rule_paused_event,
+        "resumed": build_recurring_rule_resumed_event,
+        "ended": build_recurring_rule_ended_event,
+        "archived": build_recurring_rule_archived_event,
+        "versioned": build_recurring_rule_versioned_event,
+    }
+    builder = builders[action]
+    publisher.publish(
+        builder(
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=name,
+            occurred_at=when,
+        )
+    )
+
+
+def emit_recurring_exception_created(
+    publisher: EventPublisher,
+    *,
+    organization_id: UUID,
+    rule_id: UUID,
+    name: str,
+    exception_type: str,
+    occurred_at: datetime | None = None,
+) -> None:
+    publisher.publish(
+        build_recurring_exception_created_event(
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=name,
+            occurred_at=occurred_at or datetime.now(UTC),
+            exception_type=exception_type,
+        )
+    )
+
+
+def emit_recurring_settlement_linked(
+    publisher: EventPublisher,
+    *,
+    organization_id: UUID,
+    rule_id: UUID,
+    name: str,
+    transaction_id: UUID,
+    occurred_at: datetime | None = None,
+) -> None:
+    publisher.publish(
+        build_recurring_settlement_linked_event(
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=name,
+            occurred_at=occurred_at or datetime.now(UTC),
+            transaction_id=transaction_id,
+        )
+    )
+
+
+def emit_recurring_settlement_unlinked(
+    publisher: EventPublisher,
+    *,
+    organization_id: UUID,
+    rule_id: UUID,
+    name: str,
+    occurred_at: datetime | None = None,
+) -> None:
+    publisher.publish(
+        build_recurring_settlement_unlinked_event(
+            organization_id=organization_id,
+            rule_id=rule_id,
+            name=name,
+            occurred_at=occurred_at or datetime.now(UTC),
+        )
+    )

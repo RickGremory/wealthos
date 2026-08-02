@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Ready |
+| **Status** | Completed |
 | **Author** | Ricardo Balam |
 | **Created** | 2026-08-01 |
 | **Parent Epic** | [EPIC-008](../../../docs/epics/EPIC-008-recurring-engine.md) |
@@ -223,12 +223,12 @@ Preview rule &lt; 100 ms · monthly list ≤100 rules &lt; 500 ms · pure engine
 
 ### Sprint DoD
 
-- [ ] Rule + versions non-overlapping; no mass-persisted occurrences  
-- [ ] Correct frequencies; stable keys; pauses/exceptions; future versions  
-- [ ] Confirm → Transaction + settlement; void restores expectation  
-- [ ] Planning/Calendar share generator; no external-rule double count  
-- [ ] No auto transactions; no FX mixing  
-- [ ] Desktop + mobile; critical E2E green; audit + observability on  
+- [x] Rule + versions non-overlapping; no mass-persisted occurrences  
+- [x] Correct frequencies; stable keys; pauses/exceptions; future versions  
+- [x] Confirm → Transaction + settlement; void restores expectation  
+- [x] Planning/Calendar share generator; no external-rule double count  
+- [x] No auto transactions; no FX mixing  
+- [x] Desktop + mobile; critical E2E green; audit + observability on  
 
 ---
 

@@ -91,5 +91,8 @@ export function timelineResourcePath(event: TimelineEventView): string | null {
   if (event.resourceType === 'commitment') {
     return `/app/commitments/${event.resourceId}`
   }
+  if (event.resourceType === 'recurring_rule') {
+    return `/app/recurring/${event.resourceId}`
+  }
   return null
 }

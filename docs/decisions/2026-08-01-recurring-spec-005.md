@@ -26,3 +26,7 @@ Same freeze pattern as SPEC-002–004; keeps coding from reopening product debat
 - Coding may start on PR 1 without reopening 9.1–9.4  
 - Next product design after Recurring ships: **Sprint 10 — AI Financial Assistant Foundation**  
 - SPEC status moves Ready → Completed when phase 9 DoD is met  
+
+## Outcome
+
+SPEC-005 marked **Completed** after PR9 (perms aliases, timeline/audit/metrics, role tests, Playwright smoke).

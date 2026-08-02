@@ -23,6 +23,7 @@ const sourceOptions: Array<{ value: '' | TimelineSourceType, label: string }> = 
   { value: '', label: 'Todo' },
   { value: 'transaction', label: 'Movimientos' },
   { value: 'commitment', label: 'Obligaciones' },
+  { value: 'recurring', label: 'Recurrentes' },
   { value: 'goal', label: 'Metas' },
 ]
 
@@ -39,6 +40,7 @@ function sourceLabel(event: TimelineEventView): string {
     transaction: 'Movimiento',
     goal: 'Meta',
     commitment: 'Obligación',
+    recurring: 'Recurrente',
     planning: 'Planeación',
     tax: 'Impuestos',
     system: 'Sistema',
