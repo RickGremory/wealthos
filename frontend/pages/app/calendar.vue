@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { createCommitmentsRepository } from '~/repositories/commitments.repository'
+import { createRecurringRepository } from '~/repositories/recurring.repository'
 import { todayLocalIsoDate } from '~/composables/use-date'
 
 definePageMeta({
@@ -11,24 +12,28 @@ const organization = useOrganizationStore()
 const { $api } = useNuxtApp()
 const cache = useFinanceCache()
 
-const loading = ref(true)
-const error = ref<string | null>(null)
-const events = ref<Array<{
+type CalendarRow = {
   id: string
-  commitmentId: string
+  source: 'commitment' | 'recurring'
+  targetId: string
   name: string
   eventType: string
   eventDate: string
   severity: string
   currency: string
   amount: string | null
-}>>([])
+}
+
+const loading = ref(true)
+const error = ref<string | null>(null)
+const events = ref<CalendarRow[]>([])
 
 const eventTypeLabel: Record<string, string> = {
   payment_due: 'Pago',
   statement_date: 'Corte',
   maturity_date: 'Vencimiento',
   review_date: 'Revisión',
+  recurring_occurrence: 'Recurrente',
 }
 
 async function load() {
@@ -45,9 +50,34 @@ async function load() {
     const toAnchor = new Date()
     toAnchor.setDate(toAnchor.getDate() + 60)
     const to = todayLocalIsoDate(toAnchor)
-    const repo = createCommitmentsRepository($api)
-    const result = await repo.calendarEvents(orgId, { dateFrom: from, dateTo: to })
-    events.value = result
+    const [commitmentEvents, recurringEvents] = await Promise.all([
+      createCommitmentsRepository($api).calendarEvents(orgId, { dateFrom: from, dateTo: to }),
+      createRecurringRepository($api).calendarEvents(orgId, { dateFrom: from, dateTo: to }),
+    ])
+    events.value = [
+      ...commitmentEvents.map(event => ({
+        id: event.id,
+        source: 'commitment' as const,
+        targetId: event.commitmentId,
+        name: event.name,
+        eventType: event.eventType,
+        eventDate: event.eventDate,
+        severity: event.severity,
+        currency: event.currency,
+        amount: event.amount,
+      })),
+      ...recurringEvents.map(event => ({
+        id: event.id,
+        source: 'recurring' as const,
+        targetId: event.recurringRuleId,
+        name: event.name,
+        eventType: event.eventType,
+        eventDate: event.eventDate,
+        severity: event.severity,
+        currency: event.currency,
+        amount: event.amount,
+      })),
+    ].sort((a, b) => a.eventDate.localeCompare(b.eventDate))
   }
   catch (e) {
     error.value = e instanceof Error ? e.message : 'No se pudo cargar el calendario.'
@@ -63,14 +93,11 @@ onMounted(() => {
 })
 
 watch(
-  () => cache.commitmentsVersion.value,
-  () => {
-    void load()
-  },
-)
-
-watch(
-  () => cache.calendarVersion.value,
+  () => [
+    cache.commitmentsVersion.value,
+    cache.calendarVersion.value,
+    cache.recurringVersion.value,
+  ],
   () => {
     void load()
   },
@@ -85,15 +112,25 @@ const grouped = computed(() => {
   }
   return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
 })
+
+function openEvent(event: CalendarRow) {
+  if (event.source === 'recurring') {
+    return navigateTo(`/app/recurring/${event.targetId}`)
+  }
+  return navigateTo(`/app/commitments/${event.targetId}`)
+}
 </script>
 
 <template>
   <div data-testid="calendar-page">
     <AppPageHeader
       title="Calendario"
-      description="Pagos, cortes y vencimientos de tus obligaciones."
+      description="Pagos, recurrentes, cortes y vencimientos próximos."
     >
       <template #actions>
+        <UiButton type="button" variant="secondary" @click="navigateTo('/app/recurring')">
+          Ver recurrentes
+        </UiButton>
         <UiButton type="button" variant="secondary" @click="navigateTo('/app/commitments')">
           Ver obligaciones
         </UiButton>
@@ -110,11 +147,11 @@ const grouped = computed(() => {
     <UiCard v-else-if="!events.length">
       <UiEmptyState
         title="Sin eventos próximos"
-        description="Cuando registres obligaciones con día de pago o corte, aparecerán aquí."
+        description="Cuando registres obligaciones o recurrentes, aparecerán aquí."
       >
         <template #actions>
-          <UiButton type="button" @click="navigateTo('/app/commitments/new')">
-            Nueva obligación
+          <UiButton type="button" @click="navigateTo('/app/recurring/new')">
+            Nuevo recurrente
           </UiButton>
         </template>
       </UiEmptyState>
@@ -146,7 +183,7 @@ const grouped = computed(() => {
               <button
                 type="button"
                 class="calendar-event__name"
-                @click="navigateTo(`/app/commitments/${event.commitmentId}`)"
+                @click="openEvent(event)"
               >
                 {{ event.name }}
               </button>

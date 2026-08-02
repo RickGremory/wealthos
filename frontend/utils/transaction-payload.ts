@@ -60,6 +60,7 @@ export interface BuildPayloadOptions {
   /** Category name used as default expense/income description */
   categoryName?: string | null
   now?: Date
+  source?: import('~/types/transactions').TransactionSourceInput | null
 }
 
 export interface PayloadValidationError {
@@ -152,7 +153,7 @@ export function validateTransactionForm(
 export function buildCreateTransactionPayload(
   options: BuildPayloadOptions,
 ): CreateTransactionInput {
-  const { form, categoryName, now } = options
+  const { form, categoryName, now, source } = options
   const occurredAt = buildOccurredAtIso({ date: form.occurredDate, now })
   const notes = form.notes.trim() || null
 
@@ -165,6 +166,7 @@ export function buildCreateTransactionPayload(
       description: form.description.trim() || 'Transferencia',
       occurredAt,
       notes,
+      source: source ?? null,
     }
   }
 
@@ -181,6 +183,7 @@ export function buildCreateTransactionPayload(
       occurredAt,
       categoryId: form.categoryId || null,
       notes,
+      source: source ?? null,
     }
   }
 
@@ -200,6 +203,7 @@ export function buildCreateTransactionPayload(
     description,
     occurredAt,
     notes,
+    source: source ?? null,
   }
 }
 
@@ -210,6 +214,14 @@ export function toApiCreateBody(input: CreateTransactionInput): Record<string, u
     occurred_at: input.occurredAt,
     notes: input.notes ?? null,
   }
+  const source = input.source
+    ? {
+        type: input.source.type,
+        occurrence_key: input.source.occurrenceKey,
+        related_resource_type: input.source.relatedResourceType ?? 'recurring_rule',
+        related_resource_id: input.source.relatedResourceId ?? null,
+      }
+    : undefined
 
   if (input.transactionType === 'transfer') {
     return {
@@ -218,6 +230,7 @@ export function toApiCreateBody(input: CreateTransactionInput): Record<string, u
       source_account_id: input.sourceAccountId,
       destination_account_id: input.destinationAccountId,
       amount: input.amount,
+      ...(source ? { source } : {}),
     }
   }
 
@@ -228,6 +241,7 @@ export function toApiCreateBody(input: CreateTransactionInput): Record<string, u
       account_id: input.accountId,
       amount: input.amount,
       category_id: input.categoryId ?? null,
+      ...(source ? { source } : {}),
     }
   }
 
@@ -237,6 +251,7 @@ export function toApiCreateBody(input: CreateTransactionInput): Record<string, u
     account_id: input.accountId,
     category_id: input.categoryId,
     amount: input.amount,
+    ...(source ? { source } : {}),
   }
 }
 

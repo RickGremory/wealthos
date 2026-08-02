@@ -92,4 +92,36 @@ describe('transaction-payload', () => {
     const today = buildOccurredAtIso({ date: '2026-07-24', now })
     expect(today).toBe(now.toISOString())
   })
+
+  it('includes recurring occurrence source in create body', () => {
+    const form = emptyTransactionForm('expense', new Date(2026, 6, 24))
+    form.accountId = 'acc-1'
+    form.categoryId = 'cat-1'
+    form.amount = '500.00'
+    form.description = 'Renta'
+    form.occurredDate = '2026-07-01'
+
+    const input = buildCreateTransactionPayload({
+      form,
+      source: {
+        type: 'recurring_occurrence',
+        occurrenceKey: 'recurring:rule-1:occurrence:2026-07-01',
+        relatedResourceType: 'recurring_rule',
+        relatedResourceId: 'rule-1',
+      },
+    })
+    expect(input.source).toMatchObject({
+      type: 'recurring_occurrence',
+      occurrenceKey: 'recurring:rule-1:occurrence:2026-07-01',
+      relatedResourceId: 'rule-1',
+    })
+
+    const body = toApiCreateBody(input)
+    expect(body.source).toEqual({
+      type: 'recurring_occurrence',
+      occurrence_key: 'recurring:rule-1:occurrence:2026-07-01',
+      related_resource_type: 'recurring_rule',
+      related_resource_id: 'rule-1',
+    })
+  })
 })

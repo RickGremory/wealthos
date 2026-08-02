@@ -37,6 +37,7 @@ export function useAppNav() {
         label: 'Planning',
         items: [
           { label: 'Planeación', to: '/app/planning', flag: 'planning' },
+          { label: 'Recurrentes', to: '/app/recurring' },
           { label: 'Calendar', to: '/app/calendar' },
         ],
       },

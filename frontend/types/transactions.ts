@@ -66,6 +66,13 @@ export interface TransactionListResult {
   offset: number
 }
 
+export interface TransactionSourceInput {
+  type: 'recurring_occurrence'
+  occurrenceKey: string
+  relatedResourceType?: 'recurring_rule' | null
+  relatedResourceId?: string | null
+}
+
 export interface CreateIncomeTransactionInput {
   transactionType: 'income'
   accountId: string
@@ -74,6 +81,7 @@ export interface CreateIncomeTransactionInput {
   description: string
   occurredAt: string
   notes?: string | null
+  source?: TransactionSourceInput | null
 }
 
 export interface CreateExpenseTransactionInput {
@@ -84,6 +92,7 @@ export interface CreateExpenseTransactionInput {
   description: string
   occurredAt: string
   notes?: string | null
+  source?: TransactionSourceInput | null
 }
 
 export interface CreateTransferTransactionInput {
@@ -94,6 +103,7 @@ export interface CreateTransferTransactionInput {
   description: string
   occurredAt: string
   notes?: string | null
+  source?: TransactionSourceInput | null
 }
 
 export interface CreateAdjustmentTransactionInput {
@@ -104,6 +114,7 @@ export interface CreateAdjustmentTransactionInput {
   occurredAt: string
   categoryId?: string | null
   notes?: string | null
+  source?: TransactionSourceInput | null
 }
 
 export type CreateTransactionInput =
@@ -156,6 +167,8 @@ export interface TransactionDuplicateDraft {
   destinationAccountId?: string
   realBalance?: string
   signedAmount?: string
+  /** Local calendar date YYYY-MM-DD */
+  occurredDate?: string
 }
 
 export interface TransactionNameMaps {

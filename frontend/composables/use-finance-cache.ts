@@ -11,6 +11,7 @@ const goalsVersion = ref(0)
 const commitmentsVersion = ref(0)
 const planningVersion = ref(0)
 const calendarVersion = ref(0)
+const recurringVersion = ref(0)
 
 export function useFinanceCache() {
   function invalidateAccounts() {
@@ -35,6 +36,7 @@ export function useFinanceCache() {
     goalsVersion.value += 1
     planningVersion.value += 1
     calendarVersion.value += 1
+    recurringVersion.value += 1
   }
 
   function invalidateGoals() {
@@ -46,6 +48,13 @@ export function useFinanceCache() {
     commitmentsVersion.value += 1
     accountsVersion.value += 1
     dashboardVersion.value += 1
+  }
+
+  function invalidateRecurring() {
+    recurringVersion.value += 1
+    dashboardVersion.value += 1
+    planningVersion.value += 1
+    calendarVersion.value += 1
   }
 
   /** Explicit payment side-effects (same as invalidateTransactions today). */
@@ -62,6 +71,7 @@ export function useFinanceCache() {
     commitmentsVersion.value += 1
     planningVersion.value += 1
     calendarVersion.value += 1
+    recurringVersion.value += 1
   }
 
   return {
@@ -73,12 +83,14 @@ export function useFinanceCache() {
     commitmentsVersion: readonly(commitmentsVersion),
     planningVersion: readonly(planningVersion),
     calendarVersion: readonly(calendarVersion),
+    recurringVersion: readonly(recurringVersion),
     invalidateAccounts,
     invalidateCategories,
     invalidateDashboard,
     invalidateTransactions,
     invalidateGoals,
     invalidateCommitments,
+    invalidateRecurring,
     invalidateAfterPayment,
     invalidateAll,
   }

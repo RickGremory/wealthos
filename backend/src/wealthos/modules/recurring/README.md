@@ -14,7 +14,7 @@ Implements [SPEC-005](../../../../../specs/backend/recurring/SPEC-005-recurring-
 | PR4 Read/write HTTP APIs + queries | Done |
 | PR5 Settlements ↔ Transactions | Done |
 | PR6 Planning/Calendar/Dashboard adapters | Done |
-| PR7–8 Frontend Recurrentes | Pending |
+| PR7–8 Frontend Recurrentes | Done |
 | PR9 Hardening + E2E | Pending |
 
 ## HTTP surface

@@ -88,7 +88,7 @@ export function useTransactionForm(options?: {
     const type = draft?.type ?? 'expense'
     reset(type)
     if (!draft) return
-    form.value.occurredDate = todayDateInputValue()
+    form.value.occurredDate = draft.occurredDate || todayDateInputValue()
     if (draft.amount) form.value.amount = draft.amount
     if (draft.description) form.value.description = draft.description
     if (draft.notes) form.value.notes = draft.notes
@@ -128,6 +128,7 @@ export function useTransactionForm(options?: {
 
     submitting.value = true
     try {
+      const composer = useTransactionComposerStore()
       const categoryName = form.value.categoryId
         ? options?.categoryNameResolver?.(form.value.categoryId) ?? null
         : null
@@ -135,6 +136,7 @@ export function useTransactionForm(options?: {
         form: form.value,
         currentBalance: selectedAccount.value?.currentBalance ?? '0.00',
         categoryName,
+        source: composer.createSource,
       })
       const repo = createTransactionsRepository($api)
       const result = await repo.create(orgId, payload, idempotency.current())
