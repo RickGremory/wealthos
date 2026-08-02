@@ -156,8 +156,8 @@ class RecurringAggregate:
             return
         self.rule.mark_archived()
 
-    def end(self, ends_on: date) -> None:
-        """Set series end on the current/open version. Status transition is command-owned."""
+    def end(self, ends_on: date, *, today: date) -> None:
+        """Set series end on the current/open version."""
         self._ensure_writable()
         current = self.current_version(ends_on) or (
             self.versions_tuple()[-1] if self.versions else None
@@ -166,6 +166,8 @@ class RecurringAggregate:
             raise RecurringVersionOverlap("Rule has no versions to end.")
         if current.ends_on is None or ends_on < current.ends_on:
             current.ends_on = ends_on
+        if ends_on <= today:
+            self.rule.status = RecurringRuleStatus.ENDED
         self.rule.touch()
 
     def _ensure_writable(self) -> None:

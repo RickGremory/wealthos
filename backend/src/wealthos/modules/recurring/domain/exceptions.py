@@ -76,3 +76,39 @@ class UnsupportedRecurrenceFrequency(RecurringError):
 
 class UnsupportedInvalidDatePolicy(RecurringError):
     code = "unsupported_invalid_date_policy"
+
+
+class RecurringRuleNotFound(RecurringError):
+    code = "recurring_rule_not_found"
+
+
+class RecurringRuleManagedExternally(RecurringError):
+    code = "recurring_rule_managed_externally"
+
+
+class RecurringRuleEnded(RecurringError):
+    code = "recurring_rule_ended"
+
+
+class RetroactiveStructuralChangeNotAllowed(RecurringError):
+    code = "retroactive_structural_change_not_allowed"
+
+
+class OccurrenceNotFound(RecurringError):
+    code = "occurrence_not_found"
+
+
+class OccurrenceAlreadySettled(RecurringError):
+    code = "occurrence_already_settled"
+
+
+class OccurrenceAlreadySkipped(RecurringError):
+    code = "occurrence_already_skipped"
+
+
+class TransactionNotFound(RecurringError):
+    code = "transaction_not_found"
+
+
+class TransactionAlreadyLinked(RecurringError):
+    code = "transaction_already_linked"
