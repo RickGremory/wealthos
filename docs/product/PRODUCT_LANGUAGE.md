@@ -154,13 +154,13 @@ See [Sprint 8.3](../roadmap/sprint-8.3-planning-integration.md) · [Sprint 9.1](
 
 Persistent configuration for a repeating expected inflow, outflow, or transfer (salary, rent, subscription, savings transfer).
 
-Product: **Movimiento recurrente**. Code: series shell `RecurringRule` + temporal `RecurringRuleVersion` (config never flattened only onto the shell).
+Product: **Movimiento recurrente** · Nav: **Recurrentes** (`/app/recurring`). Code: series shell `RecurringRule` + temporal `RecurringRuleVersion` (config never flattened only onto the shell).
 
-Answers: *¿Qué movimientos espero que se repitan?*
+Answers: *¿Qué movimientos se repiten y cuáles requieren mi confirmación?*
 
 Structural mid-series changes (“desde septiembre, 950 MXN”) create a new version with `effective_from` — history is not rewritten.
 
-Not a Transaction. Not proof that money moved. See [Principle 11](./02-product-principles.md) · [RFC-005](../rfc/RFC-005-recurring-engine.md) · [Sprint 9.3](../roadmap/sprint-9.3-persistence-lifecycle.md).
+Confirming an occurrence creates a real **Transaction** (prefilled); never auto-posts. See [Principle 11](./02-product-principles.md) · [RFC-005](../rfc/RFC-005-recurring-engine.md) · [Sprint 9.4](../roadmap/sprint-9.4-recurring-ux.md).
 
 ### Recurring occurrence (*ocurrencia proyectada*)
 
@@ -243,7 +243,7 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Goals | ¿Qué estoy construyendo? |
 | Financial Commitments | ¿Qué parte de mi futuro ya está comprometida? |
 | Planning | ¿Qué puedo hacer el próximo mes? / ¿Cuánto puedo gastar con tranquilidad? |
-| Recurring | ¿Qué movimientos espero que se repitan? |
+| Recurring | ¿Qué movimientos se repiten y cuáles requieren mi confirmación? |
 | Taxes | ¿Qué debo reservar al gobierno? |
 | Financial Timeline | ¿Qué ha pasado en mi vida financiera, en orden? |
 
@@ -263,7 +263,7 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Historia / Financial Timeline | UI `/app/timeline`; module `modules/timeline/`; contract `shared/events/` |
 | Disponible para usar / Safe To Spend | Consequence of `PlanningProjection`; UI under **Planeación** |
 | Planeación | UI `/app/planning`; module `modules/planning/` |
-| Movimiento recurrente / RecurringRule | UI (planned) Movimientos recurrentes; module `modules/recurring/` |
+| Movimiento recurrente / RecurringRule | UI **Recurrentes** `/app/recurring`; module `modules/recurring/` |
 | Ocurrencia proyectada | Calculated VO — not mass-persisted futures |
 | Fondos protegidos | Product label for reservations |
 | Financial Projection | Computed view — not a table; see RFC-004 |

@@ -2,11 +2,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Accepted (9.1–9.3) |
+| **Status** | Accepted (9.1–9.4) |
 | **Created** | 2026-08-01 |
 | **Epic** | [EPIC-008](../epics/EPIC-008-recurring-engine.md) |
-| **Sprint** | [Sprint 9](../roadmap/sprint-9-recurring-engine.md) · [9.1](../roadmap/sprint-9.1-recurring-domain-model.md) · [9.2](../roadmap/sprint-9.2-recurrence-generation.md) · [9.3](../roadmap/sprint-9.3-persistence-lifecycle.md) |
-| **Decision** | [expectations ≠ facts](../decisions/2026-08-01-recurring-expectations-not-facts.md) · [identity vs effective date](../decisions/2026-08-01-recurrence-identity-vs-effective-date.md) · [Rule + Version](../decisions/2026-08-01-recurring-rule-versioning.md) |
+| **Sprint** | [Sprint 9](../roadmap/sprint-9-recurring-engine.md) · [9.1](../roadmap/sprint-9.1-recurring-domain-model.md) · [9.2](../roadmap/sprint-9.2-recurrence-generation.md) · [9.3](../roadmap/sprint-9.3-persistence-lifecycle.md) · [9.4](../roadmap/sprint-9.4-recurring-ux.md) |
+| **Decision** | [expectations ≠ facts](../decisions/2026-08-01-recurring-expectations-not-facts.md) · [identity vs effective date](../decisions/2026-08-01-recurrence-identity-vs-effective-date.md) · [Rule + Version](../decisions/2026-08-01-recurring-rule-versioning.md) · [confirm via Transaction](../decisions/2026-08-01-recurring-confirm-occurrence.md) |
 
 ---
 
@@ -103,6 +103,16 @@ Details: [Sprint 9.3](../roadmap/sprint-9.3-persistence-lifecycle.md).
 
 ---
 
+## Product UX (9.4)
+
+- Nav: **Recurrentes** `/app/recurring` — rules vs occurrences; attention = *Pendiente de confirmar*.  
+- Confirm = explicit Transaction create (prefill); draft preview via shared generator.  
+- Skip / reschedule / version-from-date / pause; Calendar & Dashboard consume occurrences.  
+
+Details: [Sprint 9.4](../roadmap/sprint-9.4-recurring-ux.md).
+
+---
+
 ## Planning / Calendar ports
 
 ```text
@@ -143,7 +153,7 @@ Aligns with ADR-007 modular boundaries.
 
 ## Success criteria
 
-See Sprint 9.1–9.3 acceptance checklists. Pure engine tests without DB; persistence/API in SPEC (9.5).
+See Sprint 9.1–9.4 acceptance checklists. Pure engine tests without DB; persistence/API/UI in SPEC (9.5).
 
 ## Open points → later slices
 
@@ -151,5 +161,5 @@ See Sprint 9.1–9.3 acceptance checklists. Pure engine tests without DB; persis
 |-------|--------|
 | Exact expansion algorithms | **9.2 Accepted** |
 | Tables / commands / preview / Planning port | **9.3 Accepted** |
-| Confirm UI + series edit UX | 9.4 |
-| Executable SPEC | 9.5 |
+| Confirm UI + series edit UX | **9.4 Accepted** |
+| Executable SPEC + hardening | 9.5 |

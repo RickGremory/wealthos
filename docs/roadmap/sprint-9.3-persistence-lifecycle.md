@@ -294,4 +294,4 @@ Adopt **Rule + RuleVersion** immediately (even when only one version exists). Re
 
 ## Next
 
-**Sprint 9.4 — UX:** Movimientos recurrentes list/detail, confirm flow, “solo esta / desde esta fecha”, pause/skip language (**Pendiente de confirmar**).
+**Sprint 9.4 — UX** — **Accepted** ([sprint-9.4-recurring-ux.md](./sprint-9.4-recurring-ux.md)). Next: **9.5** SPEC + hardening.
