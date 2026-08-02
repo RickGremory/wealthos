@@ -102,6 +102,14 @@ class RecurringSettlementRepository(Protocol):
         settlement_id: UUID,
     ) -> RecurringOccurrenceSettlement | None: ...
 
+    def list_for_transaction(
+        self,
+        organization_id: UUID,
+        transaction_id: UUID,
+        *,
+        include_voided: bool = False,
+    ) -> list[RecurringOccurrenceSettlement]: ...
+
     def save(self, settlement: RecurringOccurrenceSettlement) -> RecurringOccurrenceSettlement: ...
 
 

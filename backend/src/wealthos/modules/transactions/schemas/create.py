@@ -7,7 +7,22 @@ from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+
+class TransactionSourceCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["recurring_occurrence"]
+    occurrence_key: str = Field(min_length=10, max_length=120)
+    related_resource_type: Literal["recurring_rule"] | None = "recurring_rule"
+    related_resource_id: UUID | None = None
+
+    @model_validator(mode="after")
+    def _key_prefix(self) -> TransactionSourceCreate:
+        if not self.occurrence_key.startswith("recurring:"):
+            raise ValueError("occurrence_key must start with 'recurring:'.")
+        return self
 
 
 class _BaseCreate(BaseModel):
@@ -16,6 +31,7 @@ class _BaseCreate(BaseModel):
     description: str = Field(min_length=2, max_length=200)
     occurred_at: datetime
     notes: str | None = None
+    source: TransactionSourceCreate | None = None
 
 
 class IncomeTransactionCreate(_BaseCreate):

@@ -90,6 +90,24 @@ class SqlAlchemyRecurringSettlementRepository(
         model = self.session.scalars(stmt).first()
         return self._mapper.settlement_to_entity(model) if model else None
 
+    def list_for_transaction(
+        self,
+        organization_id: UUID,
+        transaction_id: UUID,
+        *,
+        include_voided: bool = False,
+    ) -> list[RecurringOccurrenceSettlement]:
+        stmt = select(RecurringOccurrenceSettlementModel).where(
+            RecurringOccurrenceSettlementModel.organization_id == organization_id,
+            RecurringOccurrenceSettlementModel.transaction_id == transaction_id,
+        )
+        if not include_voided:
+            stmt = stmt.where(RecurringOccurrenceSettlementModel.voided_at.is_(None))
+        return [
+            self._mapper.settlement_to_entity(model)
+            for model in self.session.scalars(stmt)
+        ]
+
     def save(
         self,
         settlement: RecurringOccurrenceSettlement,

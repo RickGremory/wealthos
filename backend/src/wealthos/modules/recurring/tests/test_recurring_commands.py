@@ -153,6 +153,23 @@ class InMemorySettlementRepository:
             return None
         return deepcopy(item)
 
+    def list_for_transaction(
+        self,
+        organization_id: UUID,
+        transaction_id: UUID,
+        *,
+        include_voided: bool = False,
+    ) -> list[RecurringOccurrenceSettlement]:
+        rows = [
+            item
+            for item in self._items.values()
+            if item.organization_id == organization_id
+            and item.transaction_id == transaction_id
+        ]
+        if not include_voided:
+            rows = [item for item in rows if not item.is_voided]
+        return [deepcopy(item) for item in rows]
+
     def save(self, settlement: RecurringOccurrenceSettlement) -> RecurringOccurrenceSettlement:
         self._items[settlement.id] = deepcopy(settlement)
         return deepcopy(settlement)

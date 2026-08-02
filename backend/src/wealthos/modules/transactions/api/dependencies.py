@@ -144,3 +144,31 @@ def get_list_transactions_query(
     transactions: Annotated[TransactionRepository, Depends(get_transaction_repository)],
 ) -> ListTransactionsQuery:
     return ListTransactionsQuery(transactions)
+
+
+def get_recurring_settlement_bridge(
+    session: Annotated[Session, Depends(get_db)],
+) -> RecurringTransactionSettlementBridge:
+    from wealthos.modules.recurring.application.commands.link_transaction import (
+        LinkRecurringOccurrenceTransactionHandler,
+    )
+    from wealthos.modules.recurring.application.services.transaction_settlement_bridge import (
+        RecurringTransactionSettlementBridge,
+    )
+    from wealthos.modules.recurring.infrastructure.adapters.sqlalchemy_transaction_validation import (
+        SqlAlchemyRecurringTransactionValidation,
+    )
+    from wealthos.modules.recurring.infrastructure.persistence.repositories.sqlalchemy_recurring_aggregate_repository import (
+        SqlAlchemyRecurringAggregateRepository,
+    )
+    from wealthos.modules.recurring.infrastructure.persistence.repositories.sqlalchemy_recurring_settlement_repository import (
+        SqlAlchemyRecurringSettlementRepository,
+    )
+
+    settlements = SqlAlchemyRecurringSettlementRepository(session)
+    link_handler = LinkRecurringOccurrenceTransactionHandler(
+        SqlAlchemyRecurringAggregateRepository(session),
+        settlements,
+        SqlAlchemyRecurringTransactionValidation(session),
+    )
+    return RecurringTransactionSettlementBridge(link_handler, settlements)

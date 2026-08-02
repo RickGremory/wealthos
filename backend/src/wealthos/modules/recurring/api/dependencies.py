@@ -169,3 +169,38 @@ def get_deactivate_exception_handler(
     repo: Annotated[SqlAlchemyRecurringAggregateRepository, Depends(get_recurring_repo)],
 ) -> DeactivateRecurringOccurrenceExceptionHandler:
     return DeactivateRecurringOccurrenceExceptionHandler(repo)
+
+
+def get_link_settlement_handler(
+    session: Annotated[Session, Depends(get_db)],
+    repo: Annotated[SqlAlchemyRecurringAggregateRepository, Depends(get_recurring_repo)],
+    settlements: Annotated[
+        SqlAlchemyRecurringSettlementRepository,
+        Depends(get_settlement_repo),
+    ],
+) -> LinkRecurringOccurrenceTransactionHandler:
+    from wealthos.modules.recurring.application.commands.link_transaction import (
+        LinkRecurringOccurrenceTransactionHandler,
+    )
+    from wealthos.modules.recurring.infrastructure.adapters.sqlalchemy_transaction_validation import (
+        SqlAlchemyRecurringTransactionValidation,
+    )
+
+    return LinkRecurringOccurrenceTransactionHandler(
+        repo,
+        settlements,
+        SqlAlchemyRecurringTransactionValidation(session),
+    )
+
+
+def get_unlink_settlement_handler(
+    settlements: Annotated[
+        SqlAlchemyRecurringSettlementRepository,
+        Depends(get_settlement_repo),
+    ],
+) -> UnlinkRecurringOccurrenceTransactionHandler:
+    from wealthos.modules.recurring.application.commands.link_transaction import (
+        UnlinkRecurringOccurrenceTransactionHandler,
+    )
+
+    return UnlinkRecurringOccurrenceTransactionHandler(settlements)

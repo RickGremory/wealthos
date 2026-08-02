@@ -2,22 +2,32 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
+from wealthos.core.database import get_db
 from wealthos.core.security.current_user import CurrentUser
 from wealthos.core.security.organization_access import OrganizationMember
 from wealthos.core.security.organization_permissions import require_organization_role
-from wealthos.modules.organizations.domain.entities.organization_membership import (
-    OrganizationMembership,
-)
 from wealthos.modules.accounts.domain.repositories.account_repository import (
     AccountRepository,
 )
+from wealthos.modules.organizations.domain.entities.organization_membership import (
+    OrganizationMembership,
+)
+from wealthos.modules.organizations.infrastructure.models.organization_model import (
+    OrganizationModel,
+)
+from wealthos.modules.recurring.api.exception_mapping import http_map_recurring_errors
+from wealthos.modules.recurring.application.services.transaction_settlement_bridge import (
+    RecurringTransactionSettlementBridge,
+)
+from wealthos.modules.timeline.api.dependencies import get_event_publisher
 from wealthos.modules.timeline.application.emit import emit_transaction_posted
 from wealthos.modules.timeline.application.publisher import EventPublisher
 from wealthos.modules.transactions.api.dependencies import (
@@ -28,11 +38,11 @@ from wealthos.modules.transactions.api.dependencies import (
     get_create_transfer_command,
     get_get_transaction_query,
     get_list_transactions_query,
+    get_recurring_settlement_bridge,
     get_unit_of_work,
     get_update_transaction_command,
     get_void_transaction_command,
 )
-from wealthos.modules.timeline.api.dependencies import get_event_publisher
 from wealthos.modules.transactions.application.commands.create_adjustment import (
     CreateAdjustmentCommand,
     CreateAdjustmentInput,
@@ -109,6 +119,27 @@ RequireVoider = Annotated[
 ]
 
 
+def _source_kwargs(source: object | None) -> dict:
+    if source is None:
+        return {
+            "source_type": None,
+            "source_occurrence_key": None,
+            "related_resource_type": None,
+            "related_resource_id": None,
+        }
+    return {
+        "source_type": source.type,  # type: ignore[attr-defined]
+        "source_occurrence_key": source.occurrence_key,  # type: ignore[attr-defined]
+        "related_resource_type": source.related_resource_type,  # type: ignore[attr-defined]
+        "related_resource_id": source.related_resource_id,  # type: ignore[attr-defined]
+    }
+
+
+def _org_timezone(session: Session, organization_id: UUID) -> str:
+    org = session.get(OrganizationModel, organization_id)
+    return org.timezone if org is not None else "America/Cancun"
+
+
 @router.post(
     "/{organization_id}/transactions",
     response_model=TransactionResponse,
@@ -126,69 +157,86 @@ def create_transaction(
     create_adjustment: Annotated[CreateAdjustmentCommand, Depends(get_create_adjustment_command)],
     accounts: Annotated[AccountRepository, Depends(get_account_repository)],
     publisher: Annotated[EventPublisher, Depends(get_event_publisher)],
+    bridge: Annotated[
+        RecurringTransactionSettlementBridge,
+        Depends(get_recurring_settlement_bridge),
+    ],
+    session: Annotated[Session, Depends(get_db)],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> TransactionResponse:
+    source_fields = _source_kwargs(payload.source)
     try:
         with uow:
-            if isinstance(payload, IncomeTransactionCreate):
-                transaction = create_income.execute(
-                    CreateIncomeInput(
-                        organization_id=organization_id,
-                        account_id=payload.account_id,
-                        category_id=payload.category_id,
-                        amount=payload.amount,
-                        description=payload.description,
-                        occurred_at=payload.occurred_at,
-                        created_by_user_id=current_user.id,
-                        notes=payload.notes,
+            with http_map_recurring_errors():
+                if isinstance(payload, IncomeTransactionCreate):
+                    transaction = create_income.execute(
+                        CreateIncomeInput(
+                            organization_id=organization_id,
+                            account_id=payload.account_id,
+                            category_id=payload.category_id,
+                            amount=payload.amount,
+                            description=payload.description,
+                            occurred_at=payload.occurred_at,
+                            created_by_user_id=current_user.id,
+                            notes=payload.notes,
+                            **source_fields,
+                        )
                     )
-                )
-            elif isinstance(payload, ExpenseTransactionCreate):
-                transaction = create_expense.execute(
-                    CreateExpenseInput(
-                        organization_id=organization_id,
-                        account_id=payload.account_id,
-                        category_id=payload.category_id,
-                        amount=payload.amount,
-                        description=payload.description,
-                        occurred_at=payload.occurred_at,
-                        created_by_user_id=current_user.id,
-                        notes=payload.notes,
+                elif isinstance(payload, ExpenseTransactionCreate):
+                    transaction = create_expense.execute(
+                        CreateExpenseInput(
+                            organization_id=organization_id,
+                            account_id=payload.account_id,
+                            category_id=payload.category_id,
+                            amount=payload.amount,
+                            description=payload.description,
+                            occurred_at=payload.occurred_at,
+                            created_by_user_id=current_user.id,
+                            notes=payload.notes,
+                            **source_fields,
+                        )
                     )
-                )
-            elif isinstance(payload, TransferTransactionCreate):
-                transaction = create_transfer.execute(
-                    CreateTransferInput(
-                        organization_id=organization_id,
-                        source_account_id=payload.source_account_id,
-                        destination_account_id=payload.destination_account_id,
-                        amount=payload.amount,
-                        description=payload.description,
-                        occurred_at=payload.occurred_at,
-                        created_by_user_id=current_user.id,
-                        notes=payload.notes,
+                elif isinstance(payload, TransferTransactionCreate):
+                    transaction = create_transfer.execute(
+                        CreateTransferInput(
+                            organization_id=organization_id,
+                            source_account_id=payload.source_account_id,
+                            destination_account_id=payload.destination_account_id,
+                            amount=payload.amount,
+                            description=payload.description,
+                            occurred_at=payload.occurred_at,
+                            created_by_user_id=current_user.id,
+                            notes=payload.notes,
+                            **source_fields,
+                        )
                     )
-                )
-            elif isinstance(payload, AdjustmentTransactionCreate):
-                transaction = create_adjustment.execute(
-                    CreateAdjustmentInput(
-                        organization_id=organization_id,
-                        account_id=payload.account_id,
-                        amount=payload.amount,
-                        description=payload.description,
-                        occurred_at=payload.occurred_at,
-                        created_by_user_id=current_user.id,
-                        category_id=payload.category_id,
-                        notes=payload.notes,
+                elif isinstance(payload, AdjustmentTransactionCreate):
+                    transaction = create_adjustment.execute(
+                        CreateAdjustmentInput(
+                            organization_id=organization_id,
+                            account_id=payload.account_id,
+                            amount=payload.amount,
+                            description=payload.description,
+                            occurred_at=payload.occurred_at,
+                            created_by_user_id=current_user.id,
+                            category_id=payload.category_id,
+                            notes=payload.notes,
+                            **source_fields,
+                        )
                     )
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="Unsupported transaction type.",
+                    )
+                bridge.link_from_posted_transaction(
+                    transaction=transaction,
+                    actor_id=current_user.id,
+                    timezone=_org_timezone(session, organization_id),
+                    evaluated_on=date.today(),
                 )
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="Unsupported transaction type.",
-                )
-            emit_transaction_posted(publisher, accounts, transaction)
-            uow.commit()
+                emit_transaction_posted(publisher, accounts, transaction)
+                uow.commit()
     except (AccountNotFoundError, CategoryNotFoundError) as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except (
@@ -350,18 +398,27 @@ def void_transaction(
     current_user: CurrentUser,
     _membership: RequireVoider,
     command: Annotated[VoidTransactionCommand, Depends(get_void_transaction_command)],
+    bridge: Annotated[
+        RecurringTransactionSettlementBridge,
+        Depends(get_recurring_settlement_bridge),
+    ],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
 ) -> TransactionResponse:
     try:
         with uow:
-            transaction = command.execute(
-                VoidTransactionInput(
+            with http_map_recurring_errors():
+                transaction = command.execute(
+                    VoidTransactionInput(
+                        organization_id=organization_id,
+                        transaction_id=transaction_id,
+                        voided_by_user_id=current_user.id,
+                    )
+                )
+                bridge.void_settlements_for_transaction(
                     organization_id=organization_id,
                     transaction_id=transaction_id,
-                    voided_by_user_id=current_user.id,
                 )
-            )
-            uow.commit()
+                uow.commit()
     except TransactionNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except TransactionAlreadyVoided as exc:

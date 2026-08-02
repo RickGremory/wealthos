@@ -19,6 +19,7 @@ from wealthos.modules.recurring.api.dependencies import (
     get_deactivate_exception_handler,
     get_end_handler,
     get_get_rule_query,
+    get_link_settlement_handler,
     get_list_occurrences_query,
     get_list_rules_query,
     get_org_timezone,
@@ -27,6 +28,7 @@ from wealthos.modules.recurring.api.dependencies import (
     get_preview_unsaved_query,
     get_resume_handler,
     get_unit_of_work,
+    get_unlink_settlement_handler,
     get_update_metadata_handler,
 )
 from wealthos.modules.recurring.api.exception_mapping import http_map_recurring_errors
@@ -35,6 +37,7 @@ from wealthos.modules.recurring.api.schemas import (
     ArchiveRequest,
     CreateExceptionRequest,
     CreateRecurringRuleRequest,
+    CreateSettlementRequest,
     CreateVersionRequest,
     EndRequest,
     PauseRequest,
@@ -44,9 +47,16 @@ from wealthos.modules.recurring.api.schemas import (
     RecurringPreviewResponse,
     RecurringRuleDetailResponse,
     RecurringRuleListItemResponse,
+    RecurringSettlementResponse,
     RecurringVersionResponse,
     ResumeRequest,
     UpdateMetadataRequest,
+)
+from wealthos.modules.recurring.application.commands.link_transaction import (
+    LinkRecurringOccurrenceTransactionCommand,
+    LinkRecurringOccurrenceTransactionHandler,
+    UnlinkRecurringOccurrenceTransactionCommand,
+    UnlinkRecurringOccurrenceTransactionHandler,
 )
 from wealthos.modules.recurring.application.commands.create_exception import (
     CreateRecurringOccurrenceExceptionCommand,
@@ -101,6 +111,7 @@ from wealthos.modules.recurring.application.queries.preview_occurrences import (
 )
 from wealthos.modules.recurring.domain.enums.occurrence import (
     RecurringExceptionType,
+    RecurringSettlementLinkType,
     RecurringSettlementMode,
 )
 from wealthos.modules.recurring.domain.enums.rule import (
@@ -727,3 +738,92 @@ def deactivate_exception(
             )
         )
     return _detail(detail)
+
+
+@router.post(
+    "/{rule_id}/settlements",
+    response_model=RecurringSettlementResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
+)
+def link_settlement(
+    organization_id: UUID,
+    rule_id: UUID,
+    payload: CreateSettlementRequest,
+    _: OrganizationMember,
+    current_user: CurrentUser,
+    handler: Annotated[
+        LinkRecurringOccurrenceTransactionHandler,
+        Depends(get_link_settlement_handler),
+    ],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+    timezone: Annotated[str, Depends(get_org_timezone)],
+) -> RecurringSettlementResponse:
+    with http_map_recurring_errors():
+        settlement = handler.execute(
+            LinkRecurringOccurrenceTransactionCommand(
+                organization_id=organization_id,
+                actor_id=current_user.id,
+                rule_id=rule_id,
+                occurrence_key=payload.occurrence_key,
+                transaction_id=payload.transaction_id,
+                link_type=RecurringSettlementLinkType.parse(payload.link_type),
+                evaluated_on=date.today(),
+                timezone=timezone,
+                settled_amount=payload.settled_amount,
+            )
+        )
+        uow.commit()
+    return RecurringSettlementResponse(
+        id=settlement.id,
+        organization_id=settlement.organization_id,
+        recurring_rule_id=settlement.recurring_rule_id,
+        occurrence_key=settlement.occurrence_key,
+        transaction_id=settlement.transaction_id,
+        settled_amount=str(settlement.settled_amount),
+        link_type=settlement.link_type.value,
+        linked_by=settlement.linked_by,
+        linked_at=settlement.linked_at,
+        voided_at=settlement.voided_at,
+    )
+
+
+@router.post(
+    "/{rule_id}/settlements/{settlement_id}/unlink",
+    response_model=RecurringSettlementResponse,
+    dependencies=[Depends(require_organization_role("owner", "admin", "member"))],
+)
+def unlink_settlement(
+    organization_id: UUID,
+    rule_id: UUID,
+    settlement_id: UUID,
+    _: OrganizationMember,
+    current_user: CurrentUser,
+    handler: Annotated[
+        UnlinkRecurringOccurrenceTransactionHandler,
+        Depends(get_unlink_settlement_handler),
+    ],
+    uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+) -> RecurringSettlementResponse:
+    with http_map_recurring_errors():
+        settlement = handler.execute(
+            UnlinkRecurringOccurrenceTransactionCommand(
+                organization_id=organization_id,
+                actor_id=current_user.id,
+                rule_id=rule_id,
+                settlement_id=settlement_id,
+            )
+        )
+        uow.commit()
+    return RecurringSettlementResponse(
+        id=settlement.id,
+        organization_id=settlement.organization_id,
+        recurring_rule_id=settlement.recurring_rule_id,
+        occurrence_key=settlement.occurrence_key,
+        transaction_id=settlement.transaction_id,
+        settled_amount=str(settlement.settled_amount),
+        link_type=settlement.link_type.value,
+        linked_by=settlement.linked_by,
+        linked_at=settlement.linked_at,
+        voided_at=settlement.voided_at,
+    )

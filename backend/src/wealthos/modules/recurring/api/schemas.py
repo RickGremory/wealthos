@@ -160,6 +160,26 @@ class CreateExceptionRequest(BaseModel):
     reason: str | None = None
 
 
+class CreateSettlementRequest(BaseModel):
+    occurrence_key: str = Field(min_length=10, max_length=120)
+    transaction_id: UUID
+    link_type: Literal["explicit", "manual", "suggested_confirmed"] = "manual"
+    settled_amount: Decimal | None = Field(default=None, gt=0)
+
+
+class RecurringSettlementResponse(BaseModel):
+    id: UUID
+    organization_id: UUID
+    recurring_rule_id: UUID
+    occurrence_key: str
+    transaction_id: UUID
+    settled_amount: str
+    link_type: str
+    linked_by: UUID | None
+    linked_at: datetime
+    voided_at: datetime | None = None
+
+
 class RecurringOccurrenceResponse(BaseModel):
     occurrence_key: str
     recurring_rule_id: UUID

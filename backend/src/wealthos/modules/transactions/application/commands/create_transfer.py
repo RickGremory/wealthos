@@ -28,6 +28,10 @@ class CreateTransferInput:
     occurred_at: datetime
     created_by_user_id: UUID
     notes: str | None = None
+    source_type: str | None = None
+    source_occurrence_key: str | None = None
+    related_resource_type: str | None = None
+    related_resource_id: UUID | None = None
 
 
 class CreateTransferCommand:
@@ -61,5 +65,11 @@ class CreateTransferCommand:
             occurred_at=data.occurred_at,
             created_by_user_id=data.created_by_user_id,
             notes=data.notes,
+        )
+        transaction.attach_source_context(
+            source_type=data.source_type,
+            source_occurrence_key=data.source_occurrence_key,
+            related_resource_type=data.related_resource_type,
+            related_resource_id=data.related_resource_id,
         )
         return self._posting.post(transaction)

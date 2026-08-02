@@ -36,6 +36,11 @@ class TransactionModel(Base):
             "organization_id",
             "category_id",
         ),
+        Index(
+            "ix_transactions_organization_id_source_occurrence_key",
+            "organization_id",
+            "source_occurrence_key",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
@@ -85,6 +90,10 @@ class TransactionModel(Base):
         nullable=True,
         default=None,
     )
+    source_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    source_occurrence_key: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    related_resource_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    related_resource_id: Mapped[UUID | None] = mapped_column(Uuid, nullable=True)
 
     entries: Mapped[list[TransactionEntryModel]] = relationship(
         "TransactionEntryModel",

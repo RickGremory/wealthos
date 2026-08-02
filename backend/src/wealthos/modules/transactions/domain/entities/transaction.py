@@ -45,6 +45,23 @@ class Transaction:
     created_at: datetime
     updated_at: datetime
     voided_at: datetime | None
+    source_type: str | None = None
+    source_occurrence_key: str | None = None
+    related_resource_type: str | None = None
+    related_resource_id: UUID | None = None
+
+    def attach_source_context(
+        self,
+        *,
+        source_type: str | None,
+        source_occurrence_key: str | None,
+        related_resource_type: str | None = None,
+        related_resource_id: UUID | None = None,
+    ) -> None:
+        self.source_type = source_type
+        self.source_occurrence_key = source_occurrence_key
+        self.related_resource_type = related_resource_type
+        self.related_resource_id = related_resource_id
 
     @classmethod
     def create_income(

@@ -18,6 +18,13 @@ class TransactionEntryResponse(BaseModel):
     currency: str
 
 
+class TransactionSourceResponse(BaseModel):
+    type: str
+    occurrence_key: str
+    related_resource_type: str | None = None
+    related_resource_id: UUID | None = None
+
+
 class TransactionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -39,6 +46,7 @@ class TransactionResponse(BaseModel):
     source_account_id: UUID | None = None
     destination_account_id: UUID | None = None
     amount: Decimal | None = None
+    source: TransactionSourceResponse | None = None
 
     @classmethod
     def from_entity(cls, transaction: Transaction) -> TransactionResponse:
@@ -63,6 +71,15 @@ class TransactionResponse(BaseModel):
         elif len(transaction.entries) == 1:
             amount = abs(transaction.entries[0].amount.amount)
 
+        source = None
+        if transaction.source_type and transaction.source_occurrence_key:
+            source = TransactionSourceResponse(
+                type=transaction.source_type,
+                occurrence_key=transaction.source_occurrence_key,
+                related_resource_type=transaction.related_resource_type,
+                related_resource_id=transaction.related_resource_id,
+            )
+
         return cls(
             id=transaction.id,
             organization_id=transaction.organization_id,
@@ -82,4 +99,5 @@ class TransactionResponse(BaseModel):
             source_account_id=source_account_id,
             destination_account_id=destination_account_id,
             amount=amount,
+            source=source,
         )

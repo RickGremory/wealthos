@@ -12,7 +12,7 @@ Implements [SPEC-005](../../../../../specs/backend/recurring/SPEC-005-recurring-
 | PR2 Recurrence generator + strategies | Done |
 | PR3 Lifecycle commands | Done |
 | PR4 Read/write HTTP APIs + queries | Done |
-| PR5 Settlements ↔ Transactions | Pending |
+| PR5 Settlements ↔ Transactions | Done |
 | PR6 Planning/Calendar/Dashboard adapters | Pending |
 | PR7–8 Frontend Recurrentes | Pending |
 | PR9 Hardening + E2E | Pending |
@@ -38,5 +38,9 @@ Base: `/api/v1/organizations/{organization_id}/recurring`
 | POST | `/{rule_id}/archive` | Archive |
 | POST | `/{rule_id}/exceptions` | Create exception |
 | DELETE | `/{rule_id}/exceptions/{exception_id}` | Deactivate exception |
+| POST | `/{rule_id}/settlements` | Link existing transaction |
+| POST | `/{rule_id}/settlements/{id}/unlink` | Soft-void settlement |
+
+Confirm flow: `POST /transactions` with `source.type=recurring_occurrence` + `occurrence_key` creates Transaction **and** settlement atomically. Voiding the transaction voids active settlements.
 
 Occurrences are expanded on read — never persisted as future rows.

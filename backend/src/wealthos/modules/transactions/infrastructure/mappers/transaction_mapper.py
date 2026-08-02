@@ -51,6 +51,10 @@ class TransactionMapper(BaseMapper[TransactionModel, Transaction]):
             created_at=model.created_at,
             updated_at=model.updated_at,
             voided_at=model.voided_at,
+            source_type=model.source_type,
+            source_occurrence_key=model.source_occurrence_key,
+            related_resource_type=model.related_resource_type,
+            related_resource_id=model.related_resource_id,
         )
 
     def to_model(self, entity: Transaction) -> TransactionModel:
@@ -69,6 +73,10 @@ class TransactionMapper(BaseMapper[TransactionModel, Transaction]):
             created_at=entity.created_at,
             updated_at=entity.updated_at,
             voided_at=entity.voided_at,
+            source_type=entity.source_type,
+            source_occurrence_key=entity.source_occurrence_key,
+            related_resource_type=entity.related_resource_type,
+            related_resource_id=entity.related_resource_id,
         )
         model.entries = [
             TransactionEntryModel(
