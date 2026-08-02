@@ -31,6 +31,8 @@ Taxes
   ↓
 Planning / Safe To Spend
   ↓
+Recurring Engine
+  ↓
 AI
 ```
 
@@ -50,7 +52,8 @@ AI
 | 8 | **Debts** (Financial Commitments) | Obligations visible against the same financial reality; UI: Obligaciones |
 | 9 | **Taxes** | Reserves/estimates grounded in income transactions |
 | 10 | **Planning / Safe To Spend** | Financial Projection over facts+forecasts; spendable ≠ balance ([RFC-004](../rfc/RFC-004-planning-projection.md)) |
-| 11 | **AI** | Consumes structured context (Timeline + Projection) only after the ledger is trustworthy |
+| 11 | **Recurring Engine** | Expected repeating flows as forecasts only ([RFC-005](../rfc/RFC-005-recurring-engine.md)); feeds Planning/Calendar |
+| 12 | **AI** | Consumes structured context (Timeline + Projection) only after the ledger is trustworthy |
 
 ---
 
@@ -68,6 +71,7 @@ AI
 | Debts | `debts/` | Debt tracking / Financial Commitments |
 | Taxes | `taxes/` | Tax reserve / estimates |
 | Planning | `planning/` | Projection spine + budgets/cash-plan tools |
+| Recurring | `recurring/` | Rules + pauses + exceptions; occurrences calculated |
 | Timeline | `timeline/` | Narrative event projection |
 | AI | `ai/` | Context APIs / coaching seams — not a second ledger |
 

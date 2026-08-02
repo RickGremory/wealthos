@@ -113,6 +113,20 @@ See [RFC-004](../rfc/RFC-004-planning-projection.md) and [Sprint 8.1](../roadmap
 
 ---
 
+## Principle 11 — Recurring Expectations ≠ Financial Truth
+
+Recurring events are expectations, not financial truth.
+
+*Los movimientos recurrentes son expectativas, no hechos financieros.*
+
+A **RecurringRule** predicts movements; it never proves they occurred. Only a **Transaction** is ledger truth. Occurrences are forecasts for Planning and Calendar — never auto-posted facts.
+
+This protects P01 / P02 and Facts vs Forecasts in Planning.
+
+See [RFC-005](../rfc/RFC-005-recurring-engine.md) and [Sprint 9.1](../roadmap/sprint-9.1-recurring-domain-model.md).
+
+---
+
 ## Supporting heuristics (still true)
 
 These remain useful and align with the principles above:
@@ -120,10 +134,11 @@ These remain useful and align with the principles above:
 - **Planning Before Automation** — explainable rules before AI (P05).  
 - **Spendable from trough, not ending balance** — chronological minimum ([Sprint 8.2](../roadmap/sprint-8.2-safe-to-spend-algorithm.md)).  
 - **Orient before overwhelm** — lead with *What should I do next?* before raw metrics (P04, P08). Debts create stress; the UI must not. See [Sprint 6.2](../roadmap/sprint-6.2-commitments-ux.md).  
-- **Integrate, don’t isolate** — commitments enrich Dashboard, Calendar, Goals, and Planning without a second ledger ([Sprint 6.3](../roadmap/sprint-6.3-commitments-integration.md)).
+- **Integrate, don’t isolate** — commitments enrich Dashboard, Calendar, Goals, and Planning without a second ledger ([Sprint 6.3](../roadmap/sprint-6.3-commitments-integration.md)).  
+- **Recurring predicts; Transaction proves** — never auto-post from recurrence (P11 · [Sprint 9.1](../roadmap/sprint-9.1-recurring-domain-model.md)).
 
 ---
 
 ## Status
 
-Accepted 2026-07-25. Living document — evolve carefully; record supersessions in the [decision log](../decisions/05-decision-log.md).
+Accepted 2026-07-25; P11 added 2026-08-01. Living document — evolve carefully; record supersessions in the [decision log](../decisions/05-decision-log.md).

@@ -142,11 +142,35 @@ Uncertain income must not inflate spendable cash.
 
 ### Occurrence key (Planning)
 
-Stable identity for an expected movement across modules, e.g. `commitment:{id}:due:2026-08-15`.
+Stable identity for an expected movement across modules, e.g. `commitment:{id}:due:2026-08-15` or `recurring:{rule_id}:occurrence:2026-08-15`.
 
 Used to dedupe forecasts and to link **Transactions** (settlements) to projected outflows — including partial payments. Preferred over matching by amount/date alone.
 
-See [Sprint 8.3](../roadmap/sprint-8.3-planning-integration.md).
+For Recurring, the key uses the **original** expected date even after a single-occurrence reschedule.
+
+See [Sprint 8.3](../roadmap/sprint-8.3-planning-integration.md) · [Sprint 9.1](../roadmap/sprint-9.1-recurring-domain-model.md).
+
+### Movimiento recurrente (*RecurringRule*)
+
+Persistent configuration for a repeating expected inflow, outflow, or transfer (salary, rent, subscription, savings transfer).
+
+Product: **Movimiento recurrente**. Code aggregate: `RecurringRule`.
+
+Answers: *¿Qué movimientos espero que se repitan?*
+
+Not a Transaction. Not proof that money moved. See [Principle 11](./02-product-principles.md) · [RFC-005](../rfc/RFC-005-recurring-engine.md).
+
+### Recurring occurrence (*ocurrencia proyectada*)
+
+A calculated instance of a RecurringRule for a date — amount, direction, certainty, derived status. Generated on demand for a period; not mass-persisted as future rows.
+
+### Pendiente de confirmar (Recurring overdue UX)
+
+When an expected occurrence’s date passed without a linked Transaction, domain status may be `overdue`. UI prefers **Pendiente de confirmar** — expectation without confirmation, not contractual default.
+
+### Omitida (skipped occurrence)
+
+User marked that instance as not expected. Planning excludes it from active upcoming payments.
 
 ### Planned cash flow (manual)
 
@@ -217,6 +241,7 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Goals | ¿Qué estoy construyendo? |
 | Financial Commitments | ¿Qué parte de mi futuro ya está comprometida? |
 | Planning | ¿Qué puedo hacer el próximo mes? / ¿Cuánto puedo gastar con tranquilidad? |
+| Recurring | ¿Qué movimientos espero que se repitan? |
 | Taxes | ¿Qué debo reservar al gobierno? |
 | Financial Timeline | ¿Qué ha pasado en mi vida financiera, en orden? |
 
@@ -236,6 +261,8 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Historia / Financial Timeline | UI `/app/timeline`; module `modules/timeline/`; contract `shared/events/` |
 | Disponible para usar / Safe To Spend | Consequence of `PlanningProjection`; UI under **Planeación** |
 | Planeación | UI `/app/planning`; module `modules/planning/` |
+| Movimiento recurrente / RecurringRule | UI (planned) Movimientos recurrentes; module `modules/recurring/` |
+| Ocurrencia proyectada | Calculated VO — not mass-persisted futures |
 | Fondos protegidos | Product label for reservations |
 | Financial Projection | Computed view — not a table; see RFC-004 |
 
@@ -255,6 +282,9 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Disponible / Comprometido / Protegido | “Saldo” como si fuera gastable |
 | What should I do next? | Solo métricas sin orientación |
 | Compromiso financiero | “Pasivo genérico” in user-facing copy when we mean a managed obligation |
+| Expectativa / previsión recurrente | “Ya se pagó” because a recurrence exists |
+| Pendiente de confirmar | “Vencida / deuda” for informative recurring gaps |
+| Confirmar movimiento | Auto-crear transacciones desde un cron |
 
 ---
 

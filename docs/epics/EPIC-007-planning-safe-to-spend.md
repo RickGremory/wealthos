@@ -2,7 +2,7 @@
 
 # Planning & Safe To Spend
 
-**Status:** In progress (8.1 Accepted)  
+**Status:** Done (SPEC-004 Completed · M7)  
 **Parent:** [Module roadmap](../roadmap/module-roadmap.md), [RFC-004](../rfc/RFC-004-planning-projection.md)  
 **Depends on:** Accounts, Transactions, Commitments, Goals, Taxes, Timeline  
 **Sprint:** [Sprint 8 — Planning & Safe To Spend](../roadmap/sprint-8-planning-safe-to-spend.md)  
@@ -31,4 +31,5 @@ Users see **Disponible para gastar** as an explained Financial Projection — no
 - **8.2** Calculation model — **Accepted** ([Sprint 8.2](../roadmap/sprint-8.2-safe-to-spend-algorithm.md))  
 - **8.3** Module integration — **Accepted** ([Sprint 8.3](../roadmap/sprint-8.3-planning-integration.md))  
 - **8.4** UX & scenarios — **Accepted** ([Sprint 8.4](../roadmap/sprint-8.4-planning-ux-scenarios.md))  
-- **8.5** SPEC + implementation plan — **Accepted** ([Sprint 8.5](../roadmap/sprint-8.5-implementation-spec.md)) · **Build:** [SPEC-004](../../specs/backend/planning/SPEC-004-planning-safe-to-spend.md) Ready  
+- **8.5** SPEC + implementation plan — **Accepted** ([Sprint 8.5](../roadmap/sprint-8.5-implementation-spec.md)) · **Build:** [SPEC-004](../../specs/backend/planning/SPEC-004-planning-safe-to-spend.md) **Completed**
+- Recurring forecast source remains a stub until [EPIC-008](./EPIC-008-recurring-engine.md) / Sprint 9.  
