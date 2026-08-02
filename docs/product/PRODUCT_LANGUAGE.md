@@ -287,6 +287,7 @@ Unified chronological spine of financial life (transactions, goals, commitments,
 | Expectativa / previsión recurrente | “Ya se pagó” because a recurrence exists |
 | Pendiente de confirmar | “Vencida / deuda” for informative recurring gaps |
 | Confirmar movimiento | Auto-crear transacciones desde un cron |
+| Recurrentes | “Suscripciones” as the only nav label |
 
 ---
 
