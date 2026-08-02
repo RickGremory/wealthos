@@ -2,11 +2,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Accepted (9.1) |
+| **Status** | Accepted (9.1–9.2) |
 | **Created** | 2026-08-01 |
 | **Epic** | [EPIC-008](../epics/EPIC-008-recurring-engine.md) |
-| **Sprint** | [Sprint 9](../roadmap/sprint-9-recurring-engine.md) · [9.1](../roadmap/sprint-9.1-recurring-domain-model.md) |
-| **Decision** | [2026-08-01-recurring-expectations-not-facts](../decisions/2026-08-01-recurring-expectations-not-facts.md) |
+| **Sprint** | [Sprint 9](../roadmap/sprint-9-recurring-engine.md) · [9.1](../roadmap/sprint-9.1-recurring-domain-model.md) · [9.2](../roadmap/sprint-9.2-recurrence-generation.md) |
+| **Decision** | [2026-08-01-recurring-expectations-not-facts](../decisions/2026-08-01-recurring-expectations-not-facts.md) · [identity vs effective date](../decisions/2026-08-01-recurrence-identity-vs-effective-date.md) |
 
 ---
 
@@ -69,6 +69,19 @@ Per original occurrence: `skip` or override date/amount/certainty. Identity rema
 
 ---
 
+## Generation engine (9.2)
+
+`RecurrenceGenerator.generate(...)` is pure and deterministic. Frequency strategies (`Daily` / `Weekly` / `Monthly` / `Yearly`) emit base dates only; the orchestrator applies pauses (on base date), exceptions, settlements, status via explicit `evaluated_on`, and stable sort `(expected_on, occurrence_key)`.
+
+- Anchor all intervals on `starts_on`; inclusive `ends_on`.  
+- Identity: `original_expected_on` → key. Display/filter: `expected_on`.  
+- Limits: max 366-day request window; max 1000 occurrences — fail loud.  
+- Exception loading must cover originals or replacements intersecting the period.  
+
+Details and test matrix: [Sprint 9.2](../roadmap/sprint-9.2-recurrence-generation.md).
+
+---
+
 ## Planning / Calendar ports
 
 ```text
@@ -108,14 +121,14 @@ Aligns with ADR-007 modular boundaries. Owning modules may expose adapters imple
 
 ## Success criteria
 
-See Sprint 9.1 acceptance checklist. Engine must be pure and unit-testable without DB before API ships (9.2–9.3).
+See Sprint 9.1 (model) and Sprint 9.2 (generator) acceptance checklists. Engine must be unit-testable without DB before API ships (9.3+).
 
 ## Open points → later slices
 
 | Topic | Slice |
 |-------|--------|
-| Exact expansion algorithms | 9.2 |
-| Tables / Alembic / repositories | 9.3 |
+| Exact expansion algorithms | **9.2 Accepted** |
+| Tables / Alembic / repositories / lifecycle commands | 9.3 |
 | Confirm UI + series edit UX | 9.4 |
 | Executable SPEC | 9.5 |
 | Structural rule versioning table | after MVP if needed |

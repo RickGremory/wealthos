@@ -266,4 +266,4 @@ Persistent configuration  →  calculated result
 
 ## Next
 
-**Sprint 9.2 — Generation engine** (next slice): algorithms for expanding daily/weekly/monthly/yearly rules, applying pauses/exceptions, and emitting stable keys.
+**Sprint 9.2 — Generation engine** — **Accepted** ([sprint-9.2-recurrence-generation.md](./sprint-9.2-recurrence-generation.md)). Next: **9.3** persistence, commands, lifecycle.

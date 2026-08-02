@@ -31,4 +31,4 @@ We must model recurrence without inventing a second ledger or auto-posting trans
 - Planning adapter can replace the Sprint 8 stub with real expansions without changing STS math.  
 - Calendar must reuse the same generator.  
 - Editing structural series history needs an effective-from strategy (full versioning table can wait; no silent rewrite of settled keys).  
-- Next design slice: **9.2** generation algorithms.
+- Next design slice: **9.2** generation algorithms → **Accepted** ([Sprint 9.2](../roadmap/sprint-9.2-recurrence-generation.md)).
