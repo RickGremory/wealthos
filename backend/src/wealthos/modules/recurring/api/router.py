@@ -13,6 +13,7 @@ from wealthos.core.security.organization_access import OrganizationMember
 from wealthos.core.security.organization_permissions import require_organization_role
 from wealthos.modules.recurring.api.dependencies import (
     get_archive_handler,
+    get_calendar_adapter,
     get_create_exception_handler,
     get_create_rule_handler,
     get_create_version_handler,
@@ -31,8 +32,12 @@ from wealthos.modules.recurring.api.dependencies import (
     get_unlink_settlement_handler,
     get_update_metadata_handler,
 )
+from wealthos.modules.recurring.api.calendar_schemas import RecurringCalendarEventsResponse
 from wealthos.modules.recurring.api.exception_mapping import http_map_recurring_errors
 from wealthos.modules.recurring.api.pattern_mapping import pattern_from_schema
+from wealthos.modules.recurring.infrastructure.calendar.recurring_calendar_adapter import (
+    RecurringCalendarAdapter,
+)
 from wealthos.modules.recurring.api.schemas import (
     ArchiveRequest,
     CreateExceptionRequest,
@@ -343,6 +348,30 @@ def list_occurrences(
             )
         )
     return [_occ(item) for item in items]
+
+
+@router.get("/calendar-events", response_model=RecurringCalendarEventsResponse)
+def list_calendar_events(
+    organization_id: UUID,
+    _: OrganizationMember,
+    adapter: Annotated[
+        RecurringCalendarAdapter,
+        Depends(get_calendar_adapter),
+    ],
+    timezone: Annotated[str, Depends(get_org_timezone)],
+    from_date: Annotated[date | None, Query(alias="from")] = None,
+    to_date: Annotated[date | None, Query(alias="to")] = None,
+    currency: str | None = None,
+) -> RecurringCalendarEventsResponse:
+    result = adapter.collect(
+        organization_id,
+        date_from=from_date,
+        date_to=to_date,
+        today=date.today(),
+        timezone=timezone,
+        currency=currency.upper() if currency else None,
+    )
+    return RecurringCalendarEventsResponse.from_result(result)
 
 
 @router.get("/{rule_id}", response_model=RecurringRuleDetailResponse)

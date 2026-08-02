@@ -239,7 +239,18 @@ def get_dashboard_query(
         Depends(get_get_safe_to_spend_summary_query),
     ],
     uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)],
+    session: Annotated[Session, Depends(get_db)],
 ) -> GetDashboardQuery:
+    from wealthos.modules.recurring.infrastructure.persistence.repositories.sqlalchemy_recurring_aggregate_repository import (
+        SqlAlchemyRecurringAggregateRepository,
+    )
+    from wealthos.modules.recurring.infrastructure.persistence.repositories.sqlalchemy_recurring_settlement_repository import (
+        SqlAlchemyRecurringSettlementRepository,
+    )
+    from wealthos.modules.recurring.infrastructure.planning.recurring_dashboard_adapter import (
+        RecurringDashboardAdapter,
+    )
+
     return GetDashboardQuery(
         summary_query=summary_query,
         cash_flow_query=cash_flow_query,
@@ -252,4 +263,8 @@ def get_dashboard_query(
         planning_query=planning_query,
         safe_to_spend_query=safe_to_spend_query,
         uow=uow,
+        recurring_dashboard=RecurringDashboardAdapter(
+            SqlAlchemyRecurringAggregateRepository(session),
+            SqlAlchemyRecurringSettlementRepository(session),
+        ),
     )

@@ -13,7 +13,7 @@ Implements [SPEC-005](../../../../../specs/backend/recurring/SPEC-005-recurring-
 | PR3 Lifecycle commands | Done |
 | PR4 Read/write HTTP APIs + queries | Done |
 | PR5 Settlements ↔ Transactions | Done |
-| PR6 Planning/Calendar/Dashboard adapters | Pending |
+| PR6 Planning/Calendar/Dashboard adapters | Done |
 | PR7–8 Frontend Recurrentes | Pending |
 | PR9 Hardening + E2E | Pending |
 
@@ -27,6 +27,7 @@ Base: `/api/v1/organizations/{organization_id}/recurring`
 | POST | `/` | Create rule |
 | POST | `/preview` | Preview unsaved pattern |
 | GET | `/occurrences` | Expand occurrences in period |
+| GET | `/calendar-events` | Calendar slice (open occurrences) |
 | GET | `/{rule_id}` | Detail + upcoming |
 | GET | `/{rule_id}/versions` | Version history |
 | POST | `/{rule_id}/preview` | Preview saved rule |
@@ -42,5 +43,7 @@ Base: `/api/v1/organizations/{organization_id}/recurring`
 | POST | `/{rule_id}/settlements/{id}/unlink` | Soft-void settlement |
 
 Confirm flow: `POST /transactions` with `source.type=recurring_occurrence` + `occurrence_key` creates Transaction **and** settlement atomically. Voiding the transaction voids active settlements.
+
+Adapters share `RecurringOccurrenceProjector` (manual rules only for Planning/Dashboard; Calendar includes transfers). Externally managed rules are excluded from Recurring Planning to avoid double-count.
 
 Occurrences are expanded on read — never persisted as future rows.

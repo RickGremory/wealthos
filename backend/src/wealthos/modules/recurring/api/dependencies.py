@@ -204,3 +204,31 @@ def get_unlink_settlement_handler(
     )
 
     return UnlinkRecurringOccurrenceTransactionHandler(settlements)
+
+
+def get_calendar_adapter(
+    repo: Annotated[SqlAlchemyRecurringAggregateRepository, Depends(get_recurring_repo)],
+    settlements: Annotated[
+        SqlAlchemyRecurringSettlementRepository,
+        Depends(get_settlement_repo),
+    ],
+) -> RecurringCalendarAdapter:
+    from wealthos.modules.recurring.infrastructure.calendar.recurring_calendar_adapter import (
+        RecurringCalendarAdapter,
+    )
+
+    return RecurringCalendarAdapter(repo, settlements)
+
+
+def get_dashboard_adapter(
+    repo: Annotated[SqlAlchemyRecurringAggregateRepository, Depends(get_recurring_repo)],
+    settlements: Annotated[
+        SqlAlchemyRecurringSettlementRepository,
+        Depends(get_settlement_repo),
+    ],
+) -> RecurringDashboardAdapter:
+    from wealthos.modules.recurring.infrastructure.planning.recurring_dashboard_adapter import (
+        RecurringDashboardAdapter,
+    )
+
+    return RecurringDashboardAdapter(repo, settlements)

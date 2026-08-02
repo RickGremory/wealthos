@@ -555,6 +555,12 @@ from wealthos.modules.planning.infrastructure.repositories import (
     SqlAlchemyPlannedCashFlowRepository,
     SqlAlchemyPlanningSettingsRepository,
 )
+from wealthos.modules.recurring.infrastructure.persistence.repositories.sqlalchemy_recurring_aggregate_repository import (
+    SqlAlchemyRecurringAggregateRepository,
+)
+from wealthos.modules.recurring.infrastructure.persistence.repositories.sqlalchemy_recurring_settlement_repository import (
+    SqlAlchemyRecurringSettlementRepository,
+)
 
 
 def get_planning_settings_repository(
@@ -570,6 +576,7 @@ def get_planned_cash_flow_repository(
 
 
 def get_planning_context_builder(
+    session: Annotated[Session, Depends(get_db)],
     accounts: Annotated[AccountRepository, Depends(get_account_repository)],
     debts: Annotated[DebtRepository, Depends(get_debt_repository)],
     goals: Annotated[GoalRepository, Depends(get_goal_repository)],
@@ -583,7 +590,10 @@ def get_planning_context_builder(
             CommitmentsPlanningAdapter(debts, accounts),
             GoalsPlanningAdapter(goals),
             TaxesPlanningAdapter(),
-            RecurringPlanningAdapter(),
+            RecurringPlanningAdapter(
+                SqlAlchemyRecurringAggregateRepository(session),
+                SqlAlchemyRecurringSettlementRepository(session),
+            ),
             ManualPlanningAdapter(planned),
         ]
     )

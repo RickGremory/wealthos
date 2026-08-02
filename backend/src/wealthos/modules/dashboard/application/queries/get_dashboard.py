@@ -72,12 +72,17 @@ from wealthos.modules.planning.application.queries.get_planning_projection impor
 from wealthos.modules.planning.application.queries.get_planning_summary import (
     GetPlanningSummaryQuery,
 )
+from wealthos.modules.recurring.infrastructure.planning.recurring_dashboard_adapter import (
+    RecurringDashboardAdapter,
+    RecurringDashboardSlice,
+)
 from wealthos.modules.taxes.application.queries.get_tax_summary import GetTaxSummaryQuery
 from wealthos.shared.persistence import SqlAlchemyUnitOfWork
 
 logger = logging.getLogger(__name__)
 
 _ZERO = Decimal("0.00")
+_UPCOMING_LIMIT = 4
 
 
 class GetDashboardQuery:
@@ -95,6 +100,7 @@ class GetDashboardQuery:
         planning_query: GetPlanningSummaryQuery,
         safe_to_spend_query: GetSafeToSpendSummaryQuery,
         uow: SqlAlchemyUnitOfWork,
+        recurring_dashboard: RecurringDashboardAdapter | None = None,
     ) -> None:
         self._summary_query = summary_query
         self._cash_flow_query = cash_flow_query
@@ -107,6 +113,7 @@ class GetDashboardQuery:
         self._planning_query = planning_query
         self._safe_to_spend_query = safe_to_spend_query
         self._uow = uow
+        self._recurring_dashboard = recurring_dashboard
 
     def execute(
         self,
@@ -173,6 +180,11 @@ class GetDashboardQuery:
             currency=currency,
         )
         taxes = self._safe_taxes(organization_id, currency)
+        recurring_slice = self._safe_recurring(
+            organization_id,
+            currency=currency,
+            timezone=timezone,
+        )
 
         attention = self._build_attention(
             currency=currency,
@@ -182,6 +194,7 @@ class GetDashboardQuery:
             financial_commitments=financial_commitments,
             monthly_income=selected_metrics.monthly_income,
             monthly_expenses=selected_metrics.monthly_expenses,
+            recurring=recurring_slice,
         )
         activity = self._build_activity(organization_id, currency=currency)
         cash_flow = self._build_cash_flow(
@@ -195,7 +208,11 @@ class GetDashboardQuery:
         goal = self._build_goal(goals)
         debts_widget = self._build_debts_widget(debts)
         taxes_widget = self._build_taxes_widget(taxes)
-        upcoming = self._build_upcoming(financial_commitments, currency=currency)
+        upcoming = self._build_upcoming(
+            financial_commitments,
+            recurring=recurring_slice,
+            currency=currency,
+        )
 
         return DashboardResponse(
             as_of=datetime.now(UTC),
@@ -320,8 +337,24 @@ class GetDashboardQuery:
         financial_commitments: FinancialCommitmentsProjection | None,
         monthly_income: Decimal,
         monthly_expenses: Decimal,
+        recurring: RecurringDashboardSlice | None = None,
     ) -> AttentionWidget:
         items: list[AttentionItemData] = []
+
+        if recurring is not None and recurring.pending_confirmation_count > 0:
+            items.append(
+                AttentionItemData(
+                    id="recurring_pending",
+                    severity="warning",
+                    title="Recurrentes por confirmar",
+                    message=(
+                        f"Hay {recurring.pending_confirmation_count} ocurrencia(s) "
+                        "vencida(s) o por confirmar."
+                    ),
+                    action_label="Ver recurrentes",
+                    action_to="/app/recurring",
+                )
+            )
 
         tax_balance = taxes.get("balance") if taxes else None
         if tax_balance is not None and tax_balance > 0:
@@ -658,16 +691,34 @@ class GetDashboardQuery:
                 error_code="commitments_failed",
             )
 
+    def _safe_recurring(
+        self,
+        organization_id: UUID,
+        *,
+        currency: str,
+        timezone: str,
+    ) -> RecurringDashboardSlice | None:
+        if self._recurring_dashboard is None:
+            return None
+        try:
+            return self._recurring_dashboard.collect(
+                organization_id,
+                currency=currency,
+                timezone=timezone,
+            )
+        except Exception:
+            logger.exception("dashboard.recurring.failed")
+            return None
+
     @staticmethod
     def _build_upcoming(
         financial_commitments: FinancialCommitmentsProjection,
         *,
         currency: str,
+        recurring: RecurringDashboardSlice | None = None,
     ) -> UpcomingWidget:
-        if financial_commitments.status == "error":
-            return UpcomingWidget(status="empty", data=UpcomingWidgetData(items=[]))
         items: list[dict] = []
-        if (
+        if financial_commitments.status != "error" and (
             financial_commitments.next_due is not None
             and (
                 financial_commitments.next_due.currency is None
@@ -684,8 +735,25 @@ class GetDashboardQuery:
                     "currency": nd.currency or currency,
                     "status": "attention" if nd.due_in_days <= 7 else "normal",
                     "to": f"/app/commitments/{nd.commitment_id}",
+                    "due_in_days": nd.due_in_days,
                 }
             )
+        if recurring is not None:
+            for item in recurring.upcoming:
+                items.append(
+                    {
+                        "id": item.id,
+                        "date_label": item.date_label,
+                        "description": item.description,
+                        "amount": item.amount,
+                        "currency": item.currency,
+                        "status": item.status,
+                        "to": item.to,
+                        "due_in_days": item.due_in_days,
+                    }
+                )
+        items.sort(key=lambda row: row.get("due_in_days", 9999))
+        items = items[:_UPCOMING_LIMIT]
         if not items:
             return UpcomingWidget(status="empty", data=UpcomingWidgetData(items=[]))
         return UpcomingWidget(status="ready", data=UpcomingWidgetData(items=items))
